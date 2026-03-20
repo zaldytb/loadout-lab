@@ -360,26 +360,61 @@
       <!-- Mode: Compare -->
       <section class="workspace-mode hidden" id="mode-compare" data-mode="compare">
         <div class="compare-workspace">
+
+          <!-- TOP BAR: title + quick load + add slot -->
           <div class="comparison-header">
-            <h2 class="comparison-title">COMPARISON MODE</h2>
-            <div class="comparison-actions">
+            <h2 class="comparison-title">COMPARE</h2>
+            <div class="comparison-header-right">
+              <div class="comparison-presets-bar">
+                <span class="comp-presets-label">QUICK LOAD</span>
+                <div class="comparison-presets" id="comparison-presets"></div>
+              </div>
               <button class="btn-add-slot" id="btn-add-slot">+ Add Slot</button>
             </div>
           </div>
-          <div class="comparison-presets-bar">
-            <span class="comp-presets-label">QUICK LOAD</span>
-            <div class="comparison-presets" id="comparison-presets"></div>
+
+          <!-- LAYER 1: Compact A/B Summary Cards -->
+          <div class="compare-summaries" id="compare-summaries"></div>
+
+          <!-- Empty state when no setups configured -->
+          <div class="compare-empty-state" id="compare-empty-state">
+            <div class="compare-empty-icon">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                <circle cx="16" cy="24" r="11" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
+                <circle cx="32" cy="24" r="11" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
+              </svg>
+            </div>
+            <p class="compare-empty-title">Configure two setups to compare</p>
+            <p class="compare-empty-sub">Load presets above or add slots to begin</p>
           </div>
-          <div class="comparison-slots" id="comparison-slots"></div>
-          <div class="comparison-radar-card card" id="comparison-radar-card">
+
+          <!-- LAYER 2: Compare Verdict -->
+          <div class="compare-verdict card" id="compare-verdict" style="display:none;"></div>
+
+          <!-- LAYER 3: Grouped Comparison Matrix -->
+          <div class="compare-matrix card" id="compare-matrix" style="display:none;"></div>
+
+          <!-- LAYER 4: Radar Chart (supporting proof) -->
+          <div class="compare-proof card" id="compare-proof" style="display:none;">
             <div class="card-header">
-              <h3 class="card-title">OVERLAY COMPARISON</h3>
+              <h3 class="card-title">STAT OVERLAY</h3>
             </div>
-            <div class="comparison-radar-container">
-              <canvas id="comparison-radar-chart"></canvas>
+            <div class="compare-proof-layout">
+              <div class="comparison-radar-container">
+                <canvas id="comparison-radar-chart"></canvas>
+              </div>
             </div>
-            <div class="comparison-deltas" id="comparison-deltas"></div>
           </div>
+
+          <!-- LAYER 5: Expandable Edit Panels (hidden by default) -->
+          <div class="compare-editors" id="compare-editors" style="display:none;">
+            <div class="compare-editors-header">
+              <h3 class="card-title">SETUP EDITORS</h3>
+              <button class="compare-editors-close" id="compare-editors-close" onclick="closeCompareEditors()">✕ Close</button>
+            </div>
+            <div class="comparison-slots" id="comparison-slots"></div>
+          </div>
+
         </div>
       </section>
 

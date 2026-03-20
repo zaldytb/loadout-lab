@@ -1940,8 +1940,14 @@ function switchMode(mode) {
       addComparisonSlotFromHome();
     } else {
       renderComparisonSlots();
+      renderCompareSummaries();
+      renderCompareVerdict();
+      renderCompareMatrix();
       updateComparisonRadar();
     }
+    // Wire close-editors button
+    const closeBtn = document.getElementById('compare-editors-close');
+    if (closeBtn) closeBtn.onclick = closeCompareEditors;
   }
   // howitworks mode needs no special init — it's static content
 }
@@ -2780,13 +2786,20 @@ function addComparisonSlot() {
 
   comparisonSlots.push(slotData);
   renderComparisonSlots();
+  renderCompareSummaries();
+  renderCompareVerdict();
+  renderCompareMatrix();
   updateComparisonRadar();
 }
 
 function removeComparisonSlot(index) {
   comparisonSlots.splice(index, 1);
   renderComparisonSlots();
+  renderCompareSummaries();
+  renderCompareVerdict();
+  renderCompareMatrix();
   updateComparisonRadar();
+  renderComparisonDeltas();
 }
 
 function renderComparisonSlots() {
@@ -2991,6 +3004,9 @@ function recalcSlot(index) {
   }
 
   renderComparisonSlots();
+  renderCompareSummaries();
+  renderCompareVerdict();
+  renderCompareMatrix();
   updateComparisonRadar();
   renderComparisonDeltas();
 }
@@ -3103,6 +3119,292 @@ function renderComparisonDeltas() {
       }).join('')}
     </div>`;
   }
+
+  container.innerHTML = html;
+}
+
+// ============================================
+// COMPARE REDESIGN — Summary Cards, Verdict, Matrix
+// ============================================
+
+function renderCompareSummaries() {
+  const container = $('#compare-summaries');
+  const emptyState = $('#compare-empty-state');
+  const validSlots = comparisonSlots.filter(s => s.stats);
+
+  if (validSlots.length === 0) {
+    container.innerHTML = '';
+    emptyState.style.display = '';
+    // Hide analysis layers
+    $('#compare-verdict').style.display = 'none';
+    $('#compare-matrix').style.display = 'none';
+    $('#compare-proof').style.display = 'none';
+    return;
+  }
+
+  emptyState.style.display = 'none';
+
+  let html = '';
+  comparisonSlots.forEach((slot, index) => {
+    if (!slot.stats) return;
+    const color = SLOT_COLORS[index];
+    const racquet = RACQUETS.find(r => r.id === slot.racquetId);
+    const obsScore = computeCompositeScore(slot.stats).toFixed(1);
+    const pct = Math.min(100, Math.max(0, obsScore));
+    const circumference = 2 * Math.PI * 26;
+    const dashOffset = circumference * (1 - pct / 100);
+    const archetype = slot.identity?.archetype || 'Balanced Setup';
+
+    // Build setup meta string
+    let metaHTML = '';
+    if (racquet) metaHTML += `<span><strong>${racquet.name}</strong></span>`;
+    if (slot.isHybrid) {
+      const m = STRINGS.find(s => s.id === slot.mainsId);
+      const x = STRINGS.find(s => s.id === slot.crossesId);
+      if (m && x) metaHTML += `<span>${m.name} / ${x.name}</span>`;
+      metaHTML += `<span>M:${slot.mainsTension} / X:${slot.crossesTension} lbs</span>`;
+    } else {
+      const str = STRINGS.find(s => s.id === slot.stringId);
+      if (str) metaHTML += `<span>${str.name} ${str.gauge}</span>`;
+      metaHTML += `<span>${slot.tension} lbs</span>`;
+    }
+
+    // Short 1-line descriptor
+    const descriptor = getRatingDescriptor(parseFloat(obsScore), slot.identity || { archetype: 'Balanced Setup' });
+
+    html += `
+      <div class="compare-summary-card slot-color-${color.cssClass}">
+        <div class="compare-summary-top">
+          <div class="compare-summary-identity">
+            <span class="compare-summary-label slot-label-${color.cssClass}">SETUP ${color.label}</span>
+            <div class="compare-summary-archetype">${archetype.toUpperCase()}</div>
+            <div class="compare-summary-descriptor">${descriptor}</div>
+          </div>
+          <div class="compare-summary-score">
+            <div class="compare-summary-score-ring">
+              <svg width="64" height="64" viewBox="0 0 64 64">
+                <circle cx="32" cy="32" r="26" stroke="var(--border-subtle)" stroke-width="3" fill="none" />
+                <circle cx="32" cy="32" r="26" stroke="${color.border}" stroke-width="3" fill="none"
+                  stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}"
+                  stroke-linecap="round" transform="rotate(-90 32 32)" />
+              </svg>
+              <span class="compare-summary-score-value">${obsScore}</span>
+            </div>
+            <span class="compare-summary-score-label">OBS</span>
+          </div>
+        </div>
+        <div class="compare-summary-meta">${metaHTML}</div>
+        <div class="compare-summary-actions">
+          <button class="compare-action-btn" onclick="openCompareEditor(${index})">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M11.5 1.5l3 3L5 14H2v-3L11.5 1.5z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Edit
+          </button>
+          <button class="compare-action-btn" onclick="openTuneForSlot(${index})">
+            <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/></svg>
+            Tune
+          </button>
+          <button class="compare-action-btn" onclick="removeComparisonSlot(${index})">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            Remove
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+function openCompareEditor(slotIndex) {
+  const editors = $('#compare-editors');
+  editors.style.display = '';
+  // Scroll to it
+  editors.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function closeCompareEditors() {
+  $('#compare-editors').style.display = 'none';
+}
+
+function generateCompareVerdict(slotA, slotB) {
+  const a = slotA.stats;
+  const b = slotB.stats;
+  const idA = slotA.identity?.archetype || 'Balanced Setup';
+  const idB = slotB.identity?.archetype || 'Balanced Setup';
+  const colorA = SLOT_COLORS[comparisonSlots.indexOf(slotA)];
+  const colorB = SLOT_COLORS[comparisonSlots.indexOf(slotB)];
+
+  // Compute category wins
+  const categories = [
+    { label: 'Spin', key: 'spin' },
+    { label: 'Power', key: 'power' },
+    { label: 'Control', key: 'control' },
+    { label: 'Comfort', key: 'comfort' },
+    { label: 'Feel', key: 'feel' },
+    { label: 'Launch', key: 'launch' },
+    { label: 'Stability', key: 'stability' },
+    { label: 'Forgiveness', key: 'forgiveness' },
+    { label: 'Durability', key: 'durability' },
+    { label: 'Playability', key: 'playability' }
+  ];
+
+  const winsA = [];
+  const winsB = [];
+  let biggestDiffKey = '';
+  let biggestDiff = 0;
+
+  categories.forEach(cat => {
+    const diff = a[cat.key] - b[cat.key];
+    if (diff > 2) winsA.push(cat.label);
+    else if (diff < -2) winsB.push(cat.label);
+    if (Math.abs(diff) > biggestDiff) {
+      biggestDiff = Math.abs(diff);
+      biggestDiffKey = cat.label;
+    }
+  });
+
+  // Build the main tradeoff sentence
+  const scoreA = computeCompositeScore(a).toFixed(1);
+  const scoreB = computeCompositeScore(b).toFixed(1);
+  const scoreDiff = Math.abs(scoreA - scoreB).toFixed(1);
+
+  let tradeoff = '';
+  if (winsA.length > 0 && winsB.length > 0) {
+    tradeoff = `Setup ${colorA.label} trades ${winsB.slice(0, 2).join(' and ').toLowerCase()} for stronger ${winsA.slice(0, 2).join(' and ').toLowerCase()}. The biggest gap is in ${biggestDiffKey} (${biggestDiff} pts).`;
+  } else if (winsA.length > 0) {
+    tradeoff = `Setup ${colorA.label} leads across most categories, especially in ${biggestDiffKey} (+${biggestDiff}). Setup ${colorB.label} doesn't strongly outperform in any area.`;
+  } else if (winsB.length > 0) {
+    tradeoff = `Setup ${colorB.label} leads across most categories, especially in ${biggestDiffKey} (+${biggestDiff}). Setup ${colorA.label} doesn't strongly outperform in any area.`;
+  } else {
+    tradeoff = `Both setups perform similarly across all categories. The biggest difference is in ${biggestDiffKey} (${biggestDiff} pts) — a marginal gap.`;
+  }
+
+  // Pick A if / Pick B if
+  function buildPickReason(stats, identity) {
+    const traits = [];
+    if (stats.spin >= 70) traits.push('rely on heavy topspin');
+    if (stats.power >= 65) traits.push('want to dictate with pace');
+    if (stats.control >= 72) traits.push('value placement and accuracy');
+    if (stats.comfort >= 70) traits.push('have arm sensitivity');
+    if (stats.feel >= 72) traits.push('play a lot at the net');
+    if (stats.durability >= 78) traits.push('break strings frequently');
+    if (stats.stability >= 68) traits.push('need stability on off-center hits');
+    if (traits.length === 0) traits.push('want a versatile all-court setup');
+    return traits.slice(0, 3);
+  }
+
+  const pickA = buildPickReason(a, slotA.identity);
+  const pickB = buildPickReason(b, slotB.identity);
+
+  return { tradeoff, winsA, winsB, pickA, pickB, colorA, colorB, idA, idB };
+}
+
+function renderCompareVerdict() {
+  const container = $('#compare-verdict');
+  const validSlots = comparisonSlots.filter(s => s.stats);
+
+  if (validSlots.length < 2) {
+    container.style.display = 'none';
+    return;
+  }
+
+  container.style.display = '';
+
+  const slotA = validSlots[0];
+  const slotB = validSlots[1];
+  const v = generateCompareVerdict(slotA, slotB);
+
+  container.innerHTML = `
+    <div class="verdict-header">
+      <h3>COMPARE VERDICT</h3>
+    </div>
+    <div class="verdict-tradeoff">${v.tradeoff}</div>
+    <div class="verdict-columns">
+      <div class="verdict-col">
+        <span class="verdict-col-header slot-label-${v.colorA.cssClass}">SETUP ${v.colorA.label} WINS</span>
+        <div class="verdict-wins">
+          ${v.winsA.length > 0 ? v.winsA.map(w => `<span class="verdict-win-tag">${w}</span>`).join('') : '<span class="verdict-win-tag" style="opacity:0.5;">No clear wins</span>'}
+        </div>
+        <div class="verdict-pick"><strong>Pick ${v.colorA.label} if you</strong> ${v.pickA.join(', ')}</div>
+      </div>
+      <div class="verdict-col">
+        <span class="verdict-col-header slot-label-${v.colorB.cssClass}">SETUP ${v.colorB.label} WINS</span>
+        <div class="verdict-wins">
+          ${v.winsB.length > 0 ? v.winsB.map(w => `<span class="verdict-win-tag">${w}</span>`).join('') : '<span class="verdict-win-tag" style="opacity:0.5;">No clear wins</span>'}
+        </div>
+        <div class="verdict-pick"><strong>Pick ${v.colorB.label} if you</strong> ${v.pickB.join(', ')}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderCompareMatrix() {
+  const container = $('#compare-matrix');
+  const proof = $('#compare-proof');
+  const validSlots = comparisonSlots.filter(s => s.stats);
+
+  if (validSlots.length < 2) {
+    container.style.display = 'none';
+    proof.style.display = 'none';
+    return;
+  }
+
+  container.style.display = '';
+  proof.style.display = '';
+
+  const a = validSlots[0];
+  const b = validSlots[1];
+  const colorA = SLOT_COLORS[comparisonSlots.indexOf(a)];
+  const colorB = SLOT_COLORS[comparisonSlots.indexOf(b)];
+
+  const groups = [
+    { title: 'PERFORMANCE', keys: ['spin', 'power', 'control', 'launch'] },
+    { title: 'FEEL & COMFORT', keys: ['comfort', 'feel', 'stability', 'forgiveness'] },
+    { title: 'LONGEVITY', keys: ['durability', 'playability'] }
+  ];
+
+  const keyToLabel = {};
+  STAT_KEYS.forEach((k, i) => keyToLabel[k] = STAT_LABELS[i]);
+
+  let html = `
+    <div class="matrix-header">
+      <h3>STAT-BY-STAT</h3>
+      <div style="display:flex;gap:12px;font-size:0.68rem;font-weight:600;letter-spacing:0.06em;">
+        <span style="color:${colorA.border};">● SETUP ${colorA.label}</span>
+        <span style="color:${colorB.border};">● SETUP ${colorB.label}</span>
+      </div>
+    </div>
+  `;
+
+  groups.forEach(group => {
+    html += `<div class="matrix-group">
+      <div class="matrix-group-title">${group.title}</div>`;
+
+    group.keys.forEach(key => {
+      const valA = a.stats[key];
+      const valB = b.stats[key];
+      const diff = valA - valB;
+      const absDiff = Math.abs(diff);
+      const cls = diff > 0 ? 'positive' : diff < 0 ? 'negative' : 'neutral';
+      const sign = diff > 0 ? '+' : '';
+      const winner = diff > 2 ? colorA.border : diff < -2 ? colorB.border : 'var(--text-muted)';
+
+      html += `
+        <div class="matrix-row">
+          <span class="matrix-stat-label">${keyToLabel[key] || key}</span>
+          <div class="matrix-bar-cell">
+            <div class="matrix-bar-a" style="width:${valA}%;background:${colorA.border};opacity:0.5;border-radius:3px;"></div>
+            <div class="matrix-bar-b" style="width:${valB}%;background:${colorB.border};opacity:0.35;border-radius:3px;top:0;"></div>
+          </div>
+          <span class="matrix-val" style="color:${colorA.border};">${valA}</span>
+          <span class="matrix-val" style="color:${colorB.border};">${valB}</span>
+          <span class="matrix-delta ${cls}"><span class="matrix-winner-dot" style="background:${winner};"></span>${sign}${diff}</span>
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+  });
 
   container.innerHTML = html;
 }
