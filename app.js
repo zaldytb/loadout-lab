@@ -4814,8 +4814,9 @@ function renderRecommendedBuilds(setup) {
     let bestStats = null;
 
     for (let t = sweepMin; t <= sweepMax; t += 1) {
-      const cfg = { isHybrid: false, string: s, tension: t };
+      const cfg = { isHybrid: false, string: s, mainsTension: t, crossesTension: t };
       const stats = predictSetup(racquet, cfg);
+      if (!stats) continue;
       const score = computeCompositeScore(stats);
       if (score > bestScore) {
         bestScore = score;
@@ -4824,12 +4825,14 @@ function renderRecommendedBuilds(setup) {
       }
     }
 
-    candidates.push({
-      string: s,
-      tension: bestTension,
-      score: bestScore,
-      stats: bestStats
-    });
+    if (bestStats) {
+      candidates.push({
+        string: s,
+        tension: bestTension,
+        score: bestScore,
+        stats: bestStats
+      });
+    }
   });
 
   // Sort by score descending, take top 5
