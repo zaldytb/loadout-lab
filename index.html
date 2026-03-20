@@ -114,14 +114,18 @@
           <div id="full-bed-config" class="string-config">
             <label class="field-label">String</label>
             <div id="select-string-full" data-gauge-target="gauge-display-full"></div>
-            <div class="row-2col">
+            <div class="fullbed-gauge-row">
+              <label class="field-label">Gauge</label>
+              <div id="gauge-display-full" class="gauge-display">—</div>
+            </div>
+            <div class="row-2col fullbed-tension-row">
               <div>
-                <label class="field-label">Gauge</label>
-                <div id="gauge-display-full" class="gauge-display">—</div>
+                <label class="field-label accent-cyan">Mains Tension</label>
+                <input type="number" id="input-tension-full-mains" class="text-input" min="30" max="70" value="55">
               </div>
               <div>
-                <label class="field-label">Tension (lbs)</label>
-                <input type="number" id="input-tension-full" class="text-input" min="30" max="70" value="55">
+                <label class="field-label accent-green">Crosses Tension</label>
+                <input type="number" id="input-tension-full-crosses" class="text-input" min="30" max="70" value="53">
               </div>
             </div>
           </div>
@@ -571,15 +575,15 @@
                 <p>The OBS maps to a ten-tier rank ladder. Yes, the names are intentionally brainrot. No, we're not changing them.</p>
                 <div class="hiw-rank-tiers">
                   <div class="hiw-rank-tier"><span class="hiw-rank-score">0–10</span><span class="hiw-rank-label">Delete This</span></div>
-                  <div class="hiw-rank-tier"><span class="hiw-rank-score">11–20</span><span class="hiw-rank-label">NPC Energy</span></div>
-                  <div class="hiw-rank-tier"><span class="hiw-rank-score">21–35</span><span class="hiw-rank-label">Mid</span></div>
-                  <div class="hiw-rank-tier"><span class="hiw-rank-score">36–45</span><span class="hiw-rank-label">Lowkey Decent</span></div>
-                  <div class="hiw-rank-tier"><span class="hiw-rank-score">46–55</span><span class="hiw-rank-label">Certified Playable</span></div>
-                  <div class="hiw-rank-tier"><span class="hiw-rank-score">56–65</span><span class="hiw-rank-label">That's Tuff</span></div>
-                  <div class="hiw-rank-tier"><span class="hiw-rank-score">66–75</span><span class="hiw-rank-label">Goated Setup</span></div>
-                  <div class="hiw-rank-tier"><span class="hiw-rank-score">76–85</span><span class="hiw-rank-label">Absolutely Dialed</span></div>
-                  <div class="hiw-rank-tier"><span class="hiw-rank-score">86–95</span><span class="hiw-rank-label">No Cap Elite</span></div>
-                  <div class="hiw-rank-tier"><span class="hiw-rank-score">96–100</span><span class="hiw-rank-label">Max Aura</span></div>
+                  <div class="hiw-rank-tier"><span class="hiw-rank-score">10–20</span><span class="hiw-rank-label">Hospital Build</span></div>
+                  <div class="hiw-rank-tier"><span class="hiw-rank-score">20–30</span><span class="hiw-rank-label">Bruh</span></div>
+                  <div class="hiw-rank-tier"><span class="hiw-rank-score">30–40</span><span class="hiw-rank-label">Cooked</span></div>
+                  <div class="hiw-rank-tier"><span class="hiw-rank-score">40–50</span><span class="hiw-rank-label">This Ain’t It</span></div>
+                  <div class="hiw-rank-tier"><span class="hiw-rank-score">50–60</span><span class="hiw-rank-label">Mid</span></div>
+                  <div class="hiw-rank-tier"><span class="hiw-rank-score">60–70</span><span class="hiw-rank-label">Built Diff</span></div>
+                  <div class="hiw-rank-tier"><span class="hiw-rank-score">70–80</span><span class="hiw-rank-label">S Rank</span></div>
+                  <div class="hiw-rank-tier"><span class="hiw-rank-score">80–90</span><span class="hiw-rank-label">WTF</span></div>
+                  <div class="hiw-rank-tier"><span class="hiw-rank-score">90–100</span><span class="hiw-rank-label">Max Aura</span></div>
                 </div>
               </div>
               <p>
@@ -651,7 +655,7 @@
               </p>
               <div class="hiw-callout hiw-callout-final">
                 <div class="hiw-callout-icon">◆</div>
-                <p>Built by a left-handed one-hander who spends too much time thinking about string tension. The brainrot rank names are intentional. The math is serious. The vibes are immaculate. Welcome to the lab.</p>
+                <p>Built by a left-handed one-hander who spends too much time thinking about string tension. The brainrot rank names are intentional. The math is serious. The vibes are immaculate. Welcome to the lab. — Zaldy R</p>
               </div>
             </div>
           </div>

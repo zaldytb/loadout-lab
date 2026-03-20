@@ -1671,7 +1671,7 @@ function predictSetup(racquet, stringConfig) {
     stringMod = calcStringFrameMod(stringConfig.string);
     stringProfile = calcBaseStringProfile(stringConfig.string);
     stringMod.launchMod = stringMod.launchMod || 0;
-    avgTension = stringConfig.tension;
+    avgTension = (stringConfig.mainsTension + stringConfig.crossesTension) / 2;
   }
 
   const tensionMod = calcTensionModifier(avgTension, racquet.tensionRange);
@@ -1800,11 +1800,9 @@ function generateWarnings(racquet, stringConfig, stats) {
 
   const getMainString = () => stringConfig.isHybrid ? stringConfig.mains : stringConfig.string;
   const getCrossString = () => stringConfig.isHybrid ? stringConfig.crosses : stringConfig.string;
-  const getAvgTension = () => stringConfig.isHybrid
-    ? (stringConfig.mainsTension + stringConfig.crossesTension) / 2
-    : stringConfig.tension;
-  const getMainsTension = () => stringConfig.isHybrid ? stringConfig.mainsTension : stringConfig.tension;
-  const getCrossesTension = () => stringConfig.isHybrid ? stringConfig.crossesTension : stringConfig.tension;
+  const getAvgTension = () => (stringConfig.mainsTension + stringConfig.crossesTension) / 2;
+  const getMainsTension = () => stringConfig.mainsTension;
+  const getCrossesTension = () => stringConfig.crossesTension;
 
   // Tension outside range
   const mainsTension = getMainsTension();
@@ -1816,10 +1814,10 @@ function generateWarnings(racquet, stringConfig, stats) {
   if (mainsTension > racquet.tensionRange[1]) {
     warnings.push(`Mains tension (${mainsTension} lbs) is above the recommended range (${racquet.tensionRange[0]}–${racquet.tensionRange[1]} lbs). Risk of reduced comfort and arm strain.`);
   }
-  if (stringConfig.isHybrid && crossesTension < racquet.tensionRange[0]) {
+  if (crossesTension < racquet.tensionRange[0]) {
     warnings.push(`Crosses tension (${crossesTension} lbs) is below the recommended range.`);
   }
-  if (stringConfig.isHybrid && crossesTension > racquet.tensionRange[1]) {
+  if (crossesTension > racquet.tensionRange[1]) {
     warnings.push(`Crosses tension (${crossesTension} lbs) is above the recommended range.`);
   }
 
@@ -1988,10 +1986,9 @@ const DEFAULT_PRESETS = [
     isHybrid: false,
     mainsId: null,
     crossesId: null,
-    mainsTension: null,
-    crossesTension: null,
-    stringId: 'solinco-confidential-16',
-    tension: 55
+    mainsTension: 55,
+    crossesTension: 53,
+    stringId: 'solinco-confidential-16'
   }
 ];
 
@@ -2031,7 +2028,9 @@ function getPresetDetail(preset) {
   } else {
     const str = STRINGS.find(s => s.id === preset.stringId);
     const sName = str ? str.name : '?';
-    return `${sName} ${preset.tension} lbs on ${rName}`;
+    const mt = preset.mainsTension ?? preset.tension ?? 55;
+    const xt = preset.crossesTension ?? preset.tension ?? 53;
+    return `${sName} ${mt === xt ? mt + ' lbs' : 'M:' + mt + ' / X:' + xt} on ${rName}`;
   }
 }
 
@@ -2094,10 +2093,9 @@ function saveCurrentAsPreset() {
     isHybrid: stringConfig.isHybrid,
     mainsId: stringConfig.isHybrid ? stringConfig.mains.id : null,
     crossesId: stringConfig.isHybrid ? stringConfig.crosses.id : null,
-    mainsTension: stringConfig.isHybrid ? stringConfig.mainsTension : null,
-    crossesTension: stringConfig.isHybrid ? stringConfig.crossesTension : null,
-    stringId: stringConfig.isHybrid ? null : stringConfig.string.id,
-    tension: stringConfig.isHybrid ? null : stringConfig.tension
+    mainsTension: stringConfig.mainsTension,
+    crossesTension: stringConfig.crossesTension,
+    stringId: stringConfig.isHybrid ? null : stringConfig.string.id
   };
 
   userPresets.push(preset);
@@ -2137,7 +2135,11 @@ function loadPresetFromData(preset) {
     setHybridMode(false);
     ssInstances['select-string-full']?.setValue(preset.stringId);
     populateGaugeDropdown(document.getElementById('gauge-display-full'), preset.stringId);
-    $('#input-tension-full').value = preset.tension;
+    // Full Bed with split tensions — support both legacy (single tension) and new (mainsTension/crossesTension)
+    const mt = preset.mainsTension ?? preset.tension ?? 55;
+    const xt = preset.crossesTension ?? preset.tension ?? 53;
+    $('#input-tension-full-mains').value = mt;
+    $('#input-tension-full-crosses').value = xt;
   }
 
   renderDashboard();
@@ -2158,14 +2160,12 @@ function loadPresetIntoSlot(presetIdx, slotIdx) {
     slot.mainsTension = preset.mainsTension;
     slot.crossesTension = preset.crossesTension;
     slot.stringId = '';
-    slot.tension = 55;
   } else {
     slot.stringId = preset.stringId;
-    slot.tension = preset.tension;
+    slot.mainsTension = preset.mainsTension ?? preset.tension ?? 55;
+    slot.crossesTension = preset.crossesTension ?? preset.tension ?? 53;
     slot.mainsId = '';
     slot.crossesId = '';
-    slot.mainsTension = 55;
-    slot.crossesTension = 53;
   }
 
   recalcSlot(slotIdx);
@@ -2644,7 +2644,8 @@ function getCurrentSetup() {
       stringConfig: {
         isHybrid: false,
         string: STRINGS.find(s => s.id === stringId),
-        tension: parseInt($('#input-tension-full').value) || 55
+        mainsTension: parseInt($('#input-tension-full-mains').value) || 55,
+        crossesTension: parseInt($('#input-tension-full-crosses').value) || 53
       }
     };
   }
@@ -2700,7 +2701,7 @@ function renderSummary(racquet, stringConfig, badge) {
     stringTension = `M: ${stringConfig.mainsTension} / X: ${stringConfig.crossesTension} lbs`;
   } else {
     stringName = `${stringConfig.string.name} ${stringConfig.string.gauge}`;
-    stringTension = `${stringConfig.tension} lbs`;
+    stringTension = `M: ${stringConfig.mainsTension} / X: ${stringConfig.crossesTension} lbs`;
   }
 
   grid.innerHTML = `
@@ -3054,7 +3055,6 @@ function addComparisonSlotFromHome() {
     id: Date.now(),
     racquetId: '',
     stringId: '',
-    tension: 55,
     isHybrid: false,
     mainsId: '',
     crossesId: '',
@@ -3075,7 +3075,8 @@ function addComparisonSlotFromHome() {
     } else {
       slotData.isHybrid = false;
       slotData.stringId = setup.stringConfig.string.id;
-      slotData.tension = setup.stringConfig.tension;
+      slotData.mainsTension = setup.stringConfig.mainsTension;
+      slotData.crossesTension = setup.stringConfig.crossesTension;
     }
   }
 
@@ -3094,7 +3095,6 @@ function addComparisonSlot() {
     id: Date.now(),
     racquetId: '',
     stringId: '',
-    tension: 55,
     isHybrid: false,
     mainsId: '',
     crossesId: '',
@@ -3147,13 +3147,15 @@ function renderComparisonSlots() {
         </select>
         <div class="row-2col">
           <div>
-            <label class="field-label">Tension</label>
-            <input type="number" class="text-input slot-tension" data-slot="${index}" value="${slot.tension}" min="30" max="70">
+            <label class="field-label accent-cyan">Mains Tension</label>
+            <input type="number" class="text-input slot-mains-tension-fb" data-slot="${index}" value="${slot.mainsTension}" min="30" max="70">
           </div>
-          <div style="display:flex;align-items:flex-end;">
-            ${slot.stats && !slot.isHybrid ? `<div class="slot-identity">${slot.identity?.archetype || '—'}</div>` : ''}
+          <div>
+            <label class="field-label accent-green">Crosses Tension</label>
+            <input type="number" class="text-input slot-crosses-tension-fb" data-slot="${index}" value="${slot.crossesTension}" min="30" max="70">
           </div>
         </div>
+        ${slot.stats && !slot.isHybrid ? `<div class="slot-identity" style="text-align:center; padding-top:4px;">${slot.identity?.archetype || '—'}</div>` : ''}
       </div>`;
 
     const hybridHTML = `
@@ -3223,10 +3225,17 @@ function renderComparisonSlots() {
       recalcSlot(idx);
     });
   });
-  container.querySelectorAll('.slot-tension').forEach(inp => {
+  container.querySelectorAll('.slot-mains-tension-fb').forEach(inp => {
     inp.addEventListener('input', (e) => {
       const idx = parseInt(e.target.dataset.slot);
-      comparisonSlots[idx].tension = parseInt(e.target.value) || 55;
+      comparisonSlots[idx].mainsTension = parseInt(e.target.value) || 55;
+      recalcSlot(idx);
+    });
+  });
+  container.querySelectorAll('.slot-crosses-tension-fb').forEach(inp => {
+    inp.addEventListener('input', (e) => {
+      const idx = parseInt(e.target.dataset.slot);
+      comparisonSlots[idx].crossesTension = parseInt(e.target.value) || 53;
       recalcSlot(idx);
     });
   });
@@ -3313,7 +3322,8 @@ function recalcSlot(index) {
       stringConfig = {
         isHybrid: false,
         string: stringData,
-        tension: slot.tension
+        mainsTension: slot.mainsTension,
+        crossesTension: slot.crossesTension
       };
     }
   }
@@ -3521,7 +3531,7 @@ function renderCompareSummaries() {
     } else {
       const str = STRINGS.find(s => s.id === slot.stringId);
       if (str) metaHTML += `<span>${str.name} ${str.gauge}</span>`;
-      metaHTML += `<span>${slot.tension} lbs</span>`;
+      metaHTML += `<span>M:${slot.mainsTension} / X:${slot.crossesTension} lbs</span>`;
     }
 
     // Short 1-line descriptor
@@ -3853,13 +3863,14 @@ function updateSliderLabel() {
   const labelEl = document.querySelector('.slider-current-label');
   const valueEl = $('#slider-current-value');
 
-  if (isHybrid && dim === 'mains') {
+  const hasSplitTensions = setup && (setup.stringConfig.mainsTension !== undefined && setup.stringConfig.crossesTension !== undefined);
+  if (hasSplitTensions && dim === 'mains') {
     labelEl.textContent = 'Exploring Mains';
     valueEl.textContent = `${val} lbs`;
-  } else if (isHybrid && dim === 'crosses') {
+  } else if (hasSplitTensions && dim === 'crosses') {
     labelEl.textContent = 'Exploring Crosses';
     valueEl.textContent = `${val} lbs`;
-  } else if (isHybrid && dim === 'linked') {
+  } else if (hasSplitTensions && dim === 'linked') {
     const diff = setup.stringConfig.mainsTension - setup.stringConfig.crossesTension;
     const mainsVal = val;
     const crossesVal = val - diff;
@@ -3875,7 +3886,8 @@ function updateDeltaTitle(stringConfig) {
   const titleEl = $('#tune-card-delta .tune-card-title');
   if (!titleEl) return;
   const dim = tuneState.hybridDimension;
-  if (stringConfig && stringConfig.isHybrid) {
+  const hasSplitTensions = stringConfig && (stringConfig.mainsTension !== undefined && stringConfig.crossesTension !== undefined);
+  if (hasSplitTensions) {
     if (dim === 'mains') {
       titleEl.textContent = 'DELTA VS BASELINE — MAINS ONLY';
     } else if (dim === 'crosses') {
@@ -3912,8 +3924,11 @@ function initTuneMode(setup) {
     }
     tuneState.baselineTension = getHybridBaselineTension(stringConfig, tuneState.hybridDimension);
   } else {
-    tuneState.baselineTension = stringConfig.tension;
-    tuneState.hybridDimension = 'linked';
+    // Full Bed now has independent tensions — treat like hybrid for tune purposes
+    if (!['mains','crosses','linked'].includes(tuneState.hybridDimension)) {
+      tuneState.hybridDimension = 'linked';
+    }
+    tuneState.baselineTension = getHybridBaselineTension(stringConfig, tuneState.hybridDimension);
   }
   tuneState.exploredTension = tuneState.baselineTension;
 
@@ -3968,7 +3983,16 @@ function runTensionSweep(setup) {
         modifiedConfig = { ...stringConfig, mainsTension: t, crossesTension: t - diff };
       }
     } else {
-      modifiedConfig = { ...stringConfig, tension: t };
+      // Full Bed: independent tensions, same dimension logic as hybrid
+      const diff = stringConfig.mainsTension - stringConfig.crossesTension;
+      if (tuneState.hybridDimension === 'mains') {
+        modifiedConfig = { ...stringConfig, mainsTension: t };
+      } else if (tuneState.hybridDimension === 'crosses') {
+        modifiedConfig = { ...stringConfig, crossesTension: t };
+      } else {
+        // Linked: maintain the differential
+        modifiedConfig = { ...stringConfig, mainsTension: t, crossesTension: t - diff };
+      }
     }
     const stats = predictSetup(racquet, modifiedConfig);
     results.push({ tension: t, stats });
@@ -4901,7 +4925,9 @@ function onTuneSliderInput(e) {
 
 function renderTuneHybridToggle(stringConfig) {
   const container = $('#tune-hybrid-toggle');
-  if (!stringConfig.isHybrid) {
+  // Show toggle for both hybrid AND Full Bed (which now has independent tensions)
+  const hasSplitTensions = stringConfig.isHybrid || (stringConfig.mainsTension !== undefined && stringConfig.crossesTension !== undefined);
+  if (!hasSplitTensions) {
     container.innerHTML = '';
     container.style.display = 'none';
     return;
@@ -4958,7 +4984,17 @@ function syncTuneToMain(tension) {
       $('#input-tension-crosses').value = tension - diff;
     }
   } else {
-    $('#input-tension-full').value = tension;
+    // Full Bed: independent tensions with dimension toggle
+    const diff = stringConfig.mainsTension - stringConfig.crossesTension;
+    if (tuneState.hybridDimension === 'mains') {
+      $('#input-tension-full-mains').value = tension;
+    } else if (tuneState.hybridDimension === 'crosses') {
+      $('#input-tension-full-crosses').value = tension;
+    } else {
+      // Linked: maintain differential
+      $('#input-tension-full-mains').value = tension;
+      $('#input-tension-full-crosses').value = tension - diff;
+    }
   }
   tuneState.baselineTension = tension;
   tuneState.exploredTension = tension;
@@ -4997,7 +5033,8 @@ function openTuneForSlot(slotIndex) {
     setHybridMode(false);
     ssInstances['select-string-full']?.setValue(slot.stringId);
     populateGaugeDropdown(document.getElementById('gauge-display-full'), slot.stringId);
-    $('#input-tension-full').value = slot.tension;
+    $('#input-tension-full-mains').value = slot.mainsTension;
+    $('#input-tension-full-crosses').value = slot.crossesTension;
   }
   renderDashboard();
 
@@ -5058,7 +5095,8 @@ function init() {
   populateStringDropdown($('#select-string-crosses'));
 
   // Tension inputs
-  $('#input-tension-full').addEventListener('input', renderDashboard);
+  $('#input-tension-full-mains').addEventListener('input', renderDashboard);
+  $('#input-tension-full-crosses').addEventListener('input', renderDashboard);
   $('#input-tension-mains').addEventListener('input', renderDashboard);
   $('#input-tension-crosses').addEventListener('input', renderDashboard);
 
