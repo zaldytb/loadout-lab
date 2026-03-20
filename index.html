@@ -96,9 +96,7 @@
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><line x1="8" y1="5" x2="8" y2="11" stroke="currentColor" stroke-width="1.5"/><line x1="5" y1="8" x2="11" y2="8" stroke="currentColor" stroke-width="1.5"/></svg>
             Frame
           </h2>
-          <select id="select-racquet" class="select-input">
-            <option value="">Select Racquet...</option>
-          </select>
+          <div id="select-racquet"></div>
           <div id="frame-specs" class="frame-specs hidden"></div>
         </div>
 
@@ -115,13 +113,11 @@
           <!-- Full Bed -->
           <div id="full-bed-config" class="string-config">
             <label class="field-label">String</label>
-            <select id="select-string-full" class="select-input">
-              <option value="">Select String...</option>
-            </select>
+            <div id="select-string-full" data-gauge-target="gauge-display-full"></div>
             <div class="row-2col">
               <div>
                 <label class="field-label">Gauge</label>
-                <select id="select-gauge-full" class="select-input"></select>
+                <div id="gauge-display-full" class="gauge-display">—</div>
               </div>
               <div>
                 <label class="field-label">Tension (lbs)</label>
@@ -134,13 +130,11 @@
           <div id="hybrid-config" class="string-config hidden">
             <div class="hybrid-section">
               <label class="field-label accent-cyan">Mains</label>
-              <select id="select-string-mains" class="select-input">
-                <option value="">Select Main String...</option>
-              </select>
+              <div id="select-string-mains" data-placeholder="Select Main String..." data-gauge-target="gauge-display-mains"></div>
               <div class="row-2col">
                 <div>
                   <label class="field-label">Gauge</label>
-                  <select id="select-gauge-mains" class="select-input"></select>
+                  <div id="gauge-display-mains" class="gauge-display">—</div>
                 </div>
                 <div>
                   <label class="field-label">Tension (lbs)</label>
@@ -150,13 +144,11 @@
             </div>
             <div class="hybrid-section">
               <label class="field-label accent-green">Crosses</label>
-              <select id="select-string-crosses" class="select-input">
-                <option value="">Select Cross String...</option>
-              </select>
+              <div id="select-string-crosses" data-placeholder="Select Cross String..." data-gauge-target="gauge-display-crosses"></div>
               <div class="row-2col">
                 <div>
                   <label class="field-label">Gauge</label>
-                  <select id="select-gauge-crosses" class="select-input"></select>
+                  <div id="gauge-display-crosses" class="gauge-display">—</div>
                 </div>
                 <div>
                   <label class="field-label">Tension (lbs)</label>

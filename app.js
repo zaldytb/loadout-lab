@@ -2122,21 +2122,21 @@ function loadPresetFromData(preset) {
   const racquet = RACQUETS.find(r => r.id === preset.racquetId);
   if (!racquet) return;
 
-  $('#select-racquet').value = preset.racquetId;
+  ssInstances['select-racquet']?.setValue(preset.racquetId);
   showFrameSpecs(racquet);
 
   if (preset.isHybrid) {
     setHybridMode(true);
-    $('#select-string-mains').value = preset.mainsId;
-    populateGaugeDropdown($('#select-gauge-mains'), preset.mainsId);
+    ssInstances['select-string-mains']?.setValue(preset.mainsId);
+    populateGaugeDropdown(document.getElementById('gauge-display-mains'), preset.mainsId);
     $('#input-tension-mains').value = preset.mainsTension;
-    $('#select-string-crosses').value = preset.crossesId;
-    populateGaugeDropdown($('#select-gauge-crosses'), preset.crossesId);
+    ssInstances['select-string-crosses']?.setValue(preset.crossesId);
+    populateGaugeDropdown(document.getElementById('gauge-display-crosses'), preset.crossesId);
     $('#input-tension-crosses').value = preset.crossesTension;
   } else {
     setHybridMode(false);
-    $('#select-string-full').value = preset.stringId;
-    populateGaugeDropdown($('#select-gauge-full'), preset.stringId);
+    ssInstances['select-string-full']?.setValue(preset.stringId);
+    populateGaugeDropdown(document.getElementById('gauge-display-full'), preset.stringId);
     $('#input-tension-full').value = preset.tension;
   }
 
@@ -2227,43 +2227,363 @@ function getSlotColors() {
 let SLOT_COLORS = getSlotColors();
 
 // ============================================
-// POPULATE DROPDOWNS
+// SEARCHABLE DROPDOWN COMPONENT
 // ============================================
 
-function populateRacquetDropdown(selectEl) {
-  selectEl.innerHTML = '<option value="">Select Racquet...</option>';
-  RACQUETS.forEach(r => {
-    const opt = document.createElement('option');
-    opt.value = r.id;
-    opt.textContent = r.name;
-    selectEl.appendChild(opt);
+// Parse brand from racquet name (first word)
+function parseRacquetBrand(name) {
+  return name.split(' ')[0];
+}
+
+// Parse family from racquet name (second word or group like "Pure Aero")
+function parseRacquetFamily(name) {
+  const parts = name.split(' ');
+  if (parts.length < 2) return '';
+  // Known two-word families
+  const twoWord = ['Pure Aero', 'Pure Drive', 'Pure Strike', 'Pro Staff', 'Poly Tour'];
+  const rest = parts.slice(1).join(' ');
+  for (const tw of twoWord) {
+    if (rest.startsWith(tw)) return tw;
+  }
+  return parts[1];
+}
+
+// Sort racquets: brand → family → model → year desc
+function getSortedRacquets() {
+  return [...RACQUETS].sort((a, b) => {
+    const brandA = parseRacquetBrand(a.name);
+    const brandB = parseRacquetBrand(b.name);
+    if (brandA !== brandB) return brandA.localeCompare(brandB);
+    const famA = parseRacquetFamily(a.name);
+    const famB = parseRacquetFamily(b.name);
+    if (famA !== famB) return famA.localeCompare(famB);
+    if (a.name !== b.name) return a.name.localeCompare(b.name);
+    return (b.year || 0) - (a.year || 0);
   });
 }
 
-function populateStringDropdown(selectEl) {
-  selectEl.innerHTML = '<option value="">Select String...</option>';
-  STRINGS.forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s.id;
-    opt.textContent = `${s.name} ${s.gauge}`;
-    selectEl.appendChild(opt);
+// Sort strings: brand → name → gauge
+function getSortedStrings() {
+  return [...STRINGS].sort((a, b) => {
+    const brandA = a.name.split(' ')[0];
+    const brandB = b.name.split(' ')[0];
+    if (brandA !== brandB) return brandA.localeCompare(brandB);
+    if (a.name !== b.name) return a.name.localeCompare(b.name);
+    return (a.gaugeNum || 0) - (b.gaugeNum || 0);
   });
 }
 
-function populateGaugeDropdown(selectEl, stringId) {
-  selectEl.innerHTML = '';
+function getStringMaterialBadge(material) {
+  if (!material) return '';
+  const m = material.toLowerCase();
+  if (m.includes('gut')) return '<span class="ss-opt-badge badge-gut">GUT</span>';
+  if (m.includes('co-poly') || m.includes('copoly')) return '<span class="ss-opt-badge badge-copoly">CO-POLY</span>';
+  if (m.includes('poly')) return '<span class="ss-opt-badge badge-poly">POLY</span>';
+  return '';
+}
+
+// Registry of all searchable selects for cleanup
+const _ssRegistry = new Map();
+
+function createSearchableSelect(container, {
+  type = 'racquet', // 'racquet' or 'string'
+  placeholder = 'Select...',
+  value = '',
+  onChange = () => {},
+  id = ''
+}) {
+  // Clean up previous instance if exists
+  if (_ssRegistry.has(container)) {
+    const old = _ssRegistry.get(container);
+    if (old._cleanup) old._cleanup();
+  }
+
+  container.innerHTML = '';
+  container.classList.add('searchable-select');
+
+  const items = type === 'racquet' ? getSortedRacquets() : getSortedStrings();
+
+  // Build trigger
+  const trigger = document.createElement('button');
+  trigger.type = 'button';
+  trigger.className = 'ss-trigger';
+  if (id) trigger.id = id;
+
+  // Build dropdown
+  const dropdown = document.createElement('div');
+  dropdown.className = 'ss-dropdown';
+
+  const searchWrap = document.createElement('div');
+  searchWrap.className = 'ss-search-wrap';
+  const searchInput = document.createElement('input');
+  searchInput.type = 'text';
+  searchInput.className = 'ss-search';
+  searchInput.placeholder = type === 'racquet' ? 'Search racquets...' : 'Search strings...';
+  searchInput.autocomplete = 'off';
+  searchWrap.appendChild(searchInput);
+  dropdown.appendChild(searchWrap);
+
+  const optionsContainer = document.createElement('div');
+  optionsContainer.className = 'ss-options';
+  dropdown.appendChild(optionsContainer);
+
+  container.appendChild(trigger);
+  container.appendChild(dropdown);
+
+  let selectedValue = value;
+  let highlightIndex = -1;
+  let flatOptions = []; // all visible option elements for keyboard nav
+
+  function getDisplayText(val) {
+    if (!val) return '';
+    if (type === 'racquet') {
+      const r = RACQUETS.find(x => x.id === val);
+      return r ? r.name : '';
+    } else {
+      const s = STRINGS.find(x => x.id === val);
+      return s ? `${s.name} ${s.gauge}` : '';
+    }
+  }
+
+  function updateTrigger() {
+    const text = getDisplayText(selectedValue);
+    if (text) {
+      trigger.textContent = text;
+      trigger.classList.remove('ss-placeholder');
+    } else {
+      trigger.textContent = placeholder;
+      trigger.classList.add('ss-placeholder');
+    }
+  }
+
+  function renderOptions(filter = '') {
+    optionsContainer.innerHTML = '';
+    flatOptions = [];
+    highlightIndex = -1;
+    const q = filter.toLowerCase().trim();
+
+    let lastGroup = '';
+    let hasResults = false;
+
+    items.forEach(item => {
+      // Build search text
+      let searchText, groupKey, primaryText, secondaryText, badgeHTML;
+
+      if (type === 'racquet') {
+        searchText = `${item.name} ${item.year || ''} ${item.pattern || ''}`.toLowerCase();
+        groupKey = parseRacquetBrand(item.name);
+        primaryText = item.name;
+        secondaryText = item.year ? String(item.year) : '';
+        badgeHTML = '';
+      } else {
+        searchText = `${item.name} ${item.gauge} ${item.material || ''} ${item.gaugeNum || ''}`.toLowerCase();
+        groupKey = item.name.split(' ')[0];
+        primaryText = item.name;
+        secondaryText = item.gauge;
+        badgeHTML = getStringMaterialBadge(item.material);
+      }
+
+      // Filter
+      if (q) {
+        const words = q.split(/\s+/);
+        const match = words.every(w => searchText.includes(w));
+        if (!match) return;
+      }
+
+      hasResults = true;
+
+      // Group header
+      if (groupKey !== lastGroup) {
+        const groupLabel = document.createElement('div');
+        groupLabel.className = 'ss-group-label';
+        groupLabel.textContent = groupKey;
+        optionsContainer.appendChild(groupLabel);
+        lastGroup = groupKey;
+      }
+
+      // Option
+      const opt = document.createElement('div');
+      opt.className = 'ss-option';
+      if (item.id === selectedValue) opt.classList.add('ss-selected');
+      opt.dataset.value = item.id;
+
+      opt.innerHTML = `
+        <span class="ss-opt-primary">${primaryText}</span>
+        ${badgeHTML}
+        <span class="ss-opt-secondary">${secondaryText}</span>
+      `;
+
+      opt.addEventListener('mouseenter', () => {
+        flatOptions.forEach(o => o.classList.remove('ss-highlighted'));
+        opt.classList.add('ss-highlighted');
+        highlightIndex = flatOptions.indexOf(opt);
+      });
+
+      opt.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectOption(item.id);
+      });
+
+      optionsContainer.appendChild(opt);
+      flatOptions.push(opt);
+    });
+
+    if (!hasResults) {
+      const noRes = document.createElement('div');
+      noRes.className = 'ss-no-results';
+      noRes.textContent = 'No matches found';
+      optionsContainer.appendChild(noRes);
+    }
+  }
+
+  function selectOption(val) {
+    selectedValue = val;
+    updateTrigger();
+    closeDropdown();
+    onChange(val);
+  }
+
+  function openDropdown() {
+    container.classList.add('ss-open');
+    searchInput.value = '';
+    renderOptions();
+    // Slight delay for DOM to settle before focus
+    requestAnimationFrame(() => searchInput.focus());
+    // Scroll selected into view
+    requestAnimationFrame(() => {
+      const sel = optionsContainer.querySelector('.ss-selected');
+      if (sel) sel.scrollIntoView({ block: 'nearest' });
+    });
+  }
+
+  function closeDropdown() {
+    container.classList.remove('ss-open');
+    searchInput.value = '';
+    highlightIndex = -1;
+  }
+
+  function isOpen() {
+    return container.classList.contains('ss-open');
+  }
+
+  // Event: trigger click
+  trigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (isOpen()) {
+      closeDropdown();
+    } else {
+      openDropdown();
+    }
+  });
+
+  // Event: search input
+  searchInput.addEventListener('input', () => {
+    renderOptions(searchInput.value);
+  });
+
+  // Event: keyboard
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (flatOptions.length === 0) return;
+      highlightIndex = Math.min(highlightIndex + 1, flatOptions.length - 1);
+      flatOptions.forEach(o => o.classList.remove('ss-highlighted'));
+      flatOptions[highlightIndex].classList.add('ss-highlighted');
+      flatOptions[highlightIndex].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (flatOptions.length === 0) return;
+      highlightIndex = Math.max(highlightIndex - 1, 0);
+      flatOptions.forEach(o => o.classList.remove('ss-highlighted'));
+      flatOptions[highlightIndex].classList.add('ss-highlighted');
+      flatOptions[highlightIndex].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (highlightIndex >= 0 && flatOptions[highlightIndex]) {
+        const val = flatOptions[highlightIndex].dataset.value;
+        selectOption(val);
+      }
+    } else if (e.key === 'Escape') {
+      closeDropdown();
+      trigger.focus();
+    }
+  });
+
+  // Close on outside click
+  function onDocClick(e) {
+    if (!container.contains(e.target)) {
+      closeDropdown();
+    }
+  }
+  document.addEventListener('click', onDocClick);
+
+  // Init
+  updateTrigger();
+
+  const instance = {
+    getValue: () => selectedValue,
+    setValue: (val) => {
+      selectedValue = val;
+      updateTrigger();
+    },
+    _cleanup: () => {
+      document.removeEventListener('click', onDocClick);
+    }
+  };
+
+  _ssRegistry.set(container, instance);
+  return instance;
+}
+
+// ============================================
+// POPULATE DROPDOWNS (Searchable)
+// ============================================
+
+// Store references to searchable select instances
+const ssInstances = {};
+
+function populateRacquetDropdown(targetEl) {
+  // targetEl was previously a <select>, now it's a container div
+  // We replace it with the searchable component
+  const wrapper = targetEl;
+  const existingValue = '';
+  ssInstances[wrapper.id] = createSearchableSelect(wrapper, {
+    type: 'racquet',
+    placeholder: 'Select Racquet...',
+    value: existingValue,
+    id: wrapper.id + '-trigger',
+    onChange: (val) => {
+      const r = RACQUETS.find(x => x.id === val);
+      showFrameSpecs(r);
+      renderDashboard();
+    }
+  });
+}
+
+function populateStringDropdown(targetEl, initialValue) {
+  const wrapper = targetEl;
+  ssInstances[wrapper.id] = createSearchableSelect(wrapper, {
+    type: 'string',
+    placeholder: wrapper.dataset.placeholder || 'Select String...',
+    value: initialValue || '',
+    id: wrapper.id + '-trigger',
+    onChange: (val) => {
+      // Update gauge display
+      const gaugeEl = wrapper.dataset.gaugeTarget ? document.getElementById(wrapper.dataset.gaugeTarget) : null;
+      if (gaugeEl) populateGaugeDropdown(gaugeEl, val);
+      renderDashboard();
+    }
+  });
+}
+
+function populateGaugeDropdown(el, stringId) {
+  if (!el) return;
   if (!stringId) {
-    selectEl.innerHTML = '<option value="">—</option>';
+    el.textContent = '—';
     return;
   }
   const s = STRINGS.find(x => x.id === stringId);
-  if (s) {
-    const opt = document.createElement('option');
-    opt.value = s.gauge;
-    opt.textContent = s.gauge;
-    opt.selected = true;
-    selectEl.appendChild(opt);
-  }
+  el.textContent = s ? s.gauge : '—';
 }
 
 // ============================================
@@ -2294,15 +2614,15 @@ function showFrameSpecs(racquet) {
 // ============================================
 
 function getCurrentSetup() {
-  const racquetId = $('#select-racquet').value;
+  const racquetId = ssInstances['select-racquet']?.getValue() || '';
   const racquet = RACQUETS.find(r => r.id === racquetId);
   if (!racquet) return null;
 
   const isHybrid = $('#btn-hybrid').classList.contains('active');
 
   if (isHybrid) {
-    const mainsId = $('#select-string-mains').value;
-    const crossesId = $('#select-string-crosses').value;
+    const mainsId = ssInstances['select-string-mains']?.getValue() || '';
+    const crossesId = ssInstances['select-string-crosses']?.getValue() || '';
     if (!mainsId || !crossesId) return null;
 
     return {
@@ -2316,7 +2636,7 @@ function getCurrentSetup() {
       }
     };
   } else {
-    const stringId = $('#select-string-full').value;
+    const stringId = ssInstances['select-string-full']?.getValue() || '';
     if (!stringId) return null;
 
     return {
@@ -2790,6 +3110,9 @@ function addComparisonSlot() {
   renderCompareVerdict();
   renderCompareMatrix();
   updateComparisonRadar();
+
+  // Auto-open the editor panel so user can configure the new slot
+  openCompareEditor(slotIndex);
 }
 
 function removeComparisonSlot(index) {
@@ -3132,7 +3455,7 @@ function renderCompareSummaries() {
   const emptyState = $('#compare-empty-state');
   const validSlots = comparisonSlots.filter(s => s.stats);
 
-  if (validSlots.length === 0) {
+  if (comparisonSlots.length === 0) {
     container.innerHTML = '';
     emptyState.style.display = '';
     // Hide analysis layers
@@ -3144,9 +3467,41 @@ function renderCompareSummaries() {
 
   emptyState.style.display = 'none';
 
+  // Hide analysis if fewer than 2 valid slots
+  if (validSlots.length < 2) {
+    $('#compare-verdict').style.display = 'none';
+    $('#compare-matrix').style.display = 'none';
+    $('#compare-proof').style.display = 'none';
+  }
+
   let html = '';
   comparisonSlots.forEach((slot, index) => {
-    if (!slot.stats) return;
+    // Render unconfigured slots with a placeholder card
+    if (!slot.stats) {
+      const color = SLOT_COLORS[index];
+      html += `
+        <div class="compare-summary-card slot-color-${color.cssClass}" style="opacity:0.7;">
+          <div class="compare-summary-top">
+            <div class="compare-summary-identity">
+              <span class="compare-summary-label slot-label-${color.cssClass}">SETUP ${color.label}</span>
+              <div class="compare-summary-archetype" style="font-size:0.85rem; opacity:0.6;">NOT CONFIGURED</div>
+              <div class="compare-summary-descriptor">Select frame and string to begin</div>
+            </div>
+          </div>
+          <div class="compare-summary-actions">
+            <button class="compare-action-btn" onclick="openCompareEditor(${index})">
+              <svg viewBox="0 0 16 16" fill="none"><path d="M11.5 1.5l3 3L5 14H2v-3L11.5 1.5z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Configure
+            </button>
+            <button class="compare-action-btn" onclick="removeComparisonSlot(${index})">
+              <svg viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+              Remove
+            </button>
+          </div>
+        </div>
+      `;
+      return;
+    }
     const color = SLOT_COLORS[index];
     const racquet = RACQUETS.find(r => r.id === slot.racquetId);
     const obsScore = computeCompositeScore(slot.stats).toFixed(1);
@@ -4627,18 +4982,21 @@ function openTuneForSlot(slotIndex) {
   const racquet = RACQUETS.find(r => r.id === slot.racquetId);
   if (!racquet) return;
 
-  $('#select-racquet').value = slot.racquetId;
+  ssInstances['select-racquet']?.setValue(slot.racquetId);
   showFrameSpecs(racquet);
 
   if (slot.isHybrid) {
     setHybridMode(true);
-    $('#select-string-mains').value = slot.mainsId;
+    ssInstances['select-string-mains']?.setValue(slot.mainsId);
+    populateGaugeDropdown(document.getElementById('gauge-display-mains'), slot.mainsId);
     $('#input-tension-mains').value = slot.mainsTension;
-    $('#select-string-crosses').value = slot.crossesId;
+    ssInstances['select-string-crosses']?.setValue(slot.crossesId);
+    populateGaugeDropdown(document.getElementById('gauge-display-crosses'), slot.crossesId);
     $('#input-tension-crosses').value = slot.crossesTension;
   } else {
     setHybridMode(false);
-    $('#select-string-full').value = slot.stringId;
+    ssInstances['select-string-full']?.setValue(slot.stringId);
+    populateGaugeDropdown(document.getElementById('gauge-display-full'), slot.stringId);
     $('#input-tension-full').value = slot.tension;
   }
   renderDashboard();
@@ -4693,32 +5051,11 @@ function toggleTheme() {
 // ============================================
 
 function init() {
-  // Populate dropdowns
+  // Populate searchable dropdowns (onChange callbacks handle dashboard re-render)
   populateRacquetDropdown($('#select-racquet'));
   populateStringDropdown($('#select-string-full'));
   populateStringDropdown($('#select-string-mains'));
   populateStringDropdown($('#select-string-crosses'));
-
-  // Frame selector
-  $('#select-racquet').addEventListener('change', (e) => {
-    const r = RACQUETS.find(x => x.id === e.target.value);
-    showFrameSpecs(r);
-    renderDashboard();
-  });
-
-  // String selectors
-  $('#select-string-full').addEventListener('change', (e) => {
-    populateGaugeDropdown($('#select-gauge-full'), e.target.value);
-    renderDashboard();
-  });
-  $('#select-string-mains').addEventListener('change', (e) => {
-    populateGaugeDropdown($('#select-gauge-mains'), e.target.value);
-    renderDashboard();
-  });
-  $('#select-string-crosses').addEventListener('change', (e) => {
-    populateGaugeDropdown($('#select-gauge-crosses'), e.target.value);
-    renderDashboard();
-  });
 
   // Tension inputs
   $('#input-tension-full').addEventListener('input', renderDashboard);

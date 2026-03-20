@@ -3838,3 +3838,231 @@ body {
     font-size: 0.625rem;
   }
 }
+
+/* ============================================
+   SEARCHABLE DROPDOWN COMPONENT
+   ============================================ */
+
+.searchable-select {
+  position: relative;
+  width: 100%;
+}
+
+.searchable-select .ss-trigger {
+  width: 100%;
+  max-width: 100%;
+  padding: 11px var(--space-4);
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 500;
+  outline: none;
+  transition: border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' stroke='%237E7A72' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 34px;
+  cursor: pointer;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+.searchable-select .ss-trigger:focus {
+  border-color: var(--lime);
+  box-shadow: 0 0 0 2px rgba(199, 246, 58, 0.10);
+}
+
+.searchable-select .ss-trigger.ss-placeholder {
+  color: var(--text-muted);
+}
+
+.searchable-select .ss-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+  z-index: 1000;
+  display: none;
+  max-height: 340px;
+  overflow: hidden;
+  flex-direction: column;
+}
+
+.searchable-select.ss-open .ss-dropdown {
+  display: flex;
+}
+
+.searchable-select .ss-search-wrap {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.searchable-select .ss-search {
+  width: 100%;
+  padding: 8px 10px 8px 30px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 500;
+  outline: none;
+  transition: border-color var(--duration-fast);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none'%3E%3Ccircle cx='6' cy='6' r='4' stroke='%237E7A72' stroke-width='1.3'/%3E%3Cpath d='M9 9l3 3' stroke='%237E7A72' stroke-width='1.3' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 9px center;
+}
+
+.searchable-select .ss-search:focus {
+  border-color: var(--lime);
+}
+
+.searchable-select .ss-search::placeholder {
+  color: var(--text-faint);
+  font-weight: 400;
+}
+
+.searchable-select .ss-options {
+  overflow-y: auto;
+  flex: 1;
+  overscroll-behavior: contain;
+}
+
+.searchable-select .ss-group-label {
+  padding: 8px 12px 4px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  position: sticky;
+  top: 0;
+  background: var(--bg-card);
+  z-index: 1;
+}
+
+.searchable-select .ss-option {
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background var(--duration-fast);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.searchable-select .ss-option:hover,
+.searchable-select .ss-option.ss-highlighted {
+  background: var(--lime-dim);
+}
+
+.searchable-select .ss-option.ss-selected {
+  background: var(--lime-dim);
+  font-weight: 600;
+}
+
+.searchable-select .ss-option .ss-opt-primary {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.searchable-select .ss-option .ss-opt-secondary {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.searchable-select .ss-option .ss-opt-badge {
+  font-size: 0.62rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.searchable-select .ss-opt-badge.badge-poly {
+  background: var(--lime-dim);
+  color: var(--lime-text);
+}
+
+.searchable-select .ss-opt-badge.badge-gut {
+  background: var(--orange-dim);
+  color: var(--orange);
+}
+
+.searchable-select .ss-opt-badge.badge-copoly {
+  background: var(--blue-tag-dim);
+  color: var(--blue-tag);
+}
+
+.searchable-select .ss-no-results {
+  padding: 16px 12px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-align: center;
+  font-style: italic;
+}
+
+/* Dark mode */
+[data-theme="dark"] .searchable-select .ss-dropdown {
+  background: var(--bg-card);
+  border-color: var(--border-medium);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2);
+}
+
+[data-theme="dark"] .searchable-select .ss-search {
+  background: var(--bg-input);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .searchable-select .ss-group-label {
+  background: var(--bg-card);
+}
+
+/* Compact variant for compare editor slots */
+.slot-config .searchable-select .ss-trigger {
+  padding: 8px 10px;
+  font-size: 0.78rem;
+  padding-right: 28px;
+}
+
+.slot-config .searchable-select .ss-dropdown {
+  max-height: 280px;
+}
+
+/* Gauge display (read-only, auto-populated from string selection) */
+.gauge-display {
+  padding: 11px var(--space-4);
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 500;
+  opacity: 0.7;
+}
