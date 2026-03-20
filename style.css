@@ -2041,7 +2041,7 @@ body {
 
 .delta-stat-row {
   display: grid;
-  grid-template-columns: 60px 1fr 36px;
+  grid-template-columns: 76px 1fr 36px;
   align-items: center;
   gap: var(--space-3);
 }

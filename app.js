@@ -1579,9 +1579,11 @@ function calcBaseStringProfile(stringData) {
 // LAYER 2: FRAME INTERACTION (string modifiers on frame)
 // ============================================
 // String properties create small modifiers on frame-driven stats.
-// These are intentionally small (-8 to +8 range) — the frame is primary for
+// These are intentionally small (-3 to +5 range) — the frame is primary for
 // spin/power/control/comfort/feel/launch; the string profile handles
 // durability and playability directly.
+// Magnitudes are scaled to ~60% of the Layer 1 stiffness adjustments to
+// prevent over-amplification of stiffness through two additive paths.
 
 function calcStringFrameMod(stringData) {
   const stiff = stringData.stiffness;
@@ -1589,20 +1591,24 @@ function calcStringFrameMod(stringData) {
   const stiffNorm = Math.max(0, Math.min(1, lerp(stiff, 115, 234, 1, 0)));
   const spinPot = stringData.spinPotential;
 
+  // Layer 2 mods are intentionally smaller than Layer 1 adjustments.
+  // Stiffness already shapes the string profile (L1); these mods capture
+  // how that stiffness interacts with the frame (e.g., dampening, flex coupling).
+  // Scaled to ~60% of original magnitudes to reduce stiffness double-counting.
   return {
-    powerMod: stiffNorm * 8 - 3,      // soft: up to +5, stiff: -3
-    spinMod: (spinPot - 6.0) * 3,      // centered at 6.0, ±3 per point
-    controlMod: (1 - stiffNorm) * 6 - 2, // stiff: up to +4, soft: -2
-    comfortMod: stiffNorm * 7 - 2.5,    // soft: up to +4.5, stiff: -2.5
-    feelMod: stringData.material === 'Natural Gut' ? 6 : (stiffNorm * 5 - 1.5),
-    launchMod: stiffNorm * 3 - 1       // soft strings add slight launch
+    powerMod: stiffNorm * 5 - 2,        // soft: up to +3, stiff: -2
+    spinMod: (spinPot - 6.0) * 2,        // centered at 6.0, ±2 per point (was 3)
+    controlMod: (1 - stiffNorm) * 4 - 1.5, // stiff: up to +2.5, soft: -1.5
+    comfortMod: stiffNorm * 4.5 - 1.5,   // soft: up to +3, stiff: -1.5
+    feelMod: stringData.material === 'Natural Gut' ? 5 : (stiffNorm * 3 - 1),
+    launchMod: stiffNorm * 2 - 0.5       // soft strings add slight launch
   };
 }
 
 function calcTensionModifier(tension, tensionRange) {
   const mid = (tensionRange[0] + tensionRange[1]) / 2;
   const diff = tension - mid;
-  // Every 2 lbs above midpoint: +2 control, -2 power (reduced from old ±3)
+  // Every 2 lbs above midpoint: +2 control, -2 power
   const factor = diff / 2;
 
   return {
@@ -1610,16 +1616,22 @@ function calcTensionModifier(tension, tensionRange) {
     controlMod: factor * 2,
     launchMod: -factor * 1.5,
     comfortMod: -factor * 1.5,
-    spinMod: -Math.abs(factor) * 0.4
+    spinMod: -Math.abs(factor) * 0.4,
+    // Higher tension → crisper ball feedback → more feel (mild)
+    feelMod: factor * 1.0,
+    // Higher tension → faster tension loss → slightly shorter playability window
+    playabilityMod: -Math.abs(factor) * 0.6
   };
 }
 
 // ============================================
 // COMBINED PREDICTION: Frame Base + String Modifier + Tension + String Profile
 // ============================================
-// Frame-driven stats (spin, power, control, launch, feel, comfort, stability, forgiveness)
-// get frame base + small string mod + tension mod.
-// String-driven stats (durability, playability) come from the base string profile.
+// Frame-driven stats (spin, power, control, feel, comfort) use FW/SW weighted blend
+// + L2 string mod + tension mod.
+// Launch uses frame base + L2 mod + tension mod (no string profile blend).
+// Stability & forgiveness are frame-only (no string or tension influence).
+// Durability is string-only. Playability is string + tension.
 
 function predictSetup(racquet, stringConfig) {
   const frameBase = calcFrameBase(racquet);
@@ -1674,13 +1686,13 @@ function predictSetup(racquet, stringConfig) {
     power:   clamp(frameBase.power * FW + stringProfile.power * SW + stringMod.powerMod + tensionMod.powerMod),
     control: clamp(frameBase.control * FW + stringProfile.control * SW + stringMod.controlMod + tensionMod.controlMod),
     launch:  clamp(frameBase.launch + stringMod.launchMod + tensionMod.launchMod),
-    feel:    clamp(frameBase.feel * FW + stringProfile.feel * SW + stringMod.feelMod),
+    feel:    clamp(frameBase.feel * FW + stringProfile.feel * SW + stringMod.feelMod + tensionMod.feelMod),
     comfort: clamp(frameBase.comfort * FW + stringProfile.comfort * SW + stringMod.comfortMod + tensionMod.comfortMod),
     stability:   clamp(frameBase.stability),
     forgiveness: clamp(frameBase.forgiveness),
-    // String-only stats: directly from string profile
+    // String-only stats: from string profile, with tension influence
     durability:  clamp(stringProfile.durability),
-    playability: clamp(stringProfile.playability)
+    playability: clamp(stringProfile.playability + tensionMod.playabilityMod)
   };
 
   // Attach debug info for inspection
@@ -2405,8 +2417,27 @@ function renderSummary(racquet, stringConfig, badge) {
 // ============================================
 
 function computeCompositeScore(stats) {
-  // Same formula as Tune page's Recommended Builds ranking
-  return stats.control * 0.30 + stats.comfort * 0.25 + stats.spin * 0.20 + stats.power * 0.15 + stats.playability * 0.10;
+  // Full 10-stat weighted composite — every modeled stat contributes.
+  // Core performance: control, spin, power, comfort — 58%
+  // Feel & playability: feel, playability — 18%
+  // Frame qualities: stability, forgiveness — 16%
+  // Trajectory & longevity: launch, durability — 8%
+  const raw = stats.control * 0.18
+            + stats.spin * 0.14
+            + stats.comfort * 0.14
+            + stats.power * 0.12
+            + stats.feel * 0.12
+            + stats.stability * 0.08
+            + stats.forgiveness * 0.08
+            + stats.playability * 0.06
+            + stats.launch * 0.04
+            + stats.durability * 0.04;
+  // Rescale: the raw weighted average clusters in a narrow band (~59–68)
+  // because individual stats are already compressed to ~45–85.
+  // Map to a wider 0–100 display scale so the OBS rank ladder is meaningful.
+  // Anchor: 58 → 30 (poor), 63 → 60 (mid), 67 → 85 (elite)
+  const scaled = 30 + (raw - 58) * (55 / 9); // ~6.11 display pts per raw pt
+  return Math.max(0, Math.min(100, scaled));
 }
 
 function getRatingDescriptor(score, identity) {
@@ -3296,11 +3327,10 @@ function calculateOptimalWindow(setup) {
   const data = tuneState.sweepData;
   if (!data || data.length === 0) return;
 
-  // Score each tension: weighted combination of key stats
-  // Playability-weighted: control * 0.3 + comfort * 0.25 + spin * 0.2 + power * 0.15 + playability * 0.1
+  // Score each tension using the full 10-stat composite
   const scored = data.map(d => {
     const s = d.stats;
-    const score = s.control * 0.30 + s.comfort * 0.25 + s.spin * 0.20 + s.power * 0.15 + s.playability * 0.10;
+    const score = computeCompositeScore(s);
     return { tension: d.tension, score, stats: s };
   });
 
@@ -3383,8 +3413,8 @@ function renderDeltaVsBaseline() {
 
   const base = baselineEntry.stats;
   const explored = exploredEntry.stats;
-  const deltaKeys = ['control', 'power', 'comfort', 'spin', 'launch', 'feel'];
-  const deltaLabels = ['Control', 'Power', 'Comfort', 'Spin', 'Launch', 'Feel'];
+  const deltaKeys = ['control', 'power', 'comfort', 'spin', 'launch', 'feel', 'playability'];
+  const deltaLabels = ['Control', 'Power', 'Comfort', 'Spin', 'Launch', 'Feel', 'Playability'];
 
   const isAtBaseline = tuneState.exploredTension === tuneState.baselineTension;
   const setup = getCurrentSetup();
@@ -4086,7 +4116,7 @@ function renderRecommendedBuilds(setup) {
     for (let t = sweepMin; t <= sweepMax; t += 1) {
       const cfg = { isHybrid: false, string: s, tension: t };
       const stats = predictSetup(racquet, cfg);
-      const score = stats.control * 0.30 + stats.comfort * 0.25 + stats.spin * 0.20 + stats.power * 0.15 + stats.playability * 0.10;
+      const score = computeCompositeScore(stats);
       if (score > bestScore) {
         bestScore = score;
         bestTension = t;
@@ -4143,7 +4173,7 @@ function renderRecommendedBuilds(setup) {
         `;
       }).join('')}
     </div>
-    <p class="recs-footnote">Composite score: Control 30% + Comfort 25% + Spin 20% + Power 15% + Playability 10%, evaluated at optimal tension for <strong>${racquet.name}</strong>.</p>
+    <p class="recs-footnote">Composite score across all 10 stats, evaluated at optimal tension for <strong>${racquet.name}</strong>.</p>
   `;
 
   // Show "Try a Different String" section if current string isn't in top 5
