@@ -2407,11 +2407,21 @@ function createSearchableSelect(container, {
       if (item.id === selectedValue) opt.classList.add('ss-selected');
       opt.dataset.value = item.id;
 
-      opt.innerHTML = `
-        <span class="ss-opt-primary">${primaryText}</span>
-        ${badgeHTML}
-        <span class="ss-opt-secondary">${secondaryText}</span>
-      `;
+      if (type === 'string') {
+        // 2-line stacked layout for strings: name on line 1, type+gauge on line 2
+        opt.classList.add('ss-option-stacked');
+        opt.innerHTML = `
+          <span class="ss-opt-primary">${primaryText}</span>
+          <span class="ss-opt-meta">${badgeHTML}<span class="ss-opt-secondary">${secondaryText}</span></span>
+        `;
+      } else {
+        // Single-line layout for racquets (unchanged)
+        opt.innerHTML = `
+          <span class="ss-opt-primary">${primaryText}</span>
+          ${badgeHTML}
+          <span class="ss-opt-secondary">${secondaryText}</span>
+        `;
+      }
 
       opt.addEventListener('mouseenter', () => {
         flatOptions.forEach(o => o.classList.remove('ss-highlighted'));

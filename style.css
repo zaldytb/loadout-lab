@@ -3894,7 +3894,7 @@ body {
   box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
   z-index: 1000;
   display: none;
-  max-height: 340px;
+  max-height: 380px;
   overflow: hidden;
   flex-direction: column;
 }
@@ -3942,17 +3942,23 @@ body {
 }
 
 .searchable-select .ss-group-label {
-  padding: 8px 12px 4px;
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.09em;
+  padding: 10px 12px 4px;
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-faint);
   font-family: var(--font-display);
   position: sticky;
   top: 0;
   background: var(--bg-card);
   z-index: 1;
+}
+
+.searchable-select .ss-group-label:not(:first-child) {
+  margin-top: 4px;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 10px;
 }
 
 .searchable-select .ss-option {
@@ -3965,6 +3971,14 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* Stacked 2-line layout for string options */
+.searchable-select .ss-option.ss-option-stacked {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 9px 12px;
 }
 
 .searchable-select .ss-option:hover,
@@ -3984,6 +3998,24 @@ body {
   white-space: nowrap;
 }
 
+/* Line 1 in stacked string options: full name, larger, higher contrast */
+.searchable-select .ss-option.ss-option-stacked .ss-opt-primary {
+  flex: none;
+  width: 100%;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+/* Line 2 container: badge + gauge inline */
+.searchable-select .ss-option .ss-opt-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+}
+
 .searchable-select .ss-option .ss-opt-secondary {
   font-size: 0.72rem;
   color: var(--text-muted);
@@ -3993,10 +4025,17 @@ body {
   flex-shrink: 0;
 }
 
+/* Secondary text in stacked layout: smaller, muted */
+.searchable-select .ss-option.ss-option-stacked .ss-opt-secondary {
+  font-size: 0.68rem;
+  color: var(--text-faint);
+  font-weight: 400;
+}
+
 .searchable-select .ss-option .ss-opt-badge {
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   font-weight: 600;
-  padding: 1px 6px;
+  padding: 1px 5px;
   border-radius: 3px;
   letter-spacing: 0.04em;
   white-space: nowrap;
