@@ -70,6 +70,27 @@ const RACQUETS = [
     notes: "Djokovic signature cosmetic. Same mold as Speed MP but with Hy-Bor material — maximizes stability and feel. 60 RA is notably soft for a 100sq in frame. Slightly heavier than 2024 version (318g vs 315g strung). Enhanced stability and comfort over 2024."
   },
   {
+    id: "head-speed-pro-legend-2025",
+    name: "Head Speed Pro Legend 2025",
+    year: 2025,
+    headSize: 100,
+    length: 27,
+    strungWeight: 326,
+    balance: 31.98,
+    balancePts: "7 pts HL",
+    swingweight: 328,
+    stiffness: 61,
+    beamWidth: [23, 23, 23],
+    pattern: "18x20",
+    powerLevel: "Low",
+    strokeStyle: "Medium-Full",
+    swingSpeed: "Medium-Fast",
+    tensionRange: [48, 57],
+    frameProfile: "Constant box beam with Hy-Bor (boron+carbon) + Auxetic 2 + Graphene Inside",
+    identity: "Precision Control",
+    notes: "Djokovic signature. Dense 18x20 pattern delivers exceptional control and a connected, predictable ball flight. Hy-Bor boron composite in the shaft maximizes stability and crisp feel at impact. 61 RA flex provides comfort without sacrificing responsiveness. Lower swingweight than 2024 Speed Pro improves maneuverability while maintaining plough-through."
+  },
+  {
     id: "head-speed-pro-2024",
     name: "Head Speed Pro 2024",
     year: 2024,
@@ -1574,7 +1595,25 @@ const DEFAULT_PRESETS = [
   }
 ];
 
-let userPresets = [...DEFAULT_PRESETS];
+// Persistence helpers — try localStorage, fall back to in-memory
+function loadPresetsFromStorage() {
+  try {
+    const stored = localStorage.getItem('tll-presets');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) { /* localStorage blocked or corrupt — ignore */ }
+  return null;
+}
+
+function savePresetsToStorage() {
+  try {
+    localStorage.setItem('tll-presets', JSON.stringify(userPresets));
+  } catch (e) { /* localStorage blocked — ignore */ }
+}
+
+let userPresets = loadPresetsFromStorage() || [...DEFAULT_PRESETS];
 
 function getPresetDetail(preset) {
   const racquet = RACQUETS.find(r => r.id === preset.racquetId);
@@ -1624,6 +1663,7 @@ function renderHomePresets() {
       e.stopPropagation();
       const idx = parseInt(btn.dataset.presetIdx);
       userPresets.splice(idx, 1);
+      savePresetsToStorage();
       renderHomePresets();
       renderComparisonPresets();
     });
@@ -1657,6 +1697,7 @@ function saveCurrentAsPreset() {
   };
 
   userPresets.push(preset);
+  savePresetsToStorage();
   renderHomePresets();
   renderComparisonPresets();
 
