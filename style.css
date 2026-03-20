@@ -4054,6 +4054,14 @@ body {
   max-height: 280px;
 }
 
+/* Ensure comparison slot overflow doesn't clip dropdown */
+.comparison-slot {
+  overflow: visible;
+}
+.slot-config {
+  overflow: visible;
+}
+
 /* Gauge display (read-only, auto-populated from string selection) */
 .gauge-display {
   padding: 11px var(--space-4);

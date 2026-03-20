@@ -3141,10 +3141,7 @@ function renderComparisonSlots() {
 
     const fullbedHTML = `
       <div class="slot-fullbed-config ${slot.isHybrid ? 'hidden' : ''}" data-slot="${index}">
-        <select class="select-input slot-string" data-slot="${index}">
-          <option value="">Select String...</option>
-          ${STRINGS.map(s => `<option value="${s.id}" ${slot.stringId === s.id ? 'selected' : ''}>${s.name} ${s.gauge}</option>`).join('')}
-        </select>
+        <div class="slot-ss-string" data-slot="${index}" data-value="${slot.stringId || ''}"></div>
         <div class="row-2col">
           <div>
             <label class="field-label accent-cyan">Mains Tension</label>
@@ -3162,10 +3159,7 @@ function renderComparisonSlots() {
       <div class="slot-hybrid-config ${slot.isHybrid ? '' : 'hidden'}" data-slot="${index}">
         <div class="slot-hybrid-section">
           <label class="field-label accent-cyan">Mains</label>
-          <select class="select-input slot-mains" data-slot="${index}">
-            <option value="">Select Main String...</option>
-            ${STRINGS.map(s => `<option value="${s.id}" ${slot.mainsId === s.id ? 'selected' : ''}>${s.name} ${s.gauge}</option>`).join('')}
-          </select>
+          <div class="slot-ss-mains" data-slot="${index}" data-value="${slot.mainsId || ''}"></div>
           <div>
             <label class="field-label">Tension</label>
             <input type="number" class="text-input slot-mains-tension" data-slot="${index}" value="${slot.mainsTension}" min="30" max="70">
@@ -3173,10 +3167,7 @@ function renderComparisonSlots() {
         </div>
         <div class="slot-hybrid-section">
           <label class="field-label accent-green">Crosses</label>
-          <select class="select-input slot-crosses" data-slot="${index}">
-            <option value="">Select Cross String...</option>
-            ${STRINGS.map(s => `<option value="${s.id}" ${slot.crossesId === s.id ? 'selected' : ''}>${s.name} ${s.gauge}</option>`).join('')}
-          </select>
+          <div class="slot-ss-crosses" data-slot="${index}" data-value="${slot.crossesId || ''}"></div>
           <div>
             <label class="field-label">Tension</label>
             <input type="number" class="text-input slot-crosses-tension" data-slot="${index}" value="${slot.crossesTension}" min="30" max="70">
@@ -3191,10 +3182,7 @@ function renderComparisonSlots() {
         <button class="slot-remove" onclick="removeComparisonSlot(${index})" title="Remove">✕</button>
       </div>
       <div class="slot-config">
-        <select class="select-input slot-racquet" data-slot="${index}">
-          <option value="">Select Racquet...</option>
-          ${RACQUETS.map(r => `<option value="${r.id}" ${slot.racquetId === r.id ? 'selected' : ''}>${r.name}</option>`).join('')}
-        </select>
+        <div class="slot-ss-racquet" data-slot="${index}" data-value="${slot.racquetId || ''}"></div>
         <div class="slot-toggle-group">
           <button class="slot-toggle-btn ${slot.isHybrid ? '' : 'active'}" data-slot="${index}" data-mode="full">Full Bed</button>
           <button class="slot-toggle-btn ${slot.isHybrid ? 'active' : ''}" data-slot="${index}" data-mode="hybrid">Hybrid</button>
@@ -3208,21 +3196,30 @@ function renderComparisonSlots() {
     container.appendChild(div);
   });
 
-  // Attach events
-  container.querySelectorAll('.slot-racquet').forEach(sel => {
-    sel.addEventListener('change', (e) => {
-      const idx = parseInt(e.target.dataset.slot);
-      comparisonSlots[idx].racquetId = e.target.value;
-      recalcSlot(idx);
+  // Initialize searchable selects for each slot
+  container.querySelectorAll('.slot-ss-racquet').forEach(el => {
+    const idx = parseInt(el.dataset.slot);
+    createSearchableSelect(el, {
+      type: 'racquet',
+      placeholder: 'Select Racquet...',
+      value: el.dataset.value || '',
+      onChange: (val) => {
+        comparisonSlots[idx].racquetId = val;
+        recalcSlot(idx);
+      }
     });
   });
 
-  // Full bed string + tension
-  container.querySelectorAll('.slot-string').forEach(sel => {
-    sel.addEventListener('change', (e) => {
-      const idx = parseInt(e.target.dataset.slot);
-      comparisonSlots[idx].stringId = e.target.value;
-      recalcSlot(idx);
+  container.querySelectorAll('.slot-ss-string').forEach(el => {
+    const idx = parseInt(el.dataset.slot);
+    createSearchableSelect(el, {
+      type: 'string',
+      placeholder: 'Select String...',
+      value: el.dataset.value || '',
+      onChange: (val) => {
+        comparisonSlots[idx].stringId = val;
+        recalcSlot(idx);
+      }
     });
   });
   container.querySelectorAll('.slot-mains-tension-fb').forEach(inp => {
@@ -3240,19 +3237,29 @@ function renderComparisonSlots() {
     });
   });
 
-  // Hybrid mains + crosses
-  container.querySelectorAll('.slot-mains').forEach(sel => {
-    sel.addEventListener('change', (e) => {
-      const idx = parseInt(e.target.dataset.slot);
-      comparisonSlots[idx].mainsId = e.target.value;
-      recalcSlot(idx);
+  // Hybrid mains + crosses (searchable)
+  container.querySelectorAll('.slot-ss-mains').forEach(el => {
+    const idx = parseInt(el.dataset.slot);
+    createSearchableSelect(el, {
+      type: 'string',
+      placeholder: 'Select Main String...',
+      value: el.dataset.value || '',
+      onChange: (val) => {
+        comparisonSlots[idx].mainsId = val;
+        recalcSlot(idx);
+      }
     });
   });
-  container.querySelectorAll('.slot-crosses').forEach(sel => {
-    sel.addEventListener('change', (e) => {
-      const idx = parseInt(e.target.dataset.slot);
-      comparisonSlots[idx].crossesId = e.target.value;
-      recalcSlot(idx);
+  container.querySelectorAll('.slot-ss-crosses').forEach(el => {
+    const idx = parseInt(el.dataset.slot);
+    createSearchableSelect(el, {
+      type: 'string',
+      placeholder: 'Select Cross String...',
+      value: el.dataset.value || '',
+      onChange: (val) => {
+        comparisonSlots[idx].crossesId = val;
+        recalcSlot(idx);
+      }
     });
   });
   container.querySelectorAll('.slot-mains-tension').forEach(inp => {
