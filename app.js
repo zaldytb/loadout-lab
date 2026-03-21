@@ -3247,16 +3247,16 @@ function isVariableBeam(beamWidth) {
 const FRAME_META = {
   // Babolat Pure Aero family
   'babolat-pure-aero-100-2023': {
-    aeroBonus: 0, comfortTech: 0, spinTech: 0.5, genBonus: 0
+    aeroBonus: 0.5, comfortTech: 0.5, spinTech: 1, genBonus: 0
   },
   'babolat-pure-aero-98-2026': {
-    aeroBonus: 1, comfortTech: 1.5, spinTech: 0.5, genBonus: 1
+    aeroBonus: 1.5, comfortTech: 2, spinTech: 1, genBonus: 1.5
   },
   'babolat-pure-aero-100-2026': {
-    aeroBonus: 1.5, comfortTech: 1.5, spinTech: 1, genBonus: 1.5
+    aeroBonus: 2, comfortTech: 2, spinTech: 1.5, genBonus: 2
   },
   'babolat-pure-aero-team-2026': {
-    aeroBonus: 1.5, comfortTech: 1.5, spinTech: 1, genBonus: 1
+    aeroBonus: 2, comfortTech: 2, spinTech: 1.5, genBonus: 1.5
   },
   // Head Speed family
   'head-speed-mp-2024': {
@@ -3438,19 +3438,19 @@ const FRAME_META = {
 
   // Babolat + Tecnifibre additional
   'babolat-pure-aero-super-lite-2026': {
-    aeroBonus: 1.5, comfortTech: 1.5, spinTech: 1, genBonus: 1
+    aeroBonus: 2, comfortTech: 2, spinTech: 1.5, genBonus: 1.5
   },
   'babolat-pure-aero-team-2023': {
-    aeroBonus: 0, comfortTech: 0.5, spinTech: 0.5, genBonus: 0
+    aeroBonus: 0.5, comfortTech: 0.5, spinTech: 1, genBonus: 0
   },
   'babolat-pure-aero-lite-2023': {
-    aeroBonus: 0, comfortTech: 0.5, spinTech: 0.5, genBonus: 0
+    aeroBonus: 0.5, comfortTech: 0.5, spinTech: 1, genBonus: 0
   },
   'babolat-pure-aero-rafa-2023': {
-    aeroBonus: 0, comfortTech: 0, spinTech: 1, genBonus: 0
+    aeroBonus: 0.5, comfortTech: 0, spinTech: 1.5, genBonus: 0.5
   },
   'babolat-pure-aero-rafa-origin-2023': {
-    aeroBonus: 0, comfortTech: 0, spinTech: 0.5, genBonus: 0
+    aeroBonus: 0.5, comfortTech: 0, spinTech: 1, genBonus: 0.5
   },
   'babolat-pure-drive-2021': {
     aeroBonus: 0, comfortTech: 0.5, spinTech: 0, genBonus: 0
@@ -3539,7 +3539,7 @@ const FRAME_META = {
     aeroBonus: 0, comfortTech: 1, spinTech: 0, genBonus: 0
   },
   'yonex-regna-98-2024': {
-    aeroBonus: 0, comfortTech: 1, spinTech: 0, genBonus: 0.5
+    aeroBonus: 0, comfortTech: 2.5, spinTech: 1, genBonus: 2
   },
   'wilson-pro-staff-97l-v14': {
     aeroBonus: 0, comfortTech: 0.5, spinTech: 0, genBonus: 0
