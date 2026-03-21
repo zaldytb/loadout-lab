@@ -6421,3 +6421,118 @@ button.gauge-explore-col-header:hover .gauge-col-apply {
   background: var(--bg-elevated);
   color: var(--text-muted);
 }
+
+/* ============================================
+   WTTN / RECS DUAL ACTION BUTTONS
+   ============================================ */
+.wttn-action-row, .recs-action-row {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+.wttn-action-row .wttn-apply-btn, .recs-action-row .recs-apply-btn {
+  flex: 1;
+}
+.wttn-save-btn, .recs-save-btn {
+  flex: 1;
+  padding: 6px 0;
+  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.wttn-save-btn:hover, .recs-save-btn:hover {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+.wttn-save-btn:disabled, .recs-save-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ============================================
+   COMPARE QUICK-ADD PROMPT
+   ============================================ */
+.compare-qa-prompt {
+  padding: 16px;
+  margin-top: 12px;
+  background: var(--bg-card);
+  border: 1px dashed var(--border-medium);
+  border-radius: 10px;
+}
+.compare-qa-title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+}
+.compare-qa-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0 0 12px;
+}
+.compare-qa-fields {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.compare-qa-fields .dock-qa-select {
+  flex: 1;
+  min-width: 140px;
+}
+
+/* ============================================
+   RACKET PICKER SEARCHABLE DROPDOWNS
+   ============================================ */
+.dock-qa-searchable {
+  position: relative;
+}
+.dock-qa-search {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-family: var(--font-body, 'General Sans', sans-serif);
+  color: var(--text-primary);
+  background: var(--bg-input, var(--bg-base));
+  border: 1px solid var(--border-medium);
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+.dock-qa-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 180px;
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border-medium);
+  border-radius: 6px;
+  margin-top: 2px;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.dock-qa-dropdown.hidden { display: none; }
+.dock-qa-dd-item {
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.dock-qa-dd-item:hover {
+  background: var(--lime-dim);
+}
+.dock-qa-dd-empty {
+  padding: 8px 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+}

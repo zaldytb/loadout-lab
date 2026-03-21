@@ -5159,7 +5159,7 @@ function renderDockPanel() {
     }
     if (sourceEl) {
       const src = activeLoadout.source;
-      const labels = { quiz: 'Quiz', compendium: 'Compendium', manual: 'Manual', preset: 'Preset' };
+      const labels = { quiz: 'Quiz', compendium: 'Racket Bible', manual: 'Manual', preset: 'Preset' };
       sourceEl.textContent = labels[src] || '';
       sourceEl.style.display = src ? '' : 'none';
     }
@@ -5233,38 +5233,17 @@ function addLoadoutToCompare(loadoutId) {
 
   if (comparisonSlots.length >= 3) comparisonSlots.pop();
 
-  var racquet = RACQUETS.find(function(r) { return r.id === lo.frameId; });
-  var stringData = lo.isHybrid ? null : STRINGS.find(function(s) { return s.id === lo.stringId; });
+  _addLoadoutAsSlot(lo);
 
-  var cfg = lo.isHybrid ? {
-    isHybrid: true,
-    mains: STRINGS.find(function(s) { return s.id === lo.mainsId; }),
-    crosses: STRINGS.find(function(s) { return s.id === lo.crossesId; }),
-    mainsTension: lo.mainsTension,
-    crossesTension: lo.crossesTension
-  } : {
-    isHybrid: false,
-    string: stringData,
-    mainsTension: lo.mainsTension,
-    crossesTension: lo.crossesTension
-  };
-
-  var stats = racquet ? predictSetup(racquet, cfg) : null;
-  var identity = stats ? generateIdentity(stats, racquet, cfg) : null;
-
-  comparisonSlots.push({
-    id: Date.now(),
-    racquetId: lo.frameId,
-    stringId: lo.stringId || '',
-    isHybrid: lo.isHybrid,
-    mainsId: lo.mainsId || '',
-    crossesId: lo.crossesId || '',
-    mainsTension: lo.mainsTension,
-    crossesTension: lo.crossesTension,
-    stats: stats, identity: identity
-  });
-
-  switchMode('compare');
+  if (currentMode === 'compare') {
+    renderComparisonSlots();
+    renderCompareSummaries();
+    renderCompareVerdict();
+    renderCompareMatrix();
+    updateComparisonRadar();
+  } else {
+    switchMode('compare');
+  }
 }
 
 // Legacy alias for backward compat
@@ -5323,7 +5302,14 @@ function switchMode(mode) {
   } else if (mode === 'compare') {
     renderComparisonPresets();
     if (comparisonSlots.length === 0) {
-      addComparisonSlotFromHome();
+      if (savedLoadouts.length >= 2) {
+        _autoFillCompareFromSaved();
+      } else if (savedLoadouts.length === 1 || activeLoadout) {
+        addComparisonSlotFromHome();
+        _showCompareQuickAddPrompt();
+      } else {
+        addComparisonSlotFromHome();
+      }
     } else {
       renderComparisonSlots();
       renderCompareSummaries();
@@ -6746,8 +6732,11 @@ function addComparisonSlotFromHome() {
   }
 
   comparisonSlots.push(slotData);
-  // Recalculate stats for the slot
-  recalcSlot(comparisonSlots.length - 1);
+  // Render first, then recalc (DOM must exist before deltas render)
+  renderComparisonSlots();
+  if (slotData.racquetId && (slotData.stringId || slotData.mainsId)) {
+    recalcSlot(comparisonSlots.length - 1);
+  }
 }
 
 function addComparisonSlot() {
@@ -7101,6 +7090,7 @@ function updateComparisonRadar() {
 
 function renderComparisonDeltas() {
   const container = $('#comparison-deltas');
+  if (!container) return;
   const validSlots = comparisonSlots.filter(s => s.stats);
   if (validSlots.length < 2) {
     container.innerHTML = '';
@@ -8623,7 +8613,10 @@ function renderWhatToTryNext(setup, allCandidates) {
           <span class="wttn-net-label">Net</span>
           <span class="wttn-net-phrase">${netDir}</span>
         </div>
-        <button class="wttn-apply-btn" onclick="_applyWttnBuild(this)" data-string-id="${pick.stringId || (pick.string ? pick.string.id : '')}" data-tension="${pick.tension}" data-type="${pick.type}" data-mains-id="${pick.mainsId || ''}" data-crosses-id="${pick.crossesId || ''}">Apply to Loadout</button>
+        <div class="wttn-action-row">
+          <button class="wttn-apply-btn" onclick="_applyWttnBuild(this)" data-string-id="${pick.stringId || (pick.string ? pick.string.id : '')}" data-tension="${pick.tension}" data-type="${pick.type}" data-mains-id="${pick.mainsId || ''}" data-crosses-id="${pick.crossesId || ''}">Apply</button>
+          <button class="wttn-save-btn" onclick="_saveWttnBuild(this)" data-string-id="${pick.stringId || (pick.string ? pick.string.id : '')}" data-tension="${pick.tension}" data-type="${pick.type}" data-mains-id="${pick.mainsId || ''}" data-crosses-id="${pick.crossesId || ''}" data-frame-id="${setup.racquet.id}">Save</button>
+        </div>
       </div>
     `;
   }).join('');
@@ -8782,7 +8775,10 @@ function renderRecommendedBuilds(setup) {
           <span class="recs-composite-value">${c.score.toFixed(1)}</span>
           <span class="recs-composite-delta ${deltaCls}">${isCurrent ? 'YOU' : deltaStr}</span>
         </div>
-        <button class="recs-apply-btn" onclick="_applyRecBuild('${racquet.id}','${c.stringId || (c.string ? c.string.id : '')}',${c.tension},'${c.type}','${c.mainsId || ''}','${c.crossesId || ''}')">Apply</button>
+        <div class="recs-action-row">
+          <button class="recs-apply-btn" onclick="_applyRecBuild('${racquet.id}','${c.stringId || (c.string ? c.string.id : '')}',${c.tension},'${c.type}','${c.mainsId || ''}','${c.crossesId || ''}')">Apply</button>
+          <button class="recs-save-btn" onclick="_saveRecBuild('${racquet.id}','${c.stringId || (c.string ? c.string.id : '')}',${c.tension},'${c.type}','${c.mainsId || ''}','${c.crossesId || ''}')">Save</button>
+        </div>
       </div>
     `;
   }
@@ -9138,7 +9134,7 @@ function init() {
   // Load saved loadouts from storage
   savedLoadouts = _loadSavedLoadouts();
 
-  // Default to Compendium as landing page
+  // Default to Racket Bible as landing page
   switchMode('compendium');
 
   // Initialize dock panel
@@ -10568,25 +10564,54 @@ function toggleQuickAdd() {
   form.classList.toggle('hidden');
 
   if (!form.dataset.populated) {
-    var frameSelect = document.getElementById('dock-qa-frame');
-    var stringSelect = document.getElementById('dock-qa-string');
-
-    RACQUETS.forEach(function(r) {
-      var opt = document.createElement('option');
-      opt.value = r.id;
-      opt.textContent = r.name;
-      frameSelect.appendChild(opt);
-    });
-
-    STRINGS.forEach(function(s) {
-      var opt = document.createElement('option');
-      opt.value = s.id;
-      opt.textContent = s.name + ' (' + s.gauge + ')';
-      stringSelect.appendChild(opt);
-    });
-
+    _initQaSearchable('dock-qa-frame-search', 'dock-qa-frame', 'dock-qa-frame-dropdown',
+      RACQUETS.map(function(r) { return { id: r.id, label: r.name }; })
+    );
+    _initQaSearchable('dock-qa-string-search', 'dock-qa-string', 'dock-qa-string-dropdown',
+      STRINGS.map(function(s) { return { id: s.id, label: s.name + ' (' + s.gauge + ')' }; })
+    );
     form.dataset.populated = '1';
   }
+}
+
+function _initQaSearchable(searchId, hiddenId, dropdownId, items) {
+  var searchEl = document.getElementById(searchId);
+  var hiddenEl = document.getElementById(hiddenId);
+  var dropdownEl = document.getElementById(dropdownId);
+  if (!searchEl || !hiddenEl || !dropdownEl) return;
+
+  function renderDropdown(filter) {
+    var filtered = filter ? items.filter(function(item) {
+      return item.label.toLowerCase().indexOf(filter.toLowerCase()) >= 0;
+    }) : items;
+
+    if (filtered.length === 0) {
+      dropdownEl.innerHTML = '<div class="dock-qa-dd-empty">No results</div>';
+    } else {
+      dropdownEl.innerHTML = filtered.slice(0, 20).map(function(item) {
+        return '<div class="dock-qa-dd-item" data-id="' + item.id + '">' + item.label + '</div>';
+      }).join('');
+    }
+    dropdownEl.classList.remove('hidden');
+
+    dropdownEl.querySelectorAll('.dock-qa-dd-item').forEach(function(el) {
+      el.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        hiddenEl.value = el.dataset.id;
+        searchEl.value = el.textContent;
+        dropdownEl.classList.add('hidden');
+      });
+    });
+  }
+
+  searchEl.addEventListener('focus', function() { renderDropdown(searchEl.value); });
+  searchEl.addEventListener('input', function() {
+    hiddenEl.value = '';
+    renderDropdown(searchEl.value);
+  });
+  searchEl.addEventListener('blur', function() {
+    setTimeout(function() { dropdownEl.classList.add('hidden'); }, 150);
+  });
 }
 
 function quickAddActivate() {
@@ -10595,11 +10620,18 @@ function quickAddActivate() {
   var tension = parseInt(document.getElementById('dock-qa-tension').value) || 53;
   if (!frameId || !stringId) return;
 
+  var isFirstLoadout = !activeLoadout && savedLoadouts.length === 0;
+
   var lo = createLoadout(frameId, stringId, tension, { source: 'manual' });
   if (lo) {
     activateLoadout(lo);
     document.getElementById('dock-qa-form').classList.add('hidden');
-    if (currentMode === 'overview') renderDashboard();
+
+    if (isFirstLoadout) {
+      switchMode('tune');
+    } else if (currentMode === 'overview') {
+      renderDashboard();
+    }
   }
 }
 
@@ -10626,8 +10658,23 @@ function _applyWttnBuild(btn) {
 
   var stringId = btn.dataset.stringId;
   var tension = parseInt(btn.dataset.tension);
+  var type = btn.dataset.type;
+  var mainsId = btn.dataset.mainsId;
+  var crossesId = btn.dataset.crossesId;
 
-  var lo = createLoadout(setup.racquet.id, stringId, tension, { source: 'manual' });
+  var opts = { source: 'manual' };
+  var lo;
+
+  if (type === 'hybrid' && mainsId && crossesId) {
+    opts.isHybrid = true;
+    opts.mainsId = mainsId;
+    opts.crossesId = crossesId;
+    opts.crossesTension = tension - 2;
+    lo = createLoadout(setup.racquet.id, mainsId, tension, opts);
+  } else if (stringId) {
+    lo = createLoadout(setup.racquet.id, stringId, tension, opts);
+  }
+
   if (lo) {
     activateLoadout(lo);
     var newSetup = getCurrentSetup();
@@ -10636,7 +10683,7 @@ function _applyWttnBuild(btn) {
 
   btn.textContent = 'Applied \u2713';
   btn.disabled = true;
-  setTimeout(function() { btn.textContent = 'Apply to Loadout'; btn.disabled = false; }, 1500);
+  setTimeout(function() { btn.textContent = 'Apply'; btn.disabled = false; }, 1500);
 }
 
 function _applyRecBuild(racquetId, stringId, tension, type, mainsId, crossesId) {
@@ -10653,6 +10700,47 @@ function _applyRecBuild(racquetId, stringId, tension, type, mainsId, crossesId) 
     var newSetup = getCurrentSetup();
     if (newSetup && currentMode === 'tune') initTuneMode(newSetup);
   }
+}
+
+function _saveWttnBuild(btn) {
+  var frameId = btn.dataset.frameId;
+  var stringId = btn.dataset.stringId;
+  var tension = parseInt(btn.dataset.tension);
+  var type = btn.dataset.type;
+  var mainsId = btn.dataset.mainsId;
+  var crossesId = btn.dataset.crossesId;
+
+  var opts = { source: 'manual' };
+  var lo;
+
+  if (type === 'hybrid' && mainsId && crossesId) {
+    opts.isHybrid = true;
+    opts.mainsId = mainsId;
+    opts.crossesId = crossesId;
+    opts.crossesTension = tension - 2;
+    lo = createLoadout(frameId, mainsId, tension, opts);
+  } else if (stringId) {
+    lo = createLoadout(frameId, stringId, tension, opts);
+  }
+
+  if (lo) {
+    saveLoadout(lo);
+    btn.textContent = 'Saved \u2713';
+    btn.disabled = true;
+    setTimeout(function() { btn.textContent = 'Save'; btn.disabled = false; }, 1500);
+  }
+}
+
+function _saveRecBuild(racquetId, stringId, tension, type, mainsId, crossesId) {
+  var opts = { source: 'manual' };
+  if (type === 'hybrid' && mainsId && crossesId) {
+    opts.isHybrid = true;
+    opts.mainsId = mainsId;
+    opts.crossesId = crossesId;
+    opts.crossesTension = tension - 2;
+  }
+  var lo = createLoadout(racquetId, type === 'hybrid' ? mainsId : stringId, tension, opts);
+  if (lo) saveLoadout(lo);
 }
 
 // ============================================
@@ -10756,7 +10844,7 @@ function _renderCompareSuggestions() {
   });
 
   if (suggestions.length === 0 && savedLoadouts.length === 0) {
-    container.innerHTML = '<div class="compare-sug-empty">Save loadouts from Compendium or Quiz to see quick-add suggestions here</div>';
+    container.innerHTML = '<div class="compare-sug-empty">Save loadouts from Racket Bible or Quiz to see quick-add suggestions here</div>';
     return;
   }
 
@@ -10803,6 +10891,123 @@ function _getCompareSlotTag(slot) {
   }
 
   return '';
+}
+
+// ============================================
+// FEATURE: Compare Auto-Fill + Quick Add Prompt
+// ============================================
+
+function _addLoadoutAsSlot(lo) {
+  var racquet = RACQUETS.find(function(r) { return r.id === lo.frameId; });
+  var stringData = lo.isHybrid ? null : STRINGS.find(function(s) { return s.id === lo.stringId; });
+
+  var cfg = lo.isHybrid ? {
+    isHybrid: true,
+    mains: STRINGS.find(function(s) { return s.id === lo.mainsId; }),
+    crosses: STRINGS.find(function(s) { return s.id === lo.crossesId; }),
+    mainsTension: lo.mainsTension,
+    crossesTension: lo.crossesTension
+  } : {
+    isHybrid: false,
+    string: stringData,
+    mainsTension: lo.mainsTension,
+    crossesTension: lo.crossesTension
+  };
+
+  var stats = racquet ? predictSetup(racquet, cfg) : null;
+  var identity = stats ? generateIdentity(stats, racquet, cfg) : null;
+
+  comparisonSlots.push({
+    id: Date.now() + Math.random(),
+    racquetId: lo.frameId,
+    stringId: lo.stringId || '',
+    isHybrid: lo.isHybrid || false,
+    mainsId: lo.mainsId || '',
+    crossesId: lo.crossesId || '',
+    mainsTension: lo.mainsTension,
+    crossesTension: lo.crossesTension,
+    stats: stats,
+    identity: identity
+  });
+}
+
+function _autoFillCompareFromSaved() {
+  comparisonSlots = [];
+  var added = 0;
+
+  if (activeLoadout) {
+    _addLoadoutAsSlot(activeLoadout);
+    added++;
+  }
+
+  for (var i = 0; i < savedLoadouts.length && added < 2; i++) {
+    var lo = savedLoadouts[i];
+    if (activeLoadout && lo.id === activeLoadout.id) continue;
+    _addLoadoutAsSlot(lo);
+    added++;
+  }
+
+  if (added < 2 && savedLoadouts.length > 0) {
+    _addLoadoutAsSlot(savedLoadouts[0]);
+  }
+
+  renderComparisonSlots();
+  renderCompareSummaries();
+  renderCompareVerdict();
+  renderCompareMatrix();
+  updateComparisonRadar();
+}
+
+function _showCompareQuickAddPrompt() {
+  var promptEl = document.getElementById('compare-qa-prompt');
+  if (!promptEl) {
+    promptEl = document.createElement('div');
+    promptEl.id = 'compare-qa-prompt';
+    promptEl.className = 'compare-qa-prompt';
+    var slotsEl = document.getElementById('comparison-slots');
+    if (slotsEl && slotsEl.parentElement) {
+      slotsEl.parentElement.insertBefore(promptEl, slotsEl.nextSibling);
+    }
+  }
+
+  promptEl.innerHTML =
+    '<div class="compare-qa-inner">' +
+      '<p class="compare-qa-title">Add a second setup to compare</p>' +
+      '<p class="compare-qa-sub">Pick a frame and string, or save more loadouts from Racket Bible</p>' +
+      '<div class="compare-qa-fields">' +
+        '<select class="dock-qa-select" id="compare-qa-frame"><option value="">Choose frame...</option></select>' +
+        '<select class="dock-qa-select" id="compare-qa-string"><option value="">Choose string...</option></select>' +
+        '<input type="number" class="dock-qa-input" id="compare-qa-tension" value="53" min="30" max="70" style="width:70px">' +
+        '<button class="dock-qa-btn dock-qa-btn-primary" onclick="_compareQuickAdd()" style="flex:none;padding:7px 16px">Add to Compare</button>' +
+      '</div>' +
+    '</div>';
+
+  var frameSelect = document.getElementById('compare-qa-frame');
+  var stringSelect = document.getElementById('compare-qa-string');
+  RACQUETS.forEach(function(r) {
+    var opt = document.createElement('option');
+    opt.value = r.id;
+    opt.textContent = r.name;
+    frameSelect.appendChild(opt);
+  });
+  STRINGS.forEach(function(s) {
+    var opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = s.name + ' (' + s.gauge + ')';
+    stringSelect.appendChild(opt);
+  });
+}
+
+function _compareQuickAdd() {
+  var frameId = document.getElementById('compare-qa-frame').value;
+  var stringId = document.getElementById('compare-qa-string').value;
+  var tension = parseInt(document.getElementById('compare-qa-tension').value) || 53;
+  if (!frameId || !stringId) return;
+
+  _compActionCompare(frameId, stringId, tension);
+
+  var prompt = document.getElementById('compare-qa-prompt');
+  if (prompt) prompt.remove();
 }
 
 document.addEventListener('DOMContentLoaded', () => {

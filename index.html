@@ -83,7 +83,7 @@
             </button>
             <button class="mode-btn active" data-mode="compendium" id="btn-mode-compendium">
               <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="1" width="12" height="14" rx="1.5"/><line x1="5" y1="4" x2="11" y2="4"/><line x1="5" y1="7" x2="11" y2="7"/><line x1="5" y1="10" x2="9" y2="10"/></svg>
-              <span>Compendium</span>
+              <span>Racket Bible</span>
             </button>
             <button class="mode-btn" data-mode="howitworks" id="btn-mode-howitworks">
               <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M5.8 5.8a1.7 1.7 0 0 1 3.3.5c0 1.1-1.6 1.5-1.6 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7.5" cy="10.8" r="0.6" fill="currentColor"/></svg>
@@ -106,7 +106,7 @@
               <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="10" stroke="currentColor" stroke-width="1.5" opacity="0.3"/><path d="M10 10l8 8M18 10l-8 8" stroke="currentColor" stroke-width="1.5" opacity="0.2"/></svg>
             </div>
             <p class="dock-lo-empty-title">No loadout active</p>
-            <p class="dock-lo-empty-sub">Browse rackets in Compendium or take the quiz</p>
+            <p class="dock-lo-empty-sub">Browse rackets in Racket Bible or take the quiz</p>
           </div>
           <div id="dock-lo-active" class="dock-lo-active hidden">
             <div class="dock-lo-header">
@@ -151,24 +151,28 @@
           </div>
         </div>
 
-        <!-- Quick Add Loadout -->
+        <!-- Racket Picker -->
         <div class="dock-quick-add" id="dock-quick-add">
           <button class="dock-qa-trigger" id="dock-qa-trigger" onclick="toggleQuickAdd()">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/></svg>
-            Quick Add Loadout
+            Racket Picker
           </button>
           <div class="dock-qa-form hidden" id="dock-qa-form">
             <div class="dock-qa-field">
               <label class="dock-qa-label">Frame</label>
-              <select class="dock-qa-select" id="dock-qa-frame">
-                <option value="">Choose frame...</option>
-              </select>
+              <div class="dock-qa-searchable">
+                <input type="text" class="dock-qa-search" id="dock-qa-frame-search" placeholder="Search frames..." autocomplete="off">
+                <input type="hidden" id="dock-qa-frame">
+                <div class="dock-qa-dropdown hidden" id="dock-qa-frame-dropdown"></div>
+              </div>
             </div>
             <div class="dock-qa-field">
               <label class="dock-qa-label">String</label>
-              <select class="dock-qa-select" id="dock-qa-string">
-                <option value="">Choose string...</option>
-              </select>
+              <div class="dock-qa-searchable">
+                <input type="text" class="dock-qa-search" id="dock-qa-string-search" placeholder="Search strings..." autocomplete="off">
+                <input type="hidden" id="dock-qa-string">
+                <div class="dock-qa-dropdown hidden" id="dock-qa-string-dropdown"></div>
+              </div>
             </div>
             <div class="dock-qa-field">
               <label class="dock-qa-label">Tension</label>
@@ -282,11 +286,11 @@
               <circle cx="32" cy="32" r="4" fill="currentColor" opacity="0.2"/>
             </svg>
           </div>
-          <h3>Browse frames in Compendium to start</h3>
+          <h3>Browse frames in Racket Bible to start</h3>
           <p>Explore frames, discover builds, then fine-tune here</p>
           <button class="fmb-cta" onclick="switchMode('compendium')" style="margin-top: 8px;">
             <span class="fmb-cta-icon"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="16" height="18" rx="2"/><line x1="7" y1="6" x2="15" y2="6"/><line x1="7" y1="10" x2="15" y2="10"/><line x1="7" y1="14" x2="12" y2="14"/></svg></span>
-            <span class="fmb-cta-text">Open Compendium</span>
+            <span class="fmb-cta-text">Open Racket Bible</span>
             <span class="fmb-cta-sub">Browse 129 frames and discover your ideal build</span>
           </button>
           <button class="fmb-cta" id="fmb-cta" onclick="openFindMyBuild()">
