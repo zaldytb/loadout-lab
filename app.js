@@ -4278,62 +4278,136 @@ function calcStringFrameMod(stringData) {
   };
 }
 
-function calcTensionModifier(mainsTension, crossesTension, tensionRange) {
+function calcTensionModifier(mainsTension, crossesTension, tensionRange, pattern) {
   const avgTension = (mainsTension + crossesTension) / 2;
   const mid = (tensionRange[0] + tensionRange[1]) / 2;
   const diff = avgTension - mid;
   // Every 2 lbs above midpoint: +2 control, -2 power
   const factor = diff / 2;
 
-  // --- Mains/Crosses differential effects ---
-  // Positive = mains tighter than crosses (standard practice)
-  // Negative = crosses tighter than mains (unusual, generally bad)
+  // --- Pattern-aware mains/crosses differential ---
+  // The interaction between mains and crosses changes fundamentally
+  // with cross density. Dense 20-cross beds are already "locked" by geometry,
+  // so the differential sweet spot shifts.
   const differential = mainsTension - crossesTension;
   const absDiff = Math.abs(differential);
+  const [patMains, patCrosses] = (pattern || '16x19').split('x').map(Number);
+  const isDense20 = patCrosses >= 20;  // 16x20, 18x20 etc.
+  const isOpen = patCrosses <= 18;     // 16x18, 16x19
 
-  // Optimal differential: mains 2-3 lbs higher than crosses
-  // This maximizes snapback while maintaining control
-  // Source: ReString, TWU, pro stringing consensus
   let diffSpinBonus = 0;
-  let diffControlPenalty = 0;
-  let diffComfortPenalty = 0;
-  let diffDurabilityPenalty = 0;
-  let diffFeelPenalty = 0;
+  let diffControlMod = 0;
+  let diffComfortMod = 0;
+  let diffDurabilityMod = 0;
+  let diffFeelMod = 0;
+  let diffLaunchMod = 0;
 
-  if (differential >= 1 && differential <= 4) {
-    // Sweet spot: mains 1-4 lbs tighter — slight spin boost, no penalty
-    diffSpinBonus = Math.min(differential, 3) * 0.8; // up to +2.4 spin
-  } else if (differential > 4 && differential <= 6) {
-    // Acceptable but diminishing returns
-    diffSpinBonus = 1.0;
-    diffControlPenalty = -(differential - 4) * 0.5; // mild control loss
-  } else if (differential > 6) {
-    // Excessive: inconsistent string bed, uneven wear, frame stress
-    diffSpinBonus = 0;
-    diffControlPenalty = -(differential - 4) * 1.2;
-    diffComfortPenalty = -(differential - 6) * 0.8;
-    diffDurabilityPenalty = -(differential - 6) * 1.5;
-    diffFeelPenalty = -(differential - 6) * 1.0;
-  }
+  if (isDense20) {
+    // ===== DENSE 20-CROSS PATTERNS =====
+    // Short, numerous crosses are already effectively stiff.
+    // "Mains tighter" can over-constrain the bed, killing snapback.
+    // "Crosses equal or slightly tighter" can yield a more uniform, 
+    // linear, predictable response — good for flat drives.
+    //
+    // Optimal zone: differential -2 to +2 (near equal)
+    // Acceptable: crosses up to 3 lbs tighter (locks grid for control)
+    // Bad: mains much tighter (>+4) — chokes snapback, feels dead
 
-  if (differential < -1) {
-    // Crosses tighter than mains — unusual, reduces snapback, feels dead
-    diffSpinBonus = differential * 0.6; // negative = spin loss
-    diffControlPenalty = Math.abs(differential) > 3 ? -(absDiff - 3) * 0.8 : 0;
-    diffFeelPenalty = differential * 0.5; // negative feel
-    diffComfortPenalty = Math.abs(differential) > 4 ? -(absDiff - 4) * 0.6 : 0;
+    if (absDiff <= 2) {
+      // Sweet spot for dense beds: near-equal tension
+      diffControlMod = 0.5;  // slight control bonus for uniform bed
+      diffFeelMod = 0.5;     // consistent feel
+    } else if (differential >= -3 && differential < -1) {
+      // Crosses 1-3 lbs tighter — valid dense-pattern technique
+      // Firms up the grid, lower launch, more linear response
+      diffControlMod = 1.0;
+      diffLaunchMod = differential * 0.4;  // lower launch (negative)
+      diffFeelMod = 0.3;  // more uniform feel
+      diffSpinBonus = -0.5; // small spin tradeoff (less snapback)
+    } else if (differential > 2 && differential <= 4) {
+      // Mains 3-4 lbs tighter on dense bed — diminishing returns
+      // Cross matrix already stiff, extra main tension doesn't help much
+      diffSpinBonus = 0.5;  // less benefit than on open patterns
+      diffControlMod = -0.5;
+    } else if (differential > 4) {
+      // Mains way tighter on dense bed — BAD
+      // Over-constrains mains, kills snapback, dead bed
+      diffSpinBonus = -(differential - 4) * 0.5;
+      diffControlMod = -(differential - 4) * 0.8;
+      diffComfortMod = -(differential - 4) * 0.6;
+      diffFeelMod = -(differential - 4) * 0.8;
+      diffDurabilityMod = -(differential - 4) * 1.0;
+    } else if (differential < -3) {
+      // Crosses way too tight — excessive even for dense beds
+      diffControlMod = -(absDiff - 3) * 0.6;
+      diffComfortMod = -(absDiff - 3) * 0.5;
+      diffFeelMod = -(absDiff - 3) * 0.4;
+    }
+
+  } else if (isOpen) {
+    // ===== OPEN PATTERNS (16x18, 16x19) =====
+    // Open beds start "loose" — designed for spin and snapback.
+    // Mains tighter than crosses is the clear optimal.
+    // Reversing kills exactly what the pattern is for.
+
+    if (differential >= 1 && differential <= 4) {
+      // Sweet spot: mains 1-4 lbs tighter
+      diffSpinBonus = Math.min(differential, 3) * 1.0; // up to +3.0 spin
+    } else if (differential > 4 && differential <= 6) {
+      diffSpinBonus = 1.5;
+      diffControlMod = -(differential - 4) * 0.5;
+    } else if (differential > 6) {
+      // Excessive even for open patterns
+      diffSpinBonus = 0;
+      diffControlMod = -(differential - 4) * 1.2;
+      diffComfortMod = -(differential - 6) * 0.8;
+      diffDurabilityMod = -(differential - 6) * 1.5;
+      diffFeelMod = -(differential - 6) * 1.0;
+    }
+
+    if (differential < -1) {
+      // Crosses tighter on open bed — BAD. Kills snapback.
+      diffSpinBonus = differential * 0.8;  // stronger spin penalty on open
+      diffControlMod = absDiff > 3 ? -(absDiff - 3) * 1.0 : 0;
+      diffFeelMod = differential * 0.6;
+      diffComfortMod = absDiff > 3 ? -(absDiff - 3) * 0.6 : 0;
+    }
+
+  } else {
+    // ===== STANDARD PATTERNS (18x19, 18x20 with <20 crosses) =====
+    // Middle ground between open and dense.
+    // Mains slightly tighter is standard, but less critical than open.
+
+    if (differential >= 1 && differential <= 4) {
+      diffSpinBonus = Math.min(differential, 3) * 0.7;
+    } else if (differential > 4 && differential <= 6) {
+      diffSpinBonus = 0.8;
+      diffControlMod = -(differential - 4) * 0.4;
+    } else if (differential > 6) {
+      diffSpinBonus = 0;
+      diffControlMod = -(differential - 4) * 1.0;
+      diffComfortMod = -(differential - 6) * 0.7;
+      diffDurabilityMod = -(differential - 6) * 1.2;
+      diffFeelMod = -(differential - 6) * 0.8;
+    }
+
+    if (differential < -1) {
+      diffSpinBonus = differential * 0.5;
+      diffControlMod = absDiff > 3 ? -(absDiff - 3) * 0.7 : 0;
+      diffFeelMod = differential * 0.4;
+      diffComfortMod = absDiff > 4 ? -(absDiff - 4) * 0.5 : 0;
+    }
   }
 
   return {
     powerMod: -factor * 2,
-    controlMod: factor * 2 + diffControlPenalty,
-    launchMod: -factor * 1.5,
-    comfortMod: -factor * 1.5 + diffComfortPenalty,
+    controlMod: factor * 2 + diffControlMod,
+    launchMod: -factor * 1.5 + diffLaunchMod,
+    comfortMod: -factor * 1.5 + diffComfortMod,
     spinMod: -Math.abs(factor) * 0.4 + diffSpinBonus,
-    feelMod: factor * 1.0 + diffFeelPenalty,
+    feelMod: factor * 1.0 + diffFeelMod,
     playabilityMod: -Math.abs(factor) * 0.6,
-    durabilityMod: diffDurabilityPenalty,
-    // Expose differential for OBS penalty
+    durabilityMod: diffDurabilityMod,
     _differential: differential
   };
 }
@@ -4388,7 +4462,7 @@ function predictSetup(racquet, stringConfig) {
     avgTension = (stringConfig.mainsTension + stringConfig.crossesTension) / 2;
   }
 
-  const tensionMod = calcTensionModifier(stringConfig.mainsTension, stringConfig.crossesTension, racquet.tensionRange);
+  const tensionMod = calcTensionModifier(stringConfig.mainsTension, stringConfig.crossesTension, racquet.tensionRange, racquet.pattern);
 
   // --- Blend: frame base (primary) + string mod + tension mod ---
   // Frame-driven stats: frame is ~70% weight, string profile ~20%, mods ~10%
@@ -5478,7 +5552,8 @@ function buildTensionContext(stringConfig, racquet) {
   if (!stringConfig || !racquet) return null;
   const avgTension = (stringConfig.mainsTension + stringConfig.crossesTension) / 2;
   const differential = stringConfig.mainsTension - stringConfig.crossesTension;
-  return { avgTension, tensionRange: racquet.tensionRange, differential };
+  const [, patCrosses] = (racquet.pattern || '16x19').split('x').map(Number);
+  return { avgTension, tensionRange: racquet.tensionRange, differential, patternCrosses: patCrosses };
 }
 
 function computeCompositeScore(stats, tensionContext) {
@@ -5535,24 +5610,35 @@ function computeCompositeScore(stats, tensionContext) {
       scaled -= excess * 1.2;
     }
 
-    // --- Mains/Crosses differential penalty ---
-    // Optimal: mains 0-4 lbs higher than crosses
-    // Penalty: >6 lbs differential in either direction
+    // --- Mains/Crosses differential penalty (pattern-aware) ---
     if (tensionContext.differential !== undefined) {
       const diff = tensionContext.differential;
       const absDiff = Math.abs(diff);
+      const patCrosses = tensionContext.patternCrosses || 19;
+      const isDense20 = patCrosses >= 20;
       
-      if (absDiff > 6 && absDiff <= 10) {
-        // Significant mismatch: inconsistent response, frame stress
-        scaled -= (absDiff - 6) * 3;
-      } else if (absDiff > 10) {
-        // Extreme mismatch: unplayable, frame damage risk
-        scaled -= 12 + (absDiff - 10) * 5;
+      // Threshold where penalty starts depends on pattern
+      // Dense 20-cross: higher tolerance for reversed differential
+      const fwdThreshold = isDense20 ? 4 : 6;    // mains-tighter threshold
+      const revThreshold = isDense20 ? 4 : 4;     // crosses-tighter threshold
+      const extremeThreshold = 10;
+
+      if (absDiff > extremeThreshold) {
+        // Extreme mismatch in any direction: unplayable, frame damage risk
+        scaled -= 12 + (absDiff - extremeThreshold) * 5;
+      } else if (diff > fwdThreshold) {
+        // Mains too much tighter than crosses
+        const excess = diff - fwdThreshold;
+        scaled -= excess * (isDense20 ? 4 : 3); // harsher on dense (kills snapback)
       }
-      
-      // Extra penalty if crosses are way tighter than mains (unusual/bad)
-      if (diff < -4) {
-        scaled -= (Math.abs(diff) - 4) * 2;
+
+      // Reversed differential (crosses tighter) — pattern-dependent
+      if (diff < -revThreshold && !isDense20) {
+        // On open/standard: crosses tighter is bad
+        scaled -= (absDiff - revThreshold) * 3;
+      } else if (diff < -(revThreshold + 2) && isDense20) {
+        // Even on dense beds, extreme reverse is bad
+        scaled -= (absDiff - revThreshold - 2) * 2.5;
       }
     }
   }
