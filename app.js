@@ -2623,6 +2623,115 @@ const RACQUETS = [
     frameProfile: "Ultra-light variable beam with Sonic Core Infinergy, Power Boost+",
     identity: "Light Power Boost",
     notes: "Lightest FX 500 at 283g strung. 68 RA stiff for power at low weight. Nearly even balance (1 pt HL). Same wide variable beam. Power Boost+ Groove for extra energy return. For recreational and developing players wanting easy power."
+  },
+
+  // ========== DUNLOP CX 2024 ==========
+  {
+    id: "dunlop-cx-200-tour-16x19-2024",
+    name: "Dunlop CX 200 Tour 16x19 2024",
+    year: 2024,
+    headSize: 95,
+    length: 27,
+    strungWeight: 326,
+    balance: 31.98,
+    balancePts: "7 pts HL",
+    swingweight: 314,
+    stiffness: 66,
+    beamWidth: [20.5, 20.5, 20.5],
+    pattern: "16x19",
+    powerLevel: "Low",
+    strokeStyle: "Full",
+    swingSpeed: "Fast",
+    tensionRange: [45, 65],
+    frameProfile: "Thin constant beam with Sonic Core Infinergy, Powergrid Stringtech+, Vibroshield",
+    identity: "Tour Scalpel",
+    notes: "Smallest Dunlop head at 95 sq in with thinnest beam (20.5mm constant). 326g strung with 7 pts HL — heavy but extremely head-light. 66 RA moderate stiffness. Powergrid Stringtech+ optimizes string interaction. Vibroshield dampens vibration. For advanced precision players."
+  },
+  {
+    id: "dunlop-cx-200-2024",
+    name: "Dunlop CX 200 2024",
+    year: 2024,
+    headSize: 98,
+    length: 27,
+    strungWeight: 320,
+    balance: 32.08,
+    balancePts: "7 pts HL",
+    swingweight: 314,
+    stiffness: 64,
+    beamWidth: [21.5, 21.5, 21.5],
+    pattern: "16x19",
+    powerLevel: "Low-Medium",
+    strokeStyle: "Full",
+    swingSpeed: "Fast",
+    tensionRange: [45, 65],
+    frameProfile: "Thin constant beam with Sonic Core Infinergy, Powergrid Stringtech+, Vibroshield",
+    identity: "CX Control",
+    notes: "Core CX 200 frame. 21.5mm thin constant beam for control. 64 RA flexible for feel. 7 pts HL extremely head-light with 314 swingweight. Sonic Core Infinergy for energy return. Vibroshield dampens vibration. 2024 mold update. Competes with Blade 98 and Prestige MP."
+  },
+  {
+    id: "dunlop-cx-200-ls-2024",
+    name: "Dunlop CX 200 LS 2024",
+    year: 2024,
+    headSize: 98,
+    length: 27,
+    strungWeight: 303,
+    balance: 33.48,
+    balancePts: "3 pts HL",
+    swingweight: 309,
+    stiffness: 63,
+    beamWidth: [21.5, 21.5, 21.5],
+    pattern: "16x19",
+    powerLevel: "Low-Medium",
+    strokeStyle: "Medium-Full",
+    swingSpeed: "Medium-Fast",
+    tensionRange: [45, 65],
+    frameProfile: "Lightweight thin beam with Sonic Core Infinergy, Powergrid Stringtech+",
+    identity: "Light CX",
+    notes: "Lighter CX 200 at 303g strung. Same 21.5mm thin beam. 63 RA soft flex. 3 pts HL with 309 swingweight. More accessible control frame for intermediate players wanting CX precision without full weight."
+  },
+
+  // ========== DUNLOP SX 2022 ==========
+  {
+    id: "dunlop-sx-300-2022",
+    name: "Dunlop SX 300 2022",
+    year: 2022,
+    headSize: 100,
+    length: 27,
+    strungWeight: 318,
+    balance: 33.0,
+    balancePts: "4 pts HL",
+    swingweight: 322,
+    stiffness: 68,
+    beamWidth: [23, 26, 23],
+    pattern: "16x19",
+    powerLevel: "Medium",
+    strokeStyle: "Medium-Full",
+    swingSpeed: "Medium-Fast",
+    tensionRange: [45, 65],
+    frameProfile: "Variable beam with Spin Boost+ Grommets, Sonic Core Infinergy",
+    identity: "Spin Machine",
+    notes: "Dunlop's spin-focused frame. Spin Boost+ Grommets maximize string movement and snapback. Wide variable beam (23/26/23mm) for power and launch. 68 RA moderate-stiff. 322 swingweight for stability. Sonic Core Infinergy for energy return. Competes with Pure Aero."
+  },
+  {
+    id: "dunlop-sx-300-tour-2022",
+    name: "Dunlop SX 300 Tour 2022",
+    year: 2022,
+    headSize: 98,
+    length: 27,
+    strungWeight: 323,
+    balance: 32.5,
+    balancePts: "6 pts HL",
+    swingweight: 324,
+    stiffness: 66,
+    beamWidth: [23, 26, 23],
+    pattern: "16x19",
+    powerLevel: "Low-Medium",
+    strokeStyle: "Full",
+    swingSpeed: "Fast",
+    tensionRange: [45, 65],
+    frameProfile: "Variable beam with Spin Boost+ Grommets, Sonic Core Infinergy",
+    identity: "Spin Precision",
+    notes: "98 sq in SX for more precision with spin. Same variable beam and Spin Boost+ tech. 66 RA moderate stiffness. 6 pts HL with 324 swingweight. Heavier and more head-light than SX 300 for better control. For advanced spin players."
   }
 ];
 
@@ -3875,6 +3984,22 @@ const FRAME_META = {
   },
   'dunlop-fx-500-lite-2023': {
     aeroBonus: 0, comfortTech: 0.5, spinTech: 0, genBonus: 0
+  },
+  // Dunlop CX + SX
+  'dunlop-cx-200-tour-16x19-2024': {
+    aeroBonus: 0, comfortTech: 1, spinTech: 0, genBonus: 0.5
+  },
+  'dunlop-cx-200-2024': {
+    aeroBonus: 0, comfortTech: 1, spinTech: 0, genBonus: 0.5
+  },
+  'dunlop-cx-200-ls-2024': {
+    aeroBonus: 0, comfortTech: 1, spinTech: 0, genBonus: 0
+  },
+  'dunlop-sx-300-2022': {
+    aeroBonus: 0, comfortTech: 0.5, spinTech: 1, genBonus: 0
+  },
+  'dunlop-sx-300-tour-2022': {
+    aeroBonus: 0, comfortTech: 0.5, spinTech: 1, genBonus: 0
   }
 };
 
