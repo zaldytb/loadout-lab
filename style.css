@@ -4163,3 +4163,163 @@ body {
 .gauge-select:not(:disabled):hover {
   border-color: var(--lime);
 }
+
+/* ============================================
+   GAUGE EXPLORER (Tune Mode)
+   ============================================ */
+
+.gauge-explore-content {
+  padding-top: var(--space-2);
+}
+
+.gauge-explore-section-label {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: var(--space-3);
+}
+
+.gauge-explore-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: var(--space-4);
+}
+
+.gauge-explore-header,
+.gauge-explore-row {
+  display: grid;
+  grid-template-columns: 90px repeat(var(--gauge-cols, 5), 1fr);
+  gap: 2px;
+  align-items: center;
+}
+
+.gauge-explore-header {
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.gauge-explore-row {
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border-faint, rgba(0,0,0,0.04));
+}
+
+.gauge-explore-obs-row {
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: none;
+}
+
+.gauge-explore-stat-label {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.gauge-obs-label {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.gauge-explore-col-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 4px 2px;
+  border-radius: var(--radius-sm);
+}
+
+.gauge-explore-col-header.gauge-current {
+  background: var(--lime-faint, rgba(199, 246, 58, 0.12));
+  border: 1px solid var(--lime-border, rgba(199, 246, 58, 0.3));
+}
+
+.gauge-col-short {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.gauge-col-mm {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-muted);
+}
+
+.gauge-col-tag {
+  font-family: var(--font-body);
+  font-size: 0.55rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--lime);
+}
+
+.gauge-explore-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  padding: 3px 2px;
+  border-radius: var(--radius-sm);
+}
+
+.gauge-cell-val {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.gauge-cell-diff {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 600;
+}
+
+.gauge-val-current .gauge-cell-val {
+  color: var(--lime);
+}
+
+.gauge-val-positive .gauge-cell-diff {
+  color: var(--green-tag);
+}
+
+.gauge-val-negative .gauge-cell-diff {
+  color: var(--red);
+}
+
+.gauge-val-neutral .gauge-cell-diff {
+  color: var(--text-muted);
+}
+
+.gauge-obs-cell .gauge-cell-val {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .gauge-explore-header,
+  .gauge-explore-row {
+    grid-template-columns: 70px repeat(var(--gauge-cols, 5), 1fr);
+  }
+  .gauge-explore-stat-label {
+    font-size: 0.65rem;
+  }
+  .gauge-cell-val {
+    font-size: 0.68rem;
+  }
+  .gauge-col-short {
+    font-size: 0.7rem;
+  }
+}

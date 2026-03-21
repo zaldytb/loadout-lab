@@ -7236,6 +7236,7 @@ function initTuneMode(setup) {
   // Render all modules
   renderOptimalBuildWindow();
   renderDeltaVsBaseline();
+  renderGaugeExplorer(setup);
   renderBaselineMarker(sliderMin, sliderMax);
   renderOptimalZone(sliderMin, sliderMax);
   renderSweepChart(setup);
@@ -7429,6 +7430,159 @@ function renderDeltaVsBaseline() {
       }).join('')}
     </div>
   `;
+}
+
+// ============================================
+// GAUGE EXPLORER — shows how each available gauge shifts stats vs current
+// ============================================
+function renderGaugeExplorer(setup) {
+  const container = $('#gauge-explore-content');
+  if (!container) return;
+  if (!setup) { container.innerHTML = ''; return; }
+
+  const { racquet, stringConfig } = setup;
+
+  // Determine which string(s) to explore gauge for
+  // For full bed: explore the single string
+  // For hybrid: explore both mains and crosses
+  const sections = [];
+
+  if (stringConfig.isHybrid) {
+    if (stringConfig.mains) {
+      sections.push({
+        label: 'MAINS',
+        string: stringConfig.mains,
+        tensionKey: 'mainsTension',
+        buildConfig: (gaugedStr) => ({
+          isHybrid: true,
+          mains: gaugedStr,
+          crosses: stringConfig.crosses,
+          mainsTension: stringConfig.mainsTension,
+          crossesTension: stringConfig.crossesTension
+        })
+      });
+    }
+    if (stringConfig.crosses) {
+      sections.push({
+        label: 'CROSSES',
+        string: stringConfig.crosses,
+        tensionKey: 'crossesTension',
+        buildConfig: (gaugedStr) => ({
+          isHybrid: true,
+          mains: stringConfig.mains,
+          crosses: gaugedStr,
+          mainsTension: stringConfig.mainsTension,
+          crossesTension: stringConfig.crossesTension
+        })
+      });
+    }
+  } else {
+    if (stringConfig.string) {
+      sections.push({
+        label: null, // no label needed for single string
+        string: stringConfig.string,
+        buildConfig: (gaugedStr) => ({
+          isHybrid: false,
+          string: gaugedStr,
+          mainsTension: stringConfig.mainsTension,
+          crossesTension: stringConfig.crossesTension
+        })
+      });
+    }
+  }
+
+  if (sections.length === 0) { container.innerHTML = ''; return; }
+
+  // Stats to show in the gauge explorer
+  const gaugeKeys = ['spin', 'power', 'control', 'comfort', 'feel', 'durability', 'playability'];
+  const gaugeLabels = ['Spin', 'Power', 'Control', 'Comfort', 'Feel', 'Durability', 'Playability'];
+
+  let html = '';
+
+  sections.forEach(section => {
+    const baseStr = section.string;
+    const baseRefGauge = baseStr._gaugeModified ? baseStr._refGauge : baseStr.gaugeNum;
+    // Use the original unmodified string for gauge exploration
+    const originalStr = baseStr._gaugeModified
+      ? STRINGS.find(s => s.id === baseStr.id) || baseStr
+      : baseStr;
+    const currentGauge = baseStr.gaugeNum;
+    const gaugeOptions = getGaugeOptions(originalStr);
+
+    // Compute stats at each gauge
+    const gaugeResults = gaugeOptions.map(g => {
+      const gaugedStr = applyGaugeModifier(originalStr, g);
+      const config = section.buildConfig(gaugedStr);
+      const stats = predictSetup(racquet, config);
+      const tensionCtx = buildTensionContext(config, racquet);
+      const obs = computeCompositeScore(stats, tensionCtx);
+      return { gauge: g, stats, obs: +obs.toFixed(1), isCurrent: Math.abs(g - currentGauge) < 0.005 };
+    });
+
+    const currentResult = gaugeResults.find(r => r.isCurrent);
+    if (!currentResult) return;
+
+    if (section.label) {
+      html += `<div class="gauge-explore-section-label">${section.label}: ${originalStr.name}</div>`;
+    } else {
+      html += `<div class="gauge-explore-section-label">${originalStr.name}</div>`;
+    }
+
+    html += `<div class="gauge-explore-grid" style="--gauge-cols: ${gaugeOptions.length}">`;
+
+    // Header row
+    html += `<div class="gauge-explore-header">`;
+    html += `<span class="gauge-explore-stat-label"></span>`;
+    gaugeResults.forEach(r => {
+      const gaugeLabel = GAUGE_LABELS[r.gauge] || `${r.gauge.toFixed(2)}mm`;
+      // Show short label: just the gauge number like "16" or "17"
+      const shortLabel = r.gauge >= 1.30 ? '16' : r.gauge >= 1.25 ? '16L' : r.gauge >= 1.20 ? '17' : '18';
+      const mmLabel = `${r.gauge.toFixed(2)}`;
+      const currentCls = r.isCurrent ? ' gauge-current' : '';
+      html += `<span class="gauge-explore-col-header${currentCls}">
+        <span class="gauge-col-short">${shortLabel}</span>
+        <span class="gauge-col-mm">${mmLabel}</span>
+        ${r.isCurrent ? '<span class="gauge-col-tag">current</span>' : ''}
+      </span>`;
+    });
+    html += `</div>`;
+
+    // Stat rows
+    gaugeKeys.forEach((key, i) => {
+      html += `<div class="gauge-explore-row">`;
+      html += `<span class="gauge-explore-stat-label">${gaugeLabels[i]}</span>`;
+      gaugeResults.forEach(r => {
+        const val = r.stats[key];
+        const baseVal = currentResult.stats[key];
+        const diff = val - baseVal;
+        const cls = r.isCurrent ? 'gauge-val-current' : diff > 0 ? 'gauge-val-positive' : diff < 0 ? 'gauge-val-negative' : 'gauge-val-neutral';
+        const diffStr = r.isCurrent ? '' : (diff > 0 ? `+${diff}` : `${diff}`);
+        html += `<span class="gauge-explore-cell ${cls}">
+          <span class="gauge-cell-val">${val}</span>
+          ${diffStr ? `<span class="gauge-cell-diff">${diffStr}</span>` : ''}
+        </span>`;
+      });
+      html += `</div>`;
+    });
+
+    // OBS row
+    html += `<div class="gauge-explore-row gauge-explore-obs-row">`;
+    html += `<span class="gauge-explore-stat-label gauge-obs-label">OBS</span>`;
+    gaugeResults.forEach(r => {
+      const diff = r.obs - currentResult.obs;
+      const cls = r.isCurrent ? 'gauge-val-current' : diff > 0.5 ? 'gauge-val-positive' : diff < -0.5 ? 'gauge-val-negative' : 'gauge-val-neutral';
+      const diffStr = r.isCurrent ? '' : (diff > 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1));
+      html += `<span class="gauge-explore-cell gauge-obs-cell ${cls}">
+        <span class="gauge-cell-val">${r.obs}</span>
+        ${diffStr ? `<span class="gauge-cell-diff">${diffStr}</span>` : ''}
+      </span>`;
+    });
+    html += `</div>`;
+
+    html += `</div>`; // close gauge-explore-grid
+  });
+
+  container.innerHTML = html;
 }
 
 function renderBaselineMarker(sliderMin, sliderMax) {
