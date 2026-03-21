@@ -444,12 +444,14 @@
               <button class="opt-run-btn" id="opt-run-btn">Search</button>
             </div>
 
-            <!-- Frame selection -->
+            <!-- Frame selection (searchable) -->
             <div class="opt-filter-section">
               <label class="opt-label">Frame</label>
-              <select id="opt-frame-select" class="opt-select">
-                <option value="current">Current Frame</option>
-              </select>
+              <div class="opt-search-wrap" id="opt-frame-search-wrap">
+                <input type="text" id="opt-frame-search" class="opt-search-input" placeholder="Search frames..." autocomplete="off">
+                <div class="opt-search-dropdown hidden" id="opt-frame-dropdown"></div>
+              </div>
+              <input type="hidden" id="opt-frame-value" value="current">
             </div>
 
             <!-- Setup type -->
@@ -460,6 +462,45 @@
                 <button class="opt-toggle" data-value="full" id="opt-type-full">Full Bed</button>
                 <button class="opt-toggle" data-value="hybrid" id="opt-type-hybrid">Hybrid</button>
               </div>
+            </div>
+
+            <!-- Hybrid lock (optional mains/crosses) -->
+            <div class="opt-filter-section opt-hybrid-lock hidden" id="opt-hybrid-lock-section">
+              <label class="opt-label">Lock String</label>
+              <div class="opt-lock-row">
+                <select id="opt-lock-side" class="opt-select opt-select-sm">
+                  <option value="none">None</option>
+                  <option value="mains">Lock Mains</option>
+                  <option value="crosses">Lock Crosses</option>
+                </select>
+              </div>
+              <div class="opt-lock-string-wrap hidden" id="opt-lock-string-wrap">
+                <input type="text" id="opt-lock-string-search" class="opt-search-input" placeholder="Search strings..." autocomplete="off">
+                <div class="opt-search-dropdown hidden" id="opt-lock-string-dropdown"></div>
+                <input type="hidden" id="opt-lock-string-value" value="">
+              </div>
+            </div>
+
+            <!-- Material filter -->
+            <div class="opt-filter-section">
+              <label class="opt-label">Material</label>
+              <div class="opt-check-group" id="opt-material-checks"></div>
+            </div>
+
+            <!-- Brand filter -->
+            <div class="opt-filter-section">
+              <label class="opt-label">Brand</label>
+              <div class="opt-check-group opt-check-scroll" id="opt-brand-checks"></div>
+            </div>
+
+            <!-- Exclude strings -->
+            <div class="opt-filter-section">
+              <label class="opt-label">Exclude Strings</label>
+              <div class="opt-exclude-wrap">
+                <input type="text" id="opt-exclude-search" class="opt-search-input" placeholder="Search to exclude..." autocomplete="off">
+                <div class="opt-search-dropdown hidden" id="opt-exclude-dropdown"></div>
+              </div>
+              <div class="opt-exclude-tags" id="opt-exclude-tags"></div>
             </div>
 
             <!-- Sort by -->

@@ -8733,32 +8733,98 @@ function handleResponsiveHeader() {
 // OPTIMIZE MODE — Build Optimizer / Workbench
 // ============================================
 
-function initOptimize() {
-  // Populate frame dropdown
-  const frameSel = document.getElementById('opt-frame-select');
-  RACQUETS.forEach(r => {
-    const opt = document.createElement('option');
-    opt.value = r.id;
-    opt.textContent = r.name;
-    frameSel.appendChild(opt);
-  });
+// --- Optimizer state ---
+let _optExcludedStringIds = new Set();
 
-  // Set default to current frame if one is active
+function initOptimize() {
+  // --- Searchable frame selector ---
+  const frameSearch = document.getElementById('opt-frame-search');
+  const frameDropdown = document.getElementById('opt-frame-dropdown');
+  const frameValue = document.getElementById('opt-frame-value');
+
+  // Set default to current frame
   const currentSetup = getCurrentSetup();
   if (currentSetup) {
-    frameSel.value = currentSetup.racquet.id;
+    frameSearch.value = currentSetup.racquet.name;
+    frameValue.value = currentSetup.racquet.id;
+  } else {
+    frameSearch.value = 'Current Frame';
+    frameValue.value = 'current';
   }
 
-  // Wire run button
-  document.getElementById('opt-run-btn').addEventListener('click', runOptimizer);
+  _initOptSearchable(frameSearch, frameDropdown, frameValue,
+    () => [{ id: 'current', name: 'Current Frame' }, ...RACQUETS.map(r => ({ id: r.id, name: r.name }))]
+  );
 
-  // Wire setup type toggles
+  // --- Material filter chips ---
+  const materials = [...new Set(STRINGS.map(s => s.material))].sort();
+  const matContainer = document.getElementById('opt-material-checks');
+  materials.forEach(mat => {
+    const chip = document.createElement('label');
+    chip.className = 'opt-check-chip active';
+    chip.innerHTML = `<input type="checkbox" checked value="${mat}">${mat}`;
+    chip.addEventListener('click', (e) => {
+      if (e.target.tagName !== 'INPUT') return;
+      chip.classList.toggle('active', e.target.checked);
+    });
+    matContainer.appendChild(chip);
+  });
+
+  // --- Brand filter chips ---
+  const brands = [...new Set(STRINGS.map(s => s.name.split(' ')[0]))].sort();
+  const brandContainer = document.getElementById('opt-brand-checks');
+  brands.forEach(brand => {
+    const chip = document.createElement('label');
+    chip.className = 'opt-check-chip active';
+    chip.innerHTML = `<input type="checkbox" checked value="${brand}">${brand}`;
+    chip.addEventListener('click', (e) => {
+      if (e.target.tagName !== 'INPUT') return;
+      chip.classList.toggle('active', e.target.checked);
+    });
+    brandContainer.appendChild(chip);
+  });
+
+  // --- Exclude strings searchable ---
+  const exSearch = document.getElementById('opt-exclude-search');
+  const exDropdown = document.getElementById('opt-exclude-dropdown');
+  _initOptSearchable(exSearch, exDropdown, null,
+    () => STRINGS.filter(s => !_optExcludedStringIds.has(s.id)).map(s => ({ id: s.id, name: s.name })),
+    (id, name) => {
+      _optExcludedStringIds.add(id);
+      _renderExcludeTags();
+      exSearch.value = '';
+    }
+  );
+
+  // --- Hybrid lock: show/hide based on setup type ---
+  const lockSection = document.getElementById('opt-hybrid-lock-section');
+  const lockSide = document.getElementById('opt-lock-side');
+  const lockStringWrap = document.getElementById('opt-lock-string-wrap');
+  const lockSearch = document.getElementById('opt-lock-string-search');
+  const lockDropdown = document.getElementById('opt-lock-string-dropdown');
+  const lockValue = document.getElementById('opt-lock-string-value');
+
+  _initOptSearchable(lockSearch, lockDropdown, lockValue,
+    () => STRINGS.map(s => ({ id: s.id, name: s.name }))
+  );
+
+  lockSide.addEventListener('change', () => {
+    lockStringWrap.classList.toggle('hidden', lockSide.value === 'none');
+    if (lockSide.value === 'none') lockValue.value = '';
+  });
+
+  // Show hybrid lock only when type is hybrid or both
   document.querySelectorAll('.opt-toggle').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.opt-toggle').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
+      const type = btn.dataset.value;
+      lockSection.classList.toggle('hidden', type === 'full');
     });
   });
+
+  // Wire run button
+  document.getElementById('opt-run-btn').addEventListener('click', runOptimizer);
 
   // Wire upgrade mode checkbox
   document.getElementById('opt-upgrade-mode').addEventListener('change', (e) => {
@@ -8778,6 +8844,59 @@ function initOptimize() {
   });
 }
 
+// --- Searchable dropdown helper ---
+function _initOptSearchable(inputEl, dropdownEl, hiddenEl, getItems, onSelect) {
+  let isOpen = false;
+
+  function render(q) {
+    const items = getItems();
+    const filtered = q ? items.filter(i => i.name.toLowerCase().includes(q.toLowerCase())) : items;
+    if (filtered.length === 0) {
+      dropdownEl.classList.add('hidden');
+      return;
+    }
+    dropdownEl.innerHTML = filtered.slice(0, 30).map(i =>
+      `<div class="opt-search-item" data-id="${i.id}">${i.name}</div>`
+    ).join('');
+    dropdownEl.classList.remove('hidden');
+    isOpen = true;
+
+    dropdownEl.querySelectorAll('.opt-search-item').forEach(item => {
+      item.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        const id = item.dataset.id;
+        const name = item.textContent;
+        if (hiddenEl) hiddenEl.value = id;
+        inputEl.value = name;
+        dropdownEl.classList.add('hidden');
+        isOpen = false;
+        if (onSelect) onSelect(id, name);
+      });
+    });
+  }
+
+  inputEl.addEventListener('focus', () => render(inputEl.value));
+  inputEl.addEventListener('input', () => render(inputEl.value));
+  inputEl.addEventListener('blur', () => {
+    setTimeout(() => { dropdownEl.classList.add('hidden'); isOpen = false; }, 150);
+  });
+}
+
+// --- Render exclude tags ---
+function _renderExcludeTags() {
+  const container = document.getElementById('opt-exclude-tags');
+  container.innerHTML = Array.from(_optExcludedStringIds).map(id => {
+    const s = STRINGS.find(x => x.id === id);
+    return `<span class="opt-exclude-tag">${s ? s.name : id}<span class="opt-exclude-x" data-id="${id}">×</span></span>`;
+  }).join('');
+  container.querySelectorAll('.opt-exclude-x').forEach(x => {
+    x.addEventListener('click', () => {
+      _optExcludedStringIds.delete(x.dataset.id);
+      _renderExcludeTags();
+    });
+  });
+}
+
 let _optLastCandidates = null;
 let _optLastCurrentOBS = 0;
 
@@ -8794,8 +8913,32 @@ function runOptimizer() {
 
 function _runOptimizerCore(resultsEl, countEl) {
   // Read filters
-  const frameSelVal = document.getElementById('opt-frame-select').value;
+  const frameSelVal = document.getElementById('opt-frame-value').value;
   const setupType = document.querySelector('.opt-toggle.active')?.dataset.value || 'both';
+
+  // Material filter: get checked materials
+  const allowedMaterials = new Set(
+    Array.from(document.querySelectorAll('#opt-material-checks input:checked')).map(cb => cb.value)
+  );
+
+  // Brand filter: get checked brands
+  const allowedBrands = new Set(
+    Array.from(document.querySelectorAll('#opt-brand-checks input:checked')).map(cb => cb.value)
+  );
+
+  // Hybrid lock
+  const lockSide = document.getElementById('opt-lock-side')?.value || 'none';
+  const lockStringId = document.getElementById('opt-lock-string-value')?.value || '';
+  const lockedString = lockStringId ? STRINGS.find(s => s.id === lockStringId) : null;
+
+  // Filter strings by material, brand, and exclude list
+  function isStringAllowed(s) {
+    if (_optExcludedStringIds.has(s.id)) return false;
+    if (!allowedMaterials.has(s.material)) return false;
+    if (!allowedBrands.has(s.name.split(' ')[0])) return false;
+    return true;
+  }
+  const filteredStrings = STRINGS.filter(isStringAllowed);
   const sortBy = document.getElementById('opt-sort').value;
   const tensionMin = parseInt(document.getElementById('opt-tension-min').value) || 40;
   const tensionMax = parseInt(document.getElementById('opt-tension-max').value) || 65;
@@ -8866,7 +9009,7 @@ function _runOptimizerCore(resultsEl, countEl) {
 
   // --- FULL BED candidates ---
   if (setupType === 'full' || setupType === 'both') {
-    STRINGS.forEach(s => {
+    filteredStrings.forEach(s => {
       const result = findOptimalTension({ isHybrid: false, string: s });
       if (result.stats) {
         candidates.push({
@@ -8884,44 +9027,44 @@ function _runOptimizerCore(resultsEl, countEl) {
     });
   }
 
-  // --- HYBRID candidates (same smart pairing as renderRecommendedBuilds) ---
+  // --- HYBRID candidates ---
   if (setupType === 'hybrid' || setupType === 'both') {
-    // Build full-bed scores for ranking mains
-    const fullScores = [];
-    if (setupType === 'both') {
-      // Already computed above, reuse
+    let hybridMainsPool, hybridCrossesPool;
+
+    if (lockSide === 'mains' && lockedString) {
+      // Locked mains: sweep all filtered crosses
+      hybridMainsPool = [lockedString];
+      hybridCrossesPool = filteredStrings.filter(s => s.id !== lockedString.id);
+    } else if (lockSide === 'crosses' && lockedString) {
+      // Locked crosses: sweep all filtered mains
+      hybridMainsPool = filteredStrings;
+      hybridCrossesPool = [lockedString];
     } else {
-      STRINGS.forEach(s => {
+      // No lock: smart pairing — top 12 mains + gut/multi, suitable crosses
+      const tempFullForRanking = [];
+      filteredStrings.forEach(s => {
         const result = findOptimalTension({ isHybrid: false, string: s });
-        if (result.stats) fullScores.push({ stringId: s.id, score: result.score });
+        if (result.stats) tempFullForRanking.push({ stringId: s.id, score: result.score });
+      });
+      tempFullForRanking.sort((a, b) => b.score - a.score);
+      const topMainsIds = new Set(tempFullForRanking.slice(0, 12).map(c => c.stringId));
+      filteredStrings.forEach(s => {
+        if (s.material === 'Natural Gut' || s.material === 'Multifilament') topMainsIds.add(s.id);
+      });
+      hybridMainsPool = filteredStrings.filter(s => topMainsIds.has(s.id));
+
+      // Cross candidates: round/slick/elastic/soft polys from filtered pool
+      hybridCrossesPool = filteredStrings.filter(s => {
+        const shape = (s.shape || '').toLowerCase();
+        const isRoundSlick = shape.includes('round') || shape.includes('slick') || shape.includes('coated');
+        const isElastic = s.material === 'Co-Polyester (elastic)';
+        const isSoftPoly = s.material === 'Polyester' && s.stiffness < 200;
+        return isRoundSlick || isElastic || isSoftPoly;
       });
     }
 
-    // Select promising mains: top 12 full-bed + any gut/multi
-    const tempFullForRanking = [];
-    STRINGS.forEach(s => {
-      const result = findOptimalTension({ isHybrid: false, string: s });
-      if (result.stats) tempFullForRanking.push({ stringId: s.id, score: result.score });
-    });
-    tempFullForRanking.sort((a, b) => b.score - a.score);
-    const topMainsIds = new Set(tempFullForRanking.slice(0, 12).map(c => c.stringId));
-    STRINGS.forEach(s => {
-      if (s.material === 'Natural Gut' || s.material === 'Multifilament') topMainsIds.add(s.id);
-    });
-
-    // Select cross candidates: round/slick polys + elastic co-polys
-    const crossCandidates = STRINGS.filter(s => {
-      const shape = (s.shape || '').toLowerCase();
-      const isRoundSlick = shape.includes('round') || shape.includes('slick') || shape.includes('coated');
-      const isElastic = s.material === 'Co-Polyester (elastic)';
-      const isSoftPoly = s.material === 'Polyester' && s.stiffness < 200;
-      return isRoundSlick || isElastic || isSoftPoly;
-    });
-
-    topMainsIds.forEach(mainsId => {
-      const mains = STRINGS.find(s => s.id === mainsId);
-      if (!mains) return;
-      crossCandidates.forEach(cross => {
+    hybridMainsPool.forEach(mains => {
+      hybridCrossesPool.forEach(cross => {
         if (cross.id === mains.id) return;
         const result = findOptimalTension({ isHybrid: true, mains, crosses: cross });
         if (result.stats && result.score > 0) {
