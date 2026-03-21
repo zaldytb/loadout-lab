@@ -8317,10 +8317,9 @@ function renderRecommendedBuilds(setup) {
     });
   });
 
-  // --- Merge, deduplicate, sort, take top 8 ---
+  // --- Merge all candidates for WTTN ---
   const allCandidates = [...fullBedCandidates, ...hybridCandidates];
   allCandidates.sort((a, b) => b.score - a.score);
-  const top = allCandidates.slice(0, 8);
 
   // Identify current setup
   let currentKey = null;
@@ -8336,53 +8335,71 @@ function renderRecommendedBuilds(setup) {
     return c.type === 'hybrid' ? `hybrid:${c.mainsId}/${c.crossesId}` : `full:${c.stringId}`;
   }
 
-  const isCurrentInTop = currentKey && top.some(c => getCandidateKey(c) === currentKey);
+  // Check after we compute topFull and topHybrid (moved below)
+  let isCurrentInTop = false;
+
+  // --- Split into top 5 full-bed and top 5 hybrid ---
+  fullBedCandidates.sort((a, b) => b.score - a.score);
+  hybridCandidates.sort((a, b) => b.score - a.score);
+  const topFull = fullBedCandidates.slice(0, 5);
+  const topHybrid = hybridCandidates.slice(0, 5);
+  isCurrentInTop = currentKey && [...topFull, ...topHybrid].some(c => getCandidateKey(c) === currentKey);
+
+  // Helper: render a single recommendation item
+  function renderRecItem(c, rank) {
+    const isCurrent = currentKey === getCandidateKey(c);
+    const delta = c.score - currentOBS;
+    const deltaStr = delta > 0 ? `+${delta.toFixed(1)}` : delta.toFixed(1);
+    const deltaCls = delta > 0.5 ? 'recs-delta-positive' : delta < -0.5 ? 'recs-delta-negative' : 'recs-delta-neutral';
+    const tensionLabel = c.type === 'hybrid'
+      ? `M:${c.tension} / X:${c.tension - 2} lbs`
+      : `${c.tension} lbs`;
+
+    return `
+      <div class="recs-item ${isCurrent ? 'recs-item-current' : ''}">
+        <div class="recs-rank">${rank}</div>
+        <div class="recs-info">
+          <div class="recs-name">${c.label} ${c.gauge ? `<span class="recs-gauge">${c.gauge}</span>` : ''}</div>
+          <div class="recs-meta">
+            <span class="recs-tension-rec">${tensionLabel}</span>
+            ${isCurrent ? '<span class="recs-badge-current">CURRENT</span>' : ''}
+          </div>
+        </div>
+        <div class="recs-composite">
+          <span class="recs-composite-value">${c.score.toFixed(1)}</span>
+          <span class="recs-composite-delta ${deltaCls}">${isCurrent ? 'YOU' : deltaStr}</span>
+        </div>
+      </div>
+    `;
+  }
 
   container.innerHTML = `
-    <div class="recs-list">
-      ${top.map((c, i) => {
-        const isCurrent = currentKey === getCandidateKey(c);
-        const delta = c.score - currentOBS;
-        const deltaStr = delta > 0 ? `+${delta.toFixed(1)}` : delta.toFixed(1);
-        const deltaCls = delta > 0.5 ? 'recs-delta-positive' : delta < -0.5 ? 'recs-delta-negative' : 'recs-delta-neutral';
-        const typeBadge = c.type === 'hybrid'
-          ? '<span class="recs-type-badge recs-type-hybrid">HYBRID</span>'
-          : '<span class="recs-type-badge recs-type-full">FULL BED</span>';
-        const tensionLabel = c.type === 'hybrid'
-          ? `M:${c.tension} / X:${c.tension - 2} lbs`
-          : `${c.tension} lbs`;
-
-        return `
-          <div class="recs-item ${isCurrent ? 'recs-item-current' : ''}">
-            <div class="recs-rank">${i + 1}</div>
-            <div class="recs-info">
-              <div class="recs-name">${c.label} ${c.gauge ? `<span class="recs-gauge">${c.gauge}</span>` : ''}</div>
-              <div class="recs-meta">
-                ${typeBadge}
-                <span class="recs-tension-rec">${tensionLabel}</span>
-                ${isCurrent ? '<span class="recs-badge-current">CURRENT</span>' : ''}
-              </div>
-            </div>
-            <div class="recs-scores">
-              <span class="recs-score-item" title="Control">CTL ${c.stats.control}</span>
-              <span class="recs-score-item" title="Comfort">CMF ${c.stats.comfort}</span>
-              <span class="recs-score-item" title="Spin">SPN ${c.stats.spin}</span>
-              <span class="recs-score-item" title="Power">PWR ${c.stats.power}</span>
-            </div>
-            <div class="recs-composite">
-              <span class="recs-composite-value">${c.score.toFixed(1)}</span>
-              <span class="recs-composite-label">Score</span>
-              <span class="recs-composite-delta ${deltaCls}">${isCurrent ? 'YOU' : deltaStr}</span>
-            </div>
-          </div>
-        `;
-      }).join('')}
+    <div class="recs-split">
+      <div class="recs-panel">
+        <div class="recs-panel-header">
+          <span class="recs-panel-title">FULL BED</span>
+          <span class="recs-panel-sub">Single string, both directions</span>
+        </div>
+        <div class="recs-list">
+          ${topFull.map((c, i) => renderRecItem(c, i + 1)).join('')}
+        </div>
+      </div>
+      <div class="recs-panel">
+        <div class="recs-panel-header">
+          <span class="recs-panel-title">HYBRID</span>
+          <span class="recs-panel-sub">Mains / Crosses pairing</span>
+        </div>
+        <div class="recs-list">
+          ${topHybrid.map((c, i) => renderRecItem(c, i + 1)).join('')}
+        </div>
+      </div>
     </div>
-    <p class="recs-footnote">Composite score across all 11 stats, evaluated at optimal tension for <strong>${racquet.name}</strong>. Full bed and hybrid configs ranked together.</p>
+    <p class="recs-footnote">Composite score across all 11 stats at optimal tension for <strong>${racquet.name}</strong>. Delta is vs your current build.</p>
   `;
 
-  // Show "Try a Different String" section if current string isn't in top 8
-  renderExplorePrompt(setup, isCurrentInTop, top);
+  // Show "Try a Different String" section
+  const topCombined = [...topFull, ...topHybrid];
+  renderExplorePrompt(setup, isCurrentInTop, topCombined);
 
   // Render What To Try Next using the full candidates list
   renderWhatToTryNext(setup, allCandidates);
