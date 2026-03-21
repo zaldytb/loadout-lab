@@ -5166,6 +5166,7 @@ function renderDockPanel() {
   }
 
   renderMyLoadouts();
+  renderDockCreateSection();
   _syncMobileDockBar();
 }
 
@@ -5408,7 +5409,7 @@ function renderMyLoadouts() {
       '<div class="dock-myl-item-main" onclick="switchToLoadout(\'' + lo.id + '\')">' +
         '<div class="dock-myl-obs">' + (lo.obs ? lo.obs.toFixed(1) : '\u2014') + '</div>' +
         '<div class="dock-myl-item-info">' +
-          '<div class="dock-myl-item-name">' + lo.name + '</div>' +
+          '<div class="dock-myl-item-name">' + lo.name + (isActive ? ' <span class="dock-myl-active-badge">Active</span>' : '') + '</div>' +
           '<div class="dock-myl-item-meta">' + (racquet ? racquet.name : '\u2014') + ' \u00B7 ' + lo.mainsTension + 'lbs</div>' +
         '</div>' +
       '</div>' +
@@ -11040,24 +11041,10 @@ function _fmbSelectBuild(racquetId, stringId, tension) {
 }
 
 // ============================================
-// FEATURE: Quick-Add Loadout
+// FEATURE: Dock Creation Flow (unified state-based)
 // ============================================
 
-function toggleQuickAdd() {
-  var form = document.getElementById('dock-qa-form');
-  if (!form) return;
-  form.classList.toggle('hidden');
-
-  if (!form.dataset.populated) {
-    _initQaSearchable('dock-qa-frame-search', 'dock-qa-frame', 'dock-qa-frame-dropdown',
-      RACQUETS.map(function(r) { return { id: r.id, label: r.name }; })
-    );
-    _initQaSearchable('dock-qa-string-search', 'dock-qa-string', 'dock-qa-string-dropdown',
-      STRINGS.map(function(s) { return { id: s.id, label: s.name + ' (' + s.gauge + ')' }; })
-    );
-    form.dataset.populated = '1';
-  }
-}
+var _cfCreatingNew = false;
 
 function _initQaSearchable(searchId, hiddenId, dropdownId, items) {
   var searchEl = document.getElementById(searchId);
@@ -11099,39 +11086,218 @@ function _initQaSearchable(searchId, hiddenId, dropdownId, items) {
   });
 }
 
-function quickAddActivate() {
-  var frameId = document.getElementById('dock-qa-frame').value;
-  var stringId = document.getElementById('dock-qa-string').value;
-  var tension = parseInt(document.getElementById('dock-qa-tension').value) || 53;
-  if (!frameId || !stringId) return;
+function renderDockCreateSection() {
+  var container = document.getElementById('dock-create-area');
+  var editorSection = document.getElementById('dock-editor-section');
+  if (!container) return;
 
+  if (!activeLoadout && !_cfCreatingNew) {
+    // Mode A: No loadout — show creation form
+    container.innerHTML = _renderCreateForm('Create Loadout', false);
+    _wireCreateForm(container);
+    if (editorSection) editorSection.style.display = 'none';
+  } else if (activeLoadout && !_cfCreatingNew) {
+    // Mode B: Has active loadout — show Create New button, show editor
+    container.innerHTML =
+      '<div class="dock-create-new-wrap">' +
+        '<button class="dock-create-new-btn" onclick="_showNewLoadoutForm()">' +
+          '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/></svg>' +
+          ' Create New Loadout' +
+        '</button>' +
+      '</div>';
+    if (editorSection) editorSection.style.display = '';
+  } else if (_cfCreatingNew) {
+    // Mode C: Creating new while active exists — show form with Cancel
+    container.innerHTML = _renderCreateForm('New Loadout', true);
+    _wireCreateForm(container);
+    if (editorSection) editorSection.style.display = 'none';
+  }
+}
+
+function _renderCreateForm(title, showCancel) {
+  return '<div class="dock-cf-form">' +
+    '<div class="dock-cf-header">' +
+      '<span class="dock-cf-title">' + title + '</span>' +
+      (showCancel ? '<a class="dock-cf-cancel" href="#" onclick="_hideNewLoadoutForm(); return false;">Cancel</a>' : '') +
+    '</div>' +
+    '<div class="dock-cf-toggle">' +
+      '<button class="dock-cf-toggle-btn active" data-cf-mode="full" onclick="_cfToggleMode(this)">Full Bed</button>' +
+      '<button class="dock-cf-toggle-btn" data-cf-mode="hybrid" onclick="_cfToggleMode(this)">Hybrid</button>' +
+    '</div>' +
+    '<div class="dock-cf-body" data-cf-hybrid="false">' +
+      '<div class="dock-cf-section dock-cf-fullbed">' +
+        '<div class="dock-qa-field">' +
+          '<label class="dock-qa-label">Frame</label>' +
+          '<div class="dock-qa-searchable">' +
+            '<input type="text" class="dock-qa-search" id="dock-cf-frame-search" placeholder="Search frames..." autocomplete="off">' +
+            '<input type="hidden" id="dock-cf-frame">' +
+            '<div class="dock-qa-dropdown hidden" id="dock-cf-frame-dropdown"></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="dock-qa-field">' +
+          '<label class="dock-qa-label">String</label>' +
+          '<div class="dock-qa-searchable">' +
+            '<input type="text" class="dock-qa-search" id="dock-cf-string-search" placeholder="Search strings..." autocomplete="off">' +
+            '<input type="hidden" id="dock-cf-string">' +
+            '<div class="dock-qa-dropdown hidden" id="dock-cf-string-dropdown"></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="dock-cf-row">' +
+          '<div class="dock-qa-field dock-cf-half">' +
+            '<label class="dock-qa-label">Mains (lbs)</label>' +
+            '<input type="number" class="dock-qa-input" id="dock-cf-tension-m" value="55" min="30" max="70">' +
+          '</div>' +
+          '<div class="dock-qa-field dock-cf-half">' +
+            '<label class="dock-qa-label">Crosses (lbs)</label>' +
+            '<input type="number" class="dock-qa-input" id="dock-cf-tension-x" value="53" min="30" max="70">' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="dock-cf-section dock-cf-hybrid hidden">' +
+        '<div class="dock-qa-field">' +
+          '<label class="dock-qa-label">Frame</label>' +
+          '<div class="dock-qa-searchable">' +
+            '<input type="text" class="dock-qa-search" id="dock-cf-h-frame-search" placeholder="Search frames..." autocomplete="off">' +
+            '<input type="hidden" id="dock-cf-h-frame">' +
+            '<div class="dock-qa-dropdown hidden" id="dock-cf-h-frame-dropdown"></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="dock-qa-field">' +
+          '<label class="dock-qa-label dock-cf-accent-cyan">Mains String</label>' +
+          '<div class="dock-qa-searchable">' +
+            '<input type="text" class="dock-qa-search" id="dock-cf-mains-search" placeholder="Search mains..." autocomplete="off">' +
+            '<input type="hidden" id="dock-cf-mains">' +
+            '<div class="dock-qa-dropdown hidden" id="dock-cf-mains-dropdown"></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="dock-qa-field">' +
+          '<label class="dock-qa-label">Mains Tension</label>' +
+          '<input type="number" class="dock-qa-input" id="dock-cf-mains-tension" value="55" min="30" max="70">' +
+        '</div>' +
+        '<div class="dock-qa-field">' +
+          '<label class="dock-qa-label dock-cf-accent-green">Crosses String</label>' +
+          '<div class="dock-qa-searchable">' +
+            '<input type="text" class="dock-qa-search" id="dock-cf-crosses-search" placeholder="Search crosses..." autocomplete="off">' +
+            '<input type="hidden" id="dock-cf-crosses">' +
+            '<div class="dock-qa-dropdown hidden" id="dock-cf-crosses-dropdown"></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="dock-qa-field">' +
+          '<label class="dock-qa-label">Crosses Tension</label>' +
+          '<input type="number" class="dock-qa-input" id="dock-cf-crosses-tension" value="53" min="30" max="70">' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="dock-qa-btns">' +
+      '<button class="dock-qa-btn dock-qa-btn-primary" onclick="_cfActivate()">Set Active</button>' +
+      '<button class="dock-qa-btn" onclick="_cfSave()">Save to Loadouts</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function _cfToggleMode(btn) {
+  var form = btn.closest('.dock-cf-form');
+  if (!form) return;
+  var isHybrid = btn.dataset.cfMode === 'hybrid';
+  var body = form.querySelector('.dock-cf-body');
+  if (body) body.dataset.cfHybrid = isHybrid ? 'true' : 'false';
+
+  // Toggle sections
+  var fullSection = form.querySelector('.dock-cf-fullbed');
+  var hybridSection = form.querySelector('.dock-cf-hybrid');
+  if (fullSection) fullSection.classList.toggle('hidden', isHybrid);
+  if (hybridSection) hybridSection.classList.toggle('hidden', !isHybrid);
+
+  // Toggle active button
+  form.querySelectorAll('.dock-cf-toggle-btn').forEach(function(b) {
+    b.classList.toggle('active', b === btn);
+  });
+}
+
+function _wireCreateForm(container) {
+  var frameItems = RACQUETS.map(function(r) { return { id: r.id, label: r.name }; });
+  var stringItems = STRINGS.map(function(s) { return { id: s.id, label: s.name + ' (' + s.gauge + ')' }; });
+
+  // Full bed searchables
+  _initQaSearchable('dock-cf-frame-search', 'dock-cf-frame', 'dock-cf-frame-dropdown', frameItems);
+  _initQaSearchable('dock-cf-string-search', 'dock-cf-string', 'dock-cf-string-dropdown', stringItems);
+
+  // Hybrid searchables
+  _initQaSearchable('dock-cf-h-frame-search', 'dock-cf-h-frame', 'dock-cf-h-frame-dropdown', frameItems);
+  _initQaSearchable('dock-cf-mains-search', 'dock-cf-mains', 'dock-cf-mains-dropdown', stringItems);
+  _initQaSearchable('dock-cf-crosses-search', 'dock-cf-crosses', 'dock-cf-crosses-dropdown', stringItems);
+}
+
+function _cfBuildLoadout() {
+  var form = document.querySelector('.dock-cf-form');
+  if (!form) return null;
+
+  var body = form.querySelector('.dock-cf-body');
+  var isHybrid = body && body.dataset.cfHybrid === 'true';
+
+  if (isHybrid) {
+    var frameId = document.getElementById('dock-cf-h-frame').value;
+    var mainsId = document.getElementById('dock-cf-mains').value;
+    var crossesId = document.getElementById('dock-cf-crosses').value;
+    var mainsTension = parseInt(document.getElementById('dock-cf-mains-tension').value) || 55;
+    var crossesTension = parseInt(document.getElementById('dock-cf-crosses-tension').value) || 53;
+    if (!frameId || !mainsId || !crossesId) return null;
+
+    return createLoadout(frameId, mainsId, mainsTension, {
+      isHybrid: true,
+      mainsId: mainsId,
+      crossesId: crossesId,
+      crossesTension: crossesTension,
+      source: 'manual'
+    });
+  } else {
+    var frameId = document.getElementById('dock-cf-frame').value;
+    var stringId = document.getElementById('dock-cf-string').value;
+    var mainsT = parseInt((document.getElementById('dock-cf-tension-m') || {}).value) || 55;
+    var crossesT = parseInt((document.getElementById('dock-cf-tension-x') || {}).value) || 53;
+    if (!frameId || !stringId) return null;
+
+    return createLoadout(frameId, stringId, mainsT, { source: 'manual', crossesTension: crossesT });
+  }
+}
+
+function _cfActivate() {
   var isFirstLoadout = !activeLoadout && savedLoadouts.length === 0;
+  var lo = _cfBuildLoadout();
+  if (!lo) return;
 
-  var lo = createLoadout(frameId, stringId, tension, { source: 'manual' });
-  if (lo) {
-    activateLoadout(lo);
-    document.getElementById('dock-qa-form').classList.add('hidden');
+  _cfCreatingNew = false;
+  activateLoadout(lo);
 
-    if (isFirstLoadout) {
-      switchMode('tune');
-    } else if (currentMode === 'overview') {
-      renderDashboard();
-    }
+  if (isFirstLoadout) {
+    switchMode('tune');
+  } else if (currentMode === 'overview') {
+    renderDashboard();
   }
 }
 
-function quickAddSave() {
-  var frameId = document.getElementById('dock-qa-frame').value;
-  var stringId = document.getElementById('dock-qa-string').value;
-  var tension = parseInt(document.getElementById('dock-qa-tension').value) || 53;
-  if (!frameId || !stringId) return;
+function _cfSave() {
+  var lo = _cfBuildLoadout();
+  if (!lo) return;
 
-  var lo = createLoadout(frameId, stringId, tension, { source: 'manual' });
-  if (lo) {
-    saveLoadout(lo);
-    document.getElementById('dock-qa-form').classList.add('hidden');
-  }
+  _cfCreatingNew = false;
+  saveLoadout(lo);
 }
+
+function _showNewLoadoutForm() {
+  _cfCreatingNew = true;
+  renderDockCreateSection();
+}
+
+function _hideNewLoadoutForm() {
+  _cfCreatingNew = false;
+  renderDockCreateSection();
+}
+
+// Legacy aliases for backward compat (WTTN/Compare inline pickers still use these)
+function toggleQuickAdd() { _showNewLoadoutForm(); }
+function quickAddActivate() { _cfActivate(); }
+function quickAddSave() { _cfSave(); }
 
 // ============================================
 // FEATURE: Apply-to-Loadout for WTTN + Rec Builds

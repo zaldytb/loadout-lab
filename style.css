@@ -6153,13 +6153,19 @@ body {
 }
 
 /* ============================================
-   QUICK ADD LOADOUT
+   DOCK CREATION FLOW
    ============================================ */
-.dock-quick-add {
+#dock-create-area {
   padding: 8px 12px;
   border-bottom: 1px solid var(--border-subtle);
 }
-.dock-qa-trigger {
+#dock-create-area:empty { display: none; }
+
+/* Create New Loadout button (Mode B) */
+.dock-create-new-wrap {
+  padding: 2px 0;
+}
+.dock-create-new-btn {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -6176,13 +6182,73 @@ body {
   transition: all 0.15s;
   justify-content: center;
 }
-.dock-qa-trigger:hover {
+.dock-create-new-btn:hover {
   background: rgba(199, 246, 58, 0.15);
 }
-.dock-qa-form {
-  margin-top: 10px;
+
+/* Creation form (Mode A + C) */
+.dock-cf-form {
+  margin: 0;
 }
-.dock-qa-form.hidden { display: none; }
+.dock-cf-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.dock-cf-title {
+  font-family: var(--font-display, 'Cabinet Grotesk', sans-serif);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.dock-cf-cancel {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.dock-cf-cancel:hover {
+  color: var(--text-secondary);
+}
+
+/* Full Bed / Hybrid toggle */
+.dock-cf-toggle {
+  display: flex;
+  gap: 0;
+  margin-bottom: 10px;
+  border: 1px solid var(--border-medium);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.dock-cf-toggle-btn {
+  flex: 1;
+  padding: 5px 0;
+  font-family: var(--font-body, 'General Sans', sans-serif);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-base);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.dock-cf-toggle-btn.active {
+  color: var(--bg-base, #0E0E0E);
+  background: var(--lime-text);
+}
+.dock-cf-toggle-btn:not(.active):hover {
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+}
+
+/* Form body sections */
+.dock-cf-section.hidden { display: none; }
+.dock-cf-accent-cyan { color: var(--cyan, #80DEEA) !important; }
+.dock-cf-accent-green { color: var(--green-tag, #4CAF50) !important; }
+
+/* Reuse dock-qa-* classes for inputs, labels, buttons, searchable dropdowns */
 .dock-qa-field {
   margin-bottom: 8px;
 }
@@ -6236,6 +6302,21 @@ body {
 }
 .dock-qa-btn-primary:hover {
   opacity: 0.85;
+}
+
+/* Active badge in My Loadouts */
+.dock-myl-active-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--bg-base, #0E0E0E);
+  background: var(--lime-text);
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-left: 4px;
+  vertical-align: middle;
 }
 
 /* ============================================
@@ -6850,3 +6931,7 @@ button.gauge-explore-col-header:hover .gauge-col-apply {
   background: rgba(255, 94, 91, 0.15);
   border-color: rgba(255, 94, 91, 0.4);
 }
+
+/* Create form split tension row */
+.dock-cf-row { display: flex; gap: 8px; }
+.dock-cf-half { flex: 1; }
