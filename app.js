@@ -4596,31 +4596,63 @@ function calcHybridInteraction(mainsData, crossesData) {
   // ========================================
   // CASE 2: POLY MAINS + POLY CROSSES
   // ========================================
-  // Standard hybrid. Cross job:
-  // - Stay slick so shaped/grippy mains can snap back
-  // - Stabilize the bed without adding excess power
-  // - Be neutral — let the mains do the biting
+  // Mains = primary performance layer (spin engine, power, feel)
+  // Crosses = constraint system (friction control, launch, stability)
+  // Rule: shaped/grippy poly belongs in mains, round/slick in crosses
   else if (isPolyMains && isPolyCross) {
-    // Cross fitness: ideal is slick, round, neutral
+    // --- MAINS ROLE FITNESS ---
+    // Shaped/textured mains = correct: they're the spin engine
+    if (mainsIsShaped) {
+      mods.spinMod += 1.5;      // shaped mains bite the ball as intended
+      mods.controlMod += 0.5;   // directional control from mains grip
+    }
+    // Round/slick mains = suboptimal for mains role in a hybrid
+    // (round poly is a "cross string" — it's slick, neutral, gets out of the way)
+    const mainsIsRound = mainsShape.includes('round');
+    if (mainsIsRound && !mainsIsShaped) {
+      mods.spinMod -= 0.5;      // round mains lack bite — why hybrid at all?
+    }
+
+    // --- CROSS ROLE FITNESS ---
+    // Round/slick crosses = ideal: they let mains snap back freely
     if (crossIsRound || crossIsSlick) {
-      mods.spinMod += 1.5;      // round cross lets mains snap back freely
+      mods.spinMod += 1.5;      // slick rail enables mains snapback
       mods.controlMod += 1;     // stable, predictable bed
     }
 
-    // Shaped mains + round cross = synergy (each does its job)
+    // --- SYNERGY: shaped mains + round cross = optimal division of labor ---
     if (mainsIsShaped && (crossIsRound || crossIsSlick)) {
-      mods.spinMod += 1;        // optimal spin: shaped bites, round slides
+      mods.spinMod += 1;        // peak synergy: shaped bites, round slides
       mods.controlMod += 0.5;
+      mods.feelMod += 0.5;      // clean, intentional feel
     }
 
-    // Both shaped: friction overload, bed locks up
+    // --- ANTI-PATTERN: round mains + shaped crosses = reversed roles ---
+    // The cross is doing the biting and the main is doing the sliding
+    // — backwards. Spin suffers, feel is inconsistent, bed purpose is confused.
+    if (mainsIsRound && crossIsShaped) {
+      mods.spinMod -= 2.5;      // shaped cross grips ball but can't snap back
+      mods.feelMod -= 1.5;      // confused bed response
+      mods.controlMod -= 1;     // inconsistent directional behavior
+      mods.comfortMod -= 0.5;   // cross-dominated bite feels harsh/unnatural
+    }
+
+    // --- Both shaped: friction overload, bed locks up ---
     if (mainsIsShaped && crossIsShaped) {
       mods.spinMod -= 2;        // too much friction, mains can't snap
       mods.feelMod -= 1;        // dead/boardy feel
       mods.comfortMod -= 1;     // harsh impact
     }
 
-    // Stiffness mismatch: very different stiffnesses create uneven bed
+    // --- Stiffness role: stiffer mains + softer cross = correct ---
+    // Mains should be the firmer, more assertive string; crosses softer/more neutral
+    if (mainsStiff > crossStiff + 15) {
+      mods.controlMod += 0.5;   // firm mains with forgiving crosses = clean
+    } else if (crossStiff > mainsStiff + 15) {
+      mods.feelMod -= 0.5;      // stiffer crosses than mains = odd feel
+    }
+
+    // --- Extreme stiffness mismatch ---
     const stiffGap = Math.abs(mainsStiff - crossStiff);
     if (stiffGap > 60) {
       mods.feelMod -= 1;        // inconsistent feel across string bed
@@ -4631,25 +4663,36 @@ function calcHybridInteraction(mainsData, crossesData) {
   // ========================================
   // CASE 3: POLY MAINS + GUT/MULTI CROSSES
   // ========================================
-  // Uncommon: more immediate spin/control from poly mains,
-  // softer feel from gut/multi crosses, but bed notches earlier
+  // This is the "reversed" gut hybrid. Some players prefer it for
+  // more immediate spin/control from poly mains with softer feel
+  // from gut/multi crosses. But it's inherently less optimal than
+  // Case 1 (gut mains + poly crosses) because:
+  // - Gut's best qualities (power, pocketing, tension hold) are
+  //   mostly expressed in mains position (longer, more deflection)
+  // - As crosses, gut's elasticity is partially wasted, and it
+  //   notches fast against poly mains
   else if (isPolyMains && isSoftCross) {
-    mods.feelMod += 2;          // soft cross adds touch behind poly
-    mods.comfortMod += 1.5;     // softer impact at crosses
-    mods.powerMod += 1;         // elastic crosses add power return
+    mods.feelMod += 1.5;        // soft cross adds some touch
+    mods.comfortMod += 1;       // softer impact at crosses
+    mods.powerMod += 0.5;       // elastic crosses add slight power
 
-    // But: crosses notch faster, durability suffers
+    // Role penalty: gut/multi is BETTER suited as mains in most hybrids
+    // Using it as crosses wastes its best qualities and introduces durability risk
     if (isGutCross) {
-      mods.durabilityMod -= 4;  // gut crosses shred against poly mains
+      mods.powerMod -= 1;       // gut's elastic power is muted in crosses position
+      mods.feelMod -= 0.5;      // gut's signature feel is reduced at only 30% blend weight
+      mods.durabilityMod -= 5;  // gut crosses shred against poly mains
       mods.playabilityMod -= 2; // bed deteriorates as notches form
     } else {
+      // Multi/syn gut crosses — less extreme but similar logic
       mods.durabilityMod -= 2;
       mods.playabilityMod -= 1;
     }
 
-    // Shaped poly mains with gut crosses: particularly rough
+    // Shaped poly mains with gut crosses: particularly destructive
     if (mainsIsShaped && isGutCross) {
-      mods.durabilityMod -= 3;  // shaped poly destroys gut crosses
+      mods.durabilityMod -= 3;  // shaped poly edges destroy gut crosses
+      mods.comfortMod -= 1;     // harsh intersection at notch points
     }
   }
 
