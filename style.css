@@ -4077,6 +4077,18 @@ body {
   color: #7ECAB0;
 }
 
+.searchable-select .ss-opt-badge.badge-weight {
+  background: rgba(120, 120, 120, 0.12);
+  color: var(--text-secondary);
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .searchable-select .ss-opt-badge.badge-weight {
+  background: rgba(200, 200, 200, 0.12);
+  color: var(--text-secondary);
+}
+
 .searchable-select .ss-no-results {
   padding: 16px 12px;
   font-size: 0.78rem;
