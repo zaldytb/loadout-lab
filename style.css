@@ -6777,3 +6777,56 @@ button.gauge-explore-col-header:hover .gauge-col-apply {
     border-bottom: 2px solid var(--lime-text);
   }
 }
+
+/* ============================================
+   SHARE TOAST
+   ============================================ */
+.share-toast {
+  position: fixed;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 24px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bg-base, #0E0E0E);
+  background: var(--lime-text, #C7F63A);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  z-index: 9999;
+  transition: bottom 0.3s ease;
+  white-space: nowrap;
+}
+.share-toast-show {
+  bottom: 24px;
+}
+
+/* ============================================
+   EXPORT/IMPORT BUTTONS
+   ============================================ */
+.dock-myl-actions {
+  display: flex;
+  gap: 4px;
+  padding: 4px 12px 10px;
+}
+.dock-myl-action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 5px 0;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: var(--font-body, 'General Sans', sans-serif);
+}
+.dock-myl-action-btn:hover {
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+}

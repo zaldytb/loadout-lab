@@ -130,9 +130,9 @@
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 13H3a1 1 0 01-1-1V2a1 1 0 011-1h5.5L12 4.5V12a1 1 0 01-1 1z"/><polyline points="8.5 1 8.5 5 12 5"/></svg>
                 Save
               </button>
-              <button class="dock-lo-btn" onclick="duplicateActiveLoadout()" title="Duplicate as new loadout">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="8" height="8" rx="1"/><path d="M4 10H3a1 1 0 01-1-1V3a1 1 0 011-1h6a1 1 0 011 1v1"/></svg>
-                Duplicate
+              <button class="dock-lo-btn" onclick="shareActiveLoadout()" title="Copy share link">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 9l4-4M9 5v3.5M9 5H5.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="1" y="1" width="12" height="12" rx="2.5"/></svg>
+                Share
               </button>
               <button class="dock-lo-btn" onclick="resetActiveLoadout()" title="Clear active loadout">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="1 1 4 1 4 4"/><path d="M3.5 1.5A6 6 0 1 1 1.5 8"/></svg>
@@ -153,6 +153,17 @@
           </div>
           <div class="dock-myl-list" id="dock-myl-list">
             <div class="dock-myl-empty">No saved loadouts yet</div>
+          </div>
+          <div class="dock-myl-actions">
+            <button class="dock-myl-action-btn" onclick="exportLoadouts()" title="Download all loadouts as file">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2v6M3.5 5.5L6 8l2.5-2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 9v1.5h8V9" stroke-linecap="round"/></svg>
+              Export All
+            </button>
+            <label class="dock-myl-action-btn" title="Import loadouts from file">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 8V2M3.5 4.5L6 2l2.5 2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 9v1.5h8V9" stroke-linecap="round"/></svg>
+              Import
+              <input type="file" accept=".json" onchange="importLoadouts(event)" style="display:none">
+            </label>
           </div>
         </div>
 
