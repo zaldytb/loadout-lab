@@ -5595,34 +5595,103 @@ function renderComparisonPresets() {
   const container = $('#comparison-presets');
   if (!container) return;
 
-  if (userPresets.length === 0) {
-    container.innerHTML = '<div class="comp-presets-empty">No presets saved</div>';
+  // Build suggestions from: 1) saved loadouts, 2) tune recommendations
+  const suggestions = [];
+  const slotKeys = new Set(comparisonSlots.map(s => s.racquetId + '|' + s.stringId + '|' + s.mainsTension));
+  
+  // Add saved loadouts not already in comparison
+  savedLoadouts.forEach(lo => {
+    const key = lo.frameId + '|' + lo.stringId + '|' + lo.mainsTension;
+    if (!slotKeys.has(key)) {
+      const racquet = RACQUETS.find(r => r.id === lo.frameId);
+      suggestions.push({
+        label: lo.name.length > 28 ? lo.name.substring(0, 28) + '...' : lo.name,
+        obs: lo.obs,
+        frameId: lo.frameId,
+        stringId: lo.stringId,
+        tension: lo.mainsTension,
+        source: 'saved',
+        isHybrid: lo.isHybrid,
+        mainsId: lo.mainsId,
+        crossesId: lo.crossesId,
+        crossesTension: lo.crossesTension
+      });
+    }
+  });
+  
+  // If we have an active setup, add Tune-page recommended builds as suggestions
+  if (activeLoadout) {
+    const setup = getCurrentSetup();
+    if (setup && typeof renderRecommendedBuilds === 'function') {
+      // Quick-generate top 3 alternative builds for the current frame
+      const racquet = setup.racquet;
+      const midT = Math.round((racquet.tensionRange[0] + racquet.tensionRange[1]) / 2);
+      const quickRecs = [];
+      STRINGS.slice(0, 30).forEach(s => {
+        if (activeLoadout.stringId === s.id) return;
+        const cfg = { isHybrid: false, string: s, mainsTension: midT, crossesTension: midT };
+        const stats = predictSetup(racquet, cfg);
+        if (!stats) return;
+        const tCtx = buildTensionContext(cfg, racquet);
+        const score = computeCompositeScore(stats, tCtx);
+        quickRecs.push({ label: s.name + ' on ' + racquet.name, obs: +score.toFixed(1), frameId: racquet.id, stringId: s.id, tension: midT, source: 'suggested' });
+      });
+      quickRecs.sort((a, b) => b.obs - a.obs);
+      const seen = new Set(suggestions.map(s => s.frameId + '|' + s.stringId));
+      quickRecs.slice(0, 4).forEach(r => {
+        const key = r.frameId + '|' + r.stringId + '|' + r.tension;
+        if (!slotKeys.has(key) && !seen.has(r.frameId + '|' + r.stringId)) {
+          suggestions.push(r);
+        }
+      });
+    }
+  }
+  
+  if (suggestions.length === 0) {
+    container.innerHTML = '<span class="comp-presets-empty">Save loadouts from Racket Bible to quick-add here</span>';
     return;
   }
 
-  let html = '';
-  userPresets.forEach((preset, pIdx) => {
-    html += `<button class="comp-preset-btn" data-preset-idx="${pIdx}" title="${getPresetDetail(preset)}">
-      <span class="comp-preset-name">${preset.name}</span>
+  let html = '<span class="comp-presets-label">QUICK ADD</span>';
+  suggestions.slice(0, 5).forEach((s, idx) => {
+    html += `<button class="comp-preset-btn" data-sug-idx="${idx}" title="${s.label} · OBS ${s.obs || '—'}">
+      <span class="comp-preset-name">${s.label}</span>
     </button>`;
   });
   container.innerHTML = html;
 
-  // Attach events — clicking a preset loads it into the next empty slot (or first slot)
+  // Store suggestions for click handler
+  container._suggestions = suggestions;
+
   container.querySelectorAll('.comp-preset-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      const pIdx = parseInt(btn.dataset.presetIdx);
-      // Find first empty slot, or add a new slot
-      let targetSlot = comparisonSlots.findIndex(s => !s.racquetId);
+      const idx = parseInt(btn.dataset.sugIdx);
+      const s = container._suggestions[idx];
+      if (!s) return;
+      let targetSlot = comparisonSlots.findIndex(sl => !sl.racquetId);
       if (targetSlot === -1) {
         if (comparisonSlots.length < 3) {
           addComparisonSlot();
           targetSlot = comparisonSlots.length - 1;
         } else {
-          targetSlot = comparisonSlots.length - 1; // overwrite last
+          targetSlot = comparisonSlots.length - 1;
         }
       }
-      loadPresetIntoSlot(pIdx, targetSlot);
+      // Load suggestion into comparison slot
+      const slot = comparisonSlots[targetSlot];
+      if (slot) {
+        slot.racquetId = s.frameId;
+        slot.stringId = s.stringId || '';
+        slot.isHybrid = s.isHybrid || false;
+        slot.mainsId = s.mainsId || '';
+        slot.crossesId = s.crossesId || '';
+        slot.mainsTension = s.tension || 53;
+        slot.crossesTension = s.crossesTension || s.tension || 53;
+        recalcSlot(targetSlot);
+      }
+
+      // Re-render presets to remove the one just added
+      renderComparisonPresets();
 
       // Flash feedback
       btn.classList.add('loaded');
@@ -9184,18 +9253,27 @@ function initOptimize() {
   const frameDropdown = document.getElementById('opt-frame-dropdown');
   const frameValue = document.getElementById('opt-frame-value');
 
-  // Set default to current frame
+  // Set default to active loadout frame, or current setup frame
   const currentSetup = getCurrentSetup();
-  if (currentSetup) {
+  if (activeLoadout && activeLoadout.frameId) {
+    const loFrame = RACQUETS.find(r => r.id === activeLoadout.frameId);
+    if (loFrame) {
+      frameSearch.value = loFrame.name;
+      frameValue.value = loFrame.id;
+    } else {
+      frameSearch.value = '';
+      frameValue.value = '';
+    }
+  } else if (currentSetup) {
     frameSearch.value = currentSetup.racquet.name;
     frameValue.value = currentSetup.racquet.id;
   } else {
-    frameSearch.value = 'Current Frame';
-    frameValue.value = 'current';
+    frameSearch.value = '';
+    frameValue.value = '';
   }
 
   _initOptSearchable(frameSearch, frameDropdown, frameValue,
-    () => [{ id: 'current', name: 'Current Frame' }, ...RACQUETS.map(r => ({ id: r.id, name: r.name }))]
+    () => RACQUETS.map(r => ({ id: r.id, name: r.name }))
   );
 
   // --- Material filter chips ---
@@ -9406,9 +9484,14 @@ function _runOptimizerCore(resultsEl, countEl) {
 
   // Get selected frame
   let racquet;
-  if (frameSelVal === 'current') {
-    const setup = getCurrentSetup();
-    racquet = setup ? setup.racquet : RACQUETS[0];
+  if (frameSelVal === 'current' || !frameSelVal) {
+    // Use active loadout frame, or current setup frame, or first frame
+    if (activeLoadout && activeLoadout.frameId) {
+      racquet = RACQUETS.find(r => r.id === activeLoadout.frameId) || RACQUETS[0];
+    } else {
+      const setup = getCurrentSetup();
+      racquet = setup ? setup.racquet : RACQUETS[0];
+    }
   } else {
     racquet = RACQUETS.find(r => r.id === frameSelVal) || RACQUETS[0];
   }
@@ -10261,10 +10344,11 @@ function _compRenderMain(racquet) {
 }
 
 function _compGenerateTopBuilds(racquet, count) {
-  const builds = [];
+  const halfCount = Math.ceil(count / 2);
   const midT = Math.round((racquet.tensionRange[0] + racquet.tensionRange[1]) / 2);
 
-  // Full bed candidates — try 3 tensions per string
+  // --- Full bed candidates ---
+  const fullBuilds = [];
   STRINGS.forEach(s => {
     [racquet.tensionRange[0], midT, racquet.tensionRange[1]].forEach(t => {
       const cfg = { isHybrid: false, string: s, mainsTension: t, crossesTension: t };
@@ -10272,24 +10356,61 @@ function _compGenerateTopBuilds(racquet, count) {
       if (!stats) return;
       const tCtx = buildTensionContext(cfg, racquet);
       const score = computeCompositeScore(stats, tCtx);
-      builds.push({ type: 'full', string: s, tension: t, crossesTension: t, stats, score, cfg });
+      fullBuilds.push({ type: 'full', string: s, tension: t, crossesTension: t, stats, score, cfg });
     });
   });
-
-  // Sort by OBS, deduplicate by string (keep best tension)
-  builds.sort((a, b) => b.score - a.score);
-  const seen = new Map();
-  const unique = [];
-  for (const b of builds) {
-    const key = b.string.id;
-    if (!seen.has(key)) {
-      seen.set(key, true);
-      unique.push(b);
+  fullBuilds.sort((a, b) => b.score - a.score);
+  const seenFull = new Map();
+  const uniqueFull = [];
+  for (const b of fullBuilds) {
+    if (!seenFull.has(b.string.id)) {
+      seenFull.set(b.string.id, true);
+      uniqueFull.push(b);
     }
-    if (unique.length >= count * 3) break;
+    if (uniqueFull.length >= halfCount * 3) break;
   }
 
-  return _compPickDiverseBuilds(unique, count);
+  // --- Hybrid candidates ---
+  const hybridBuilds = [];
+  const topMainsIds = [...seenFull.keys()].slice(0, 8);
+  const crossCandidates = STRINGS.filter(s => 
+    s.material === 'Polyester' || s.material === 'Co-Polyester (elastic)' || s.material === 'Multifilament' || s.material === 'Natural Gut'
+  ).slice(0, 15);
+  topMainsIds.forEach(mId => {
+    const mains = STRINGS.find(s => s.id === mId);
+    if (!mains) return;
+    crossCandidates.forEach(cross => {
+      if (cross.id === mains.id) return;
+      const cfg = { isHybrid: true, mains, crosses: cross, mainsTension: midT, crossesTension: midT - 2 };
+      const stats = predictSetup(racquet, cfg);
+      if (!stats) return;
+      const tCtx = buildTensionContext(cfg, racquet);
+      const score = computeCompositeScore(stats, tCtx);
+      hybridBuilds.push({
+        type: 'hybrid', string: mains, mains, crosses: cross,
+        label: mains.name + ' / ' + cross.name,
+        tension: midT, crossesTension: midT - 2,
+        stats, score, cfg,
+        mainsId: mains.id, crossesId: cross.id
+      });
+    });
+  });
+  hybridBuilds.sort((a, b) => b.score - a.score);
+  const seenHybrid = new Map();
+  const uniqueHybrid = [];
+  for (const b of hybridBuilds) {
+    const key = b.mainsId + '|' + b.crossesId;
+    if (!seenHybrid.has(key)) {
+      seenHybrid.set(key, true);
+      uniqueHybrid.push(b);
+    }
+    if (uniqueHybrid.length >= halfCount * 3) break;
+  }
+
+  // Pick diverse from each pool
+  const topFull = _compPickDiverseBuilds(uniqueFull, halfCount);
+  const topHybrid = _compPickDiverseBuilds(uniqueHybrid, count - halfCount);
+  return [...topFull, ...topHybrid];
 }
 
 function _compPickDiverseBuilds(builds, count) {
@@ -10333,14 +10454,18 @@ function _compRenderBuildCard(build, index, racquet) {
   const s = build.stats;
   const obsStyle = getObsBadgeStyle(build.score);
   const borderColor = _compArchetypeColors[build.archetype] || 'var(--text-muted)';
+  const isHybrid = build.type === 'hybrid';
+  const stringLabel = isHybrid ? (build.label || build.string.name) : build.string.name;
+  const metaLabel = isHybrid ? `Hybrid &middot; M:${build.tension} / X:${build.crossesTension} lbs` : `Full Bed &middot; ${build.tension} lbs`;
+  const actionId = isHybrid ? build.mainsId : build.string.id;
 
   return `<div class="comp-build-card" style="border-left-color:${borderColor}">
     <div class="comp-card-top">
       <span class="comp-card-archetype">${build.archetype}</span>
       <span class="comp-card-obs" style="${obsStyle}">${build.score.toFixed(1)}</span>
     </div>
-    <div class="comp-card-string">${build.string.name}</div>
-    <div class="comp-card-meta">Full Bed &middot; ${build.tension} lbs</div>
+    <div class="comp-card-string">${stringLabel}</div>
+    <div class="comp-card-meta">${metaLabel}</div>
     <div class="comp-card-stats">
       <span>SPN <b>${Math.round(s.spin)}</b></span>
       <span>PWR <b>${Math.round(s.power)}</b></span>
@@ -10350,9 +10475,9 @@ function _compRenderBuildCard(build, index, racquet) {
       <span>DUR <b>${Math.round(s.durability)}</b></span>
     </div>
     <div class="comp-card-actions">
-      <button class="comp-card-btn" onclick="_compActionSave('${racquet.id}','${build.string.id}',${build.tension})">Save</button>
-      <button class="comp-card-btn" onclick="_compActionTune('${racquet.id}','${build.string.id}',${build.tension})">Tune</button>
-      <button class="comp-card-btn comp-card-btn-primary" onclick="_compActionSetActive('${racquet.id}','${build.string.id}',${build.tension})">Set Active</button>
+      <button class="comp-card-btn" onclick="_compActionSave('${racquet.id}','${actionId}',${build.tension})">Save</button>
+      <button class="comp-card-btn" onclick="_compActionTune('${racquet.id}','${actionId}',${build.tension})">Tune</button>
+      <button class="comp-card-btn comp-card-btn-primary" onclick="_compActionSetActive('${racquet.id}','${actionId}',${build.tension})">Set Active</button>
     </div>
   </div>`;
 }
