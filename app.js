@@ -4451,6 +4451,193 @@ function calcTensionModifier(mainsTension, crossesTension, tensionRange, pattern
 // Stability & forgiveness are frame-only (no string or tension influence).
 // Durability is string-only. Playability is string + tension.
 
+// ============================================
+// LAYER 3: HYBRID INTERACTION MODEL
+// ============================================
+// When two different strings are paired as mains/crosses, their interaction
+// changes which string dominates feel, spin, power, and how fast the bed dies.
+// This layer models the pairing dynamics beyond simple weighted blending.
+//
+// Key principles:
+// - Mains dominate power, feel, spin window (longer, deform more)
+// - Crosses modulate: control, launch, snapback friction, comfort, durability
+// - "Which hybrid is better" depends on what job the cross is doing
+// - Same cross, different main → different job → different fitness
+
+function calcHybridInteraction(mainsData, crossesData) {
+  const mainsMat = mainsData.material;
+  const crossMat = crossesData.material;
+  const isGutMains = mainsMat === 'Natural Gut';
+  const isMultiMains = mainsMat === 'Multifilament';
+  const isSoftMains = isGutMains || isMultiMains;
+  const isPolyMains = mainsMat === 'Polyester' || mainsMat === 'Co-Polyester (elastic)';
+  const isPolyCross = crossMat === 'Polyester' || crossMat === 'Co-Polyester (elastic)';
+  const isGutCross = crossMat === 'Natural Gut';
+  const isSoftCross = crossMat === 'Natural Gut' || crossMat === 'Multifilament' || crossMat === 'Synthetic Gut';
+
+  // Cross string properties
+  const crossStiff = crossesData.stiffness || 200;
+  const crossStiffNorm = Math.max(0, Math.min(1, (crossStiff - 115) / (234 - 115))); // 0=soft, 1=stiff
+  const crossShape = (crossesData.shape || '').toLowerCase();
+  const crossIsRound = crossShape.includes('round');
+  const crossIsShaped = !crossIsRound && (crossShape.includes('pentagon') || crossShape.includes('hex') || crossShape.includes('square') || crossShape.includes('star') || crossShape.includes('octagon') || crossShape.includes('heptagonal'));
+  const crossIsSlick = crossShape.includes('slick') || crossShape.includes('coated') || crossShape.includes('silicone');
+  const crossSpinPot = crossesData.spinPotential || 6;
+  const crossIsElastic = crossMat === 'Co-Polyester (elastic)';
+
+  // Mains properties
+  const mainsStiff = mainsData.stiffness || 200;
+  const mainsShape = (mainsData.shape || '').toLowerCase();
+  const mainsIsShaped = mainsShape.includes('pentagon') || mainsShape.includes('hex') || mainsShape.includes('square') || mainsShape.includes('star') || mainsShape.includes('octagon') || mainsShape.includes('heptagonal') || mainsShape.includes('textured');
+
+  // --- Result object: modifiers applied AFTER the base hybrid blend ---
+  const mods = {
+    powerMod: 0,
+    spinMod: 0,
+    controlMod: 0,
+    comfortMod: 0,
+    feelMod: 0,
+    durabilityMod: 0,
+    playabilityMod: 0,
+    launchMod: 0
+  };
+
+  // ========================================
+  // CASE 1: GUT/MULTI MAINS + POLY CROSSES
+  // ========================================
+  // The classic "best of both worlds" hybrid. Cross job:
+  // - Be slick enough that gut slides (prevent premature notching)
+  // - Be soft enough not to kill gut feel
+  // - Be firm enough to rein in launch and add control
+  // - Not saw through gut too quickly
+  if (isSoftMains && isPolyCross) {
+    // Base synergy bonus: gut+poly is a proven, synergistic combo
+    mods.comfortMod += 1;       // gut comfort preserved, poly adds structure
+    mods.controlMod += 2;       // poly cross reins in gut's wild launch
+    mods.launchMod -= 0.5;      // poly tames gut's high launch tendency
+
+    // Cross fitness for gut: ideal cross is soft-ish, slick, round
+    // A. Slickness / roundness — essential for gut preservation
+    if (crossIsRound || crossIsSlick) {
+      mods.durabilityMod += 3;  // round/slick cross preserves gut lifespan
+      mods.feelMod += 1;        // doesn't interfere with gut's signature feel
+    } else if (crossIsShaped) {
+      // Shaped polys as crosses under gut: the nightmare scenario
+      // Sharp edges saw through gut faster, friction kills snapback
+      mods.durabilityMod -= 5;  // shaped crosses destroy gut
+      mods.feelMod -= 2;        // gritty, fights gut's natural pocketing
+      mods.comfortMod -= 2;     // harsh interaction at cross points
+      mods.spinMod -= 1;        // friction locks rather than enables snapback
+    }
+
+    // B. Cross stiffness — softer is better under gut (preserves feel)
+    if (crossStiffNorm < 0.4) {
+      // Soft poly cross (like Irukandji): ideal for gut preservation
+      mods.feelMod += 1;
+      mods.comfortMod += 1;
+    } else if (crossStiffNorm > 0.7) {
+      // Very stiff poly cross: functional but kills gut's magic
+      mods.feelMod -= 1;
+      mods.comfortMod -= 1;
+      mods.powerMod -= 1;       // boardy response under elastic mains
+    }
+
+    // C. Elastic co-polys: specifically designed for gut crosses
+    if (crossIsElastic) {
+      mods.feelMod += 1;        // complements gut elasticity
+      mods.durabilityMod += 2;  // gentler on gut
+      mods.comfortMod += 1;
+    }
+
+    // D. Gut durability baseline penalty in hybrid
+    // Gut mains break faster than poly mains regardless of cross choice
+    mods.durabilityMod -= 3;
+  }
+
+  // ========================================
+  // CASE 2: POLY MAINS + POLY CROSSES
+  // ========================================
+  // Standard hybrid. Cross job:
+  // - Stay slick so shaped/grippy mains can snap back
+  // - Stabilize the bed without adding excess power
+  // - Be neutral — let the mains do the biting
+  else if (isPolyMains && isPolyCross) {
+    // Cross fitness: ideal is slick, round, neutral
+    if (crossIsRound || crossIsSlick) {
+      mods.spinMod += 1.5;      // round cross lets mains snap back freely
+      mods.controlMod += 1;     // stable, predictable bed
+    }
+
+    // Shaped mains + round cross = synergy (each does its job)
+    if (mainsIsShaped && (crossIsRound || crossIsSlick)) {
+      mods.spinMod += 1;        // optimal spin: shaped bites, round slides
+      mods.controlMod += 0.5;
+    }
+
+    // Both shaped: friction overload, bed locks up
+    if (mainsIsShaped && crossIsShaped) {
+      mods.spinMod -= 2;        // too much friction, mains can't snap
+      mods.feelMod -= 1;        // dead/boardy feel
+      mods.comfortMod -= 1;     // harsh impact
+    }
+
+    // Stiffness mismatch: very different stiffnesses create uneven bed
+    const stiffGap = Math.abs(mainsStiff - crossStiff);
+    if (stiffGap > 60) {
+      mods.feelMod -= 1;        // inconsistent feel across string bed
+      mods.controlMod -= 0.5;   // unpredictable response
+    }
+  }
+
+  // ========================================
+  // CASE 3: POLY MAINS + GUT/MULTI CROSSES
+  // ========================================
+  // Uncommon: more immediate spin/control from poly mains,
+  // softer feel from gut/multi crosses, but bed notches earlier
+  else if (isPolyMains && isSoftCross) {
+    mods.feelMod += 2;          // soft cross adds touch behind poly
+    mods.comfortMod += 1.5;     // softer impact at crosses
+    mods.powerMod += 1;         // elastic crosses add power return
+
+    // But: crosses notch faster, durability suffers
+    if (isGutCross) {
+      mods.durabilityMod -= 4;  // gut crosses shred against poly mains
+      mods.playabilityMod -= 2; // bed deteriorates as notches form
+    } else {
+      mods.durabilityMod -= 2;
+      mods.playabilityMod -= 1;
+    }
+
+    // Shaped poly mains with gut crosses: particularly rough
+    if (mainsIsShaped && isGutCross) {
+      mods.durabilityMod -= 3;  // shaped poly destroys gut crosses
+    }
+  }
+
+  // ========================================
+  // CASE 4: GUT MAINS + GUT CROSSES (full gut)
+  // ========================================
+  else if (isGutMains && isGutCross) {
+    mods.feelMod += 3;          // ultimate feel
+    mods.comfortMod += 2;       // softest possible bed
+    mods.powerMod += 1;         // elastic in all directions
+    mods.durabilityMod -= 6;    // extremely fragile
+    mods.controlMod -= 2;       // very hard to control trajectory
+    mods.spinMod -= 2;          // no friction differential for snapback
+  }
+
+  // ========================================
+  // CASE 5: SOFT MAINS + SOFT CROSSES (multi+multi, multi+synth, etc.)
+  // ========================================
+  else if (isSoftMains && isSoftCross && !isGutMains && !isGutCross) {
+    mods.comfortMod += 1;
+    mods.durabilityMod -= 1;
+    mods.controlMod -= 1;
+  }
+
+  return mods;
+}
+
 function predictSetup(racquet, stringConfig) {
   const frameBase = calcFrameBase(racquet);
 
@@ -4463,14 +4650,17 @@ function predictSetup(racquet, stringConfig) {
     const mainsProfile = calcBaseStringProfile(stringConfig.mains);
     const crossesProfile = calcBaseStringProfile(stringConfig.crosses);
 
+    // Layer 3: Hybrid interaction — pairing-specific adjustments
+    const hybridMods = calcHybridInteraction(stringConfig.mains, stringConfig.crosses);
+
     // Mains-weighted for power/comfort/feel/spin, crosses-weighted for control
     stringMod = {
-      powerMod: mainsMod.powerMod * 0.7 + crossesMod.powerMod * 0.3,
-      spinMod: mainsMod.spinMod * 0.7 + crossesMod.spinMod * 0.3,
-      controlMod: mainsMod.controlMod * 0.3 + crossesMod.controlMod * 0.7,
-      comfortMod: mainsMod.comfortMod * 0.7 + crossesMod.comfortMod * 0.3,
-      feelMod: mainsMod.feelMod * 0.7 + crossesMod.feelMod * 0.3,
-      launchMod: mainsMod.launchMod * 0.7 + crossesMod.launchMod * 0.3
+      powerMod: mainsMod.powerMod * 0.7 + crossesMod.powerMod * 0.3 + hybridMods.powerMod,
+      spinMod: mainsMod.spinMod * 0.7 + crossesMod.spinMod * 0.3 + hybridMods.spinMod,
+      controlMod: mainsMod.controlMod * 0.3 + crossesMod.controlMod * 0.7 + hybridMods.controlMod,
+      comfortMod: mainsMod.comfortMod * 0.7 + crossesMod.comfortMod * 0.3 + hybridMods.comfortMod,
+      feelMod: mainsMod.feelMod * 0.7 + crossesMod.feelMod * 0.3 + hybridMods.feelMod,
+      launchMod: mainsMod.launchMod * 0.7 + crossesMod.launchMod * 0.3 + hybridMods.launchMod
     };
 
     // Blend string profiles: mains dominant for most, crosses for durability
@@ -4480,8 +4670,8 @@ function predictSetup(racquet, stringConfig) {
       control: mainsProfile.control * 0.4 + crossesProfile.control * 0.6,
       feel: mainsProfile.feel * 0.7 + crossesProfile.feel * 0.3,
       comfort: mainsProfile.comfort * 0.7 + crossesProfile.comfort * 0.3,
-      durability: mainsProfile.durability * 0.4 + crossesProfile.durability * 0.6,
-      playability: mainsProfile.playability * 0.6 + crossesProfile.playability * 0.4
+      durability: mainsProfile.durability * 0.4 + crossesProfile.durability * 0.6 + hybridMods.durabilityMod,
+      playability: mainsProfile.playability * 0.6 + crossesProfile.playability * 0.4 + (hybridMods.playabilityMod || 0)
     };
 
     avgTension = (stringConfig.mainsTension + stringConfig.crossesTension) / 2;
@@ -4516,7 +4706,9 @@ function predictSetup(racquet, stringConfig) {
   };
 
   // Attach debug info for inspection
-  stats._debug = { frameBase, stringProfile, stringMod, tensionMod, _frameDebug: frameBase._frameDebug };
+  stats._debug = { frameBase, stringProfile, stringMod, tensionMod, _frameDebug: frameBase._frameDebug,
+    hybridInteraction: stringConfig.isHybrid ? calcHybridInteraction(stringConfig.mains, stringConfig.crosses) : null
+  };
 
   return stats;
 }
