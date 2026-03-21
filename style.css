@@ -3001,6 +3001,39 @@ body {
   color: var(--text-faint);
 }
 
+.recs-composite-delta {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  margin-top: 2px;
+}
+.recs-delta-positive {
+  color: var(--green-tag);
+}
+.recs-delta-negative {
+  color: var(--red);
+}
+.recs-delta-neutral {
+  color: var(--text-muted);
+}
+
+.recs-type-badge {
+  font-family: var(--font-body);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+.recs-type-full {
+  background: var(--bg-input);
+  color: var(--text-secondary);
+}
+.recs-type-hybrid {
+  background: rgba(199, 246, 58, 0.15);
+  color: var(--lime);
+}
+
 .recs-footnote {
   margin-top: var(--space-3);
   font-family: var(--font-body);

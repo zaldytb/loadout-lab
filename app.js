@@ -8221,23 +8221,25 @@ function renderRecommendedBuilds(setup) {
   const container = $('#recs-content');
   const { racquet, stringConfig } = setup;
 
-  // Score every string in the DB for this frame at its optimal tension
-  const candidates = [];
+  // --- Compute current build OBS for delta display ---
+  const currentStats = predictSetup(racquet, stringConfig);
+  const currentTCtx = buildTensionContext(stringConfig, racquet);
+  const currentOBS = computeCompositeScore(currentStats, currentTCtx);
+
   const midTension = Math.round((racquet.tensionRange[0] + racquet.tensionRange[1]) / 2);
   const sweepMin = Math.max(racquet.tensionRange[0] - 3, 30);
   const sweepMax = Math.min(racquet.tensionRange[1] + 3, 75);
 
-  STRINGS.forEach(s => {
-    // Run a mini-sweep for each string to find its peak composite tension
-    let bestScore = -1;
-    let bestTension = midTension;
-    let bestStats = null;
-
+  // Helper: find optimal tension for a config
+  function findOptimalTension(buildConfig) {
+    let bestScore = -1, bestTension = midTension, bestStats = null;
     for (let t = sweepMin; t <= sweepMax; t += 1) {
-      const cfg = { isHybrid: false, string: s, mainsTension: t, crossesTension: t };
+      const cfg = { ...buildConfig };
+      cfg.mainsTension = t;
+      cfg.crossesTension = t - (buildConfig.isHybrid ? 2 : 0); // hybrids: crosses 2 lbs lower
       const stats = predictSetup(racquet, cfg);
       if (!stats) continue;
-      const tCtx = { avgTension: t, tensionRange: racquet.tensionRange };
+      const tCtx = buildTensionContext(cfg, racquet);
       const score = computeCompositeScore(stats, tCtx);
       if (score > bestScore) {
         bestScore = score;
@@ -8245,41 +8247,119 @@ function renderRecommendedBuilds(setup) {
         bestStats = stats;
       }
     }
+    return { score: bestScore, tension: bestTension, stats: bestStats };
+  }
 
-    if (bestStats) {
-      candidates.push({
-        string: s,
-        tension: bestTension,
-        score: bestScore,
-        stats: bestStats
+  // --- FULL BED candidates ---
+  const fullBedCandidates = [];
+  STRINGS.forEach(s => {
+    const result = findOptimalTension({ isHybrid: false, string: s });
+    if (result.stats) {
+      fullBedCandidates.push({
+        type: 'full',
+        label: s.name,
+        gauge: s.gauge,
+        material: s.material,
+        tension: result.tension,
+        score: result.score,
+        stats: result.stats,
+        stringId: s.id,
+        string: s
       });
     }
   });
 
-  // Sort by score descending, take top 5
-  candidates.sort((a, b) => b.score - a.score);
-  const top = candidates.slice(0, 5);
+  // --- HYBRID candidates ---
+  // Smart pairing: pick top mains candidates × best cross candidates
+  // Cross selection: round/slick polys for poly mains, soft polys for gut
+  const hybridCandidates = [];
 
-  // Identify current string
-  let currentStringId = null;
-  if (!stringConfig.isHybrid && stringConfig.string) {
-    currentStringId = stringConfig.string.id;
+  // Select promising mains strings: top 12 full-bed + any gut/multi
+  fullBedCandidates.sort((a, b) => b.score - a.score);
+  const topMainsIds = new Set(fullBedCandidates.slice(0, 12).map(c => c.stringId));
+  STRINGS.forEach(s => {
+    if (s.material === 'Natural Gut' || s.material === 'Multifilament') topMainsIds.add(s.id);
+  });
+
+  // Select cross candidates: round/slick polys + elastic co-polys
+  const crossCandidates = STRINGS.filter(s => {
+    const shape = (s.shape || '').toLowerCase();
+    const isRoundSlick = shape.includes('round') || shape.includes('slick') || shape.includes('coated');
+    const isElastic = s.material === 'Co-Polyester (elastic)';
+    const isSoftPoly = s.material === 'Polyester' && s.stiffness < 200;
+    return isRoundSlick || isElastic || isSoftPoly;
+  });
+
+  // Sweep hybrids: each mains candidate × each cross candidate
+  topMainsIds.forEach(mainsId => {
+    const mains = STRINGS.find(s => s.id === mainsId);
+    if (!mains) return;
+
+    crossCandidates.forEach(cross => {
+      if (cross.id === mains.id) return; // skip same string
+      const result = findOptimalTension({
+        isHybrid: true, mains, crosses: cross
+      });
+      if (result.stats && result.score > 0) {
+        hybridCandidates.push({
+          type: 'hybrid',
+          label: `${mains.name} / ${cross.name}`,
+          gauge: '',
+          material: `${mains.material} / ${cross.material}`,
+          tension: result.tension,
+          score: result.score,
+          stats: result.stats,
+          mainsId: mains.id,
+          crossesId: cross.id,
+          mains, crosses: cross
+        });
+      }
+    });
+  });
+
+  // --- Merge, deduplicate, sort, take top 8 ---
+  const allCandidates = [...fullBedCandidates, ...hybridCandidates];
+  allCandidates.sort((a, b) => b.score - a.score);
+  const top = allCandidates.slice(0, 8);
+
+  // Identify current setup
+  let currentKey = null;
+  if (stringConfig.isHybrid) {
+    const mId = stringConfig.mains?.id || stringConfig.mainsId;
+    const xId = stringConfig.crosses?.id || stringConfig.crossesId;
+    currentKey = `hybrid:${mId}/${xId}`;
+  } else if (stringConfig.string) {
+    currentKey = `full:${stringConfig.string.id}`;
   }
 
-  const isCurrentInTop = currentStringId && top.some(c => c.string.id === currentStringId);
+  function getCandidateKey(c) {
+    return c.type === 'hybrid' ? `hybrid:${c.mainsId}/${c.crossesId}` : `full:${c.stringId}`;
+  }
+
+  const isCurrentInTop = currentKey && top.some(c => getCandidateKey(c) === currentKey);
 
   container.innerHTML = `
     <div class="recs-list">
       ${top.map((c, i) => {
-        const isCurrent = currentStringId === c.string.id;
+        const isCurrent = currentKey === getCandidateKey(c);
+        const delta = c.score - currentOBS;
+        const deltaStr = delta > 0 ? `+${delta.toFixed(1)}` : delta.toFixed(1);
+        const deltaCls = delta > 0.5 ? 'recs-delta-positive' : delta < -0.5 ? 'recs-delta-negative' : 'recs-delta-neutral';
+        const typeBadge = c.type === 'hybrid'
+          ? '<span class="recs-type-badge recs-type-hybrid">HYBRID</span>'
+          : '<span class="recs-type-badge recs-type-full">FULL BED</span>';
+        const tensionLabel = c.type === 'hybrid'
+          ? `M:${c.tension} / X:${c.tension - 2} lbs`
+          : `${c.tension} lbs`;
+
         return `
           <div class="recs-item ${isCurrent ? 'recs-item-current' : ''}">
             <div class="recs-rank">${i + 1}</div>
             <div class="recs-info">
-              <div class="recs-name">${c.string.name} <span class="recs-gauge">${c.string.gauge}</span></div>
+              <div class="recs-name">${c.label} ${c.gauge ? `<span class="recs-gauge">${c.gauge}</span>` : ''}</div>
               <div class="recs-meta">
-                <span class="recs-material">${c.string.material}</span>
-                <span class="recs-tension-rec">${c.tension} lbs</span>
+                ${typeBadge}
+                <span class="recs-tension-rec">${tensionLabel}</span>
                 ${isCurrent ? '<span class="recs-badge-current">CURRENT</span>' : ''}
               </div>
             </div>
@@ -8292,19 +8372,20 @@ function renderRecommendedBuilds(setup) {
             <div class="recs-composite">
               <span class="recs-composite-value">${c.score.toFixed(1)}</span>
               <span class="recs-composite-label">Score</span>
+              <span class="recs-composite-delta ${deltaCls}">${isCurrent ? 'YOU' : deltaStr}</span>
             </div>
           </div>
         `;
       }).join('')}
     </div>
-    <p class="recs-footnote">Composite score across all 10 stats, evaluated at optimal tension for <strong>${racquet.name}</strong>.</p>
+    <p class="recs-footnote">Composite score across all 11 stats, evaluated at optimal tension for <strong>${racquet.name}</strong>. Full bed and hybrid configs ranked together.</p>
   `;
 
-  // Show "Try a Different String" section if current string isn't in top 5
+  // Show "Try a Different String" section if current string isn't in top 8
   renderExplorePrompt(setup, isCurrentInTop, top);
 
   // Render What To Try Next using the full candidates list
-  renderWhatToTryNext(setup, candidates);
+  renderWhatToTryNext(setup, allCandidates);
 }
 
 function renderExplorePrompt(setup, isCurrentInTop, topBuilds) {
