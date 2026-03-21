@@ -6830,3 +6830,23 @@ button.gauge-explore-col-header:hover .gauge-col-apply {
   background: var(--bg-elevated);
   color: var(--text-secondary);
 }
+
+/* Ko-fi link */
+.footer-kofi {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #FF5E5B;
+  background: rgba(255, 94, 91, 0.08);
+  border: 1px solid rgba(255, 94, 91, 0.2);
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.15s;
+}
+.footer-kofi:hover {
+  background: rgba(255, 94, 91, 0.15);
+  border-color: rgba(255, 94, 91, 0.4);
+}
