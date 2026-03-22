@@ -9916,7 +9916,7 @@ function renderRecommendedBuilds(setup) {
       fullBedCandidates.push({
         type: 'full',
         label: s.name,
-        gauge: s.gauge,
+        gauge: (s.gauge || "").replace(/\s*\(.*\)/, ""),
         material: s.material,
         tension: result.tension,
         score: result.score,
@@ -9962,7 +9962,7 @@ function renderRecommendedBuilds(setup) {
         hybridCandidates.push({
           type: 'hybrid',
           label: `${mains.name} / ${cross.name}`,
-          gauge: '',
+          gauge: ((mains.gauge || '').replace(/\s*\(.*\)/, '') + '/' + (cross.gauge || '').replace(/\s*\(.*\)/, '')),
           material: `${mains.material} / ${cross.material}`,
           tension: result.tension,
           score: result.score,
@@ -10677,33 +10677,37 @@ function initOptimize() {
     () => RACQUETS.map(r => ({ id: r.id, name: r.name }))
   );
 
-  // --- Material filter chips ---
+  // --- Material filter (multi-select dropdown) ---
   const materials = [...new Set(STRINGS.map(s => s.material))].sort();
   const matContainer = document.getElementById('opt-material-checks');
   materials.forEach(mat => {
-    const chip = document.createElement('label');
-    chip.className = 'opt-check-chip active';
-    chip.innerHTML = `<input type="checkbox" checked value="${mat}">${mat}`;
-    chip.addEventListener('click', (e) => {
+    const item = document.createElement('label');
+    item.className = 'opt-ms-item active';
+    item.innerHTML = `<input type="checkbox" checked value="${mat}"><span>${mat}</span>`;
+    item.addEventListener('click', (e) => {
       if (e.target.tagName !== 'INPUT') return;
-      chip.classList.toggle('active', e.target.checked);
+      item.classList.toggle('active', e.target.checked);
+      _updateOptMSLabel('opt-material-checks', 'opt-material-ms-label', 'material', materials.length);
     });
-    matContainer.appendChild(chip);
+    matContainer.appendChild(item);
   });
+  _updateOptMSLabel('opt-material-checks', 'opt-material-ms-label', 'material', materials.length);
 
-  // --- Brand filter chips ---
+  // --- Brand filter (multi-select dropdown) ---
   const brands = [...new Set(STRINGS.map(s => s.name.split(' ')[0]))].sort();
   const brandContainer = document.getElementById('opt-brand-checks');
   brands.forEach(brand => {
-    const chip = document.createElement('label');
-    chip.className = 'opt-check-chip active';
-    chip.innerHTML = `<input type="checkbox" checked value="${brand}">${brand}`;
-    chip.addEventListener('click', (e) => {
+    const item = document.createElement('label');
+    item.className = 'opt-ms-item active';
+    item.innerHTML = `<input type="checkbox" checked value="${brand}"><span>${brand}</span>`;
+    item.addEventListener('click', (e) => {
       if (e.target.tagName !== 'INPUT') return;
-      chip.classList.toggle('active', e.target.checked);
+      item.classList.toggle('active', e.target.checked);
+      _updateOptMSLabel('opt-brand-checks', 'opt-brand-ms-label', 'brand', brands.length);
     });
-    brandContainer.appendChild(chip);
+    brandContainer.appendChild(item);
   });
+  _updateOptMSLabel('opt-brand-checks', 'opt-brand-ms-label', 'brand', brands.length);
 
   // --- Exclude strings searchable ---
   const exSearch = document.getElementById('opt-exclude-search');
@@ -10766,6 +10770,38 @@ function initOptimize() {
 }
 
 // --- Searchable dropdown helper ---
+// --- Optimizer multi-select dropdown helpers ---
+function _toggleOptMS(msId) {
+  var ms = document.getElementById(msId);
+  if (!ms) return;
+  var dd = ms.querySelector('.opt-ms-dropdown');
+  if (dd) dd.classList.toggle('hidden');
+  // Close other open dropdowns
+  document.querySelectorAll('.opt-multiselect .opt-ms-dropdown').forEach(function(d) {
+    if (d !== dd) d.classList.add('hidden');
+  });
+}
+
+function _updateOptMSLabel(containerId, labelId, noun, total) {
+  var checked = document.querySelectorAll('#' + containerId + ' input:checked').length;
+  var el = document.getElementById(labelId);
+  if (!el) return;
+  if (checked === total) {
+    el.textContent = 'All ' + noun + 's';
+  } else if (checked === 0) {
+    el.textContent = 'No ' + noun + 's';
+  } else {
+    el.textContent = checked + ' of ' + total + ' ' + noun + 's';
+  }
+}
+
+// Close opt dropdowns on outside click
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.opt-multiselect')) {
+    document.querySelectorAll('.opt-ms-dropdown').forEach(function(d) { d.classList.add('hidden'); });
+  }
+});
+
 function _initOptSearchable(inputEl, dropdownEl, hiddenEl, getItems, onSelect) {
   let isOpen = false;
 
@@ -10943,7 +10979,7 @@ function _runOptimizerCore(resultsEl, countEl) {
         candidates.push({
           type: 'full',
           label: s.name,
-          gauge: s.gauge,
+          gauge: (s.gauge || '').replace(/\s*\(.*\)/, ''),
           tension: result.tension,
           crossesTension: result.tension,
           score: result.score,
@@ -10999,7 +11035,7 @@ function _runOptimizerCore(resultsEl, countEl) {
           candidates.push({
             type: 'hybrid',
             label: `${mains.name} / ${cross.name}`,
-            gauge: '',
+            gauge: ((mains.gauge || '').replace(/\s*\(.*\)/, '') + '/' + (cross.gauge || '').replace(/\s*\(.*\)/, '')),
             tension: result.tension,
             crossesTension: result.tension - 2,
             score: result.score,
@@ -11072,10 +11108,10 @@ function renderOptimizerResults(candidates, sortBy, currentOBS) {
       <th class="opt-th opt-th-rank">#</th>
       <th class="opt-th opt-th-type">Type</th>
       <th class="opt-th opt-th-string">String(s)</th>
-      <th class="opt-th opt-th-gauge">Ga.</th>
-      <th class="opt-th opt-th-tension">Tension</th>
       <th class="opt-th opt-th-num${sortColClass === 'obs' ? ' opt-th-active' : ''}">OBS</th>
       <th class="opt-th opt-th-num opt-th-delta">&Delta;</th>
+      <th class="opt-th opt-th-gauge">Ga.</th>
+      <th class="opt-th opt-th-tension">Tension</th>
       <th class="opt-th opt-th-num${sortColClass === 'spin' ? ' opt-th-active' : ''}">Spn</th>
       <th class="opt-th opt-th-num${sortColClass === 'power' ? ' opt-th-active' : ''}">Pwr</th>
       <th class="opt-th opt-th-num${sortColClass === 'control' ? ' opt-th-active' : ''}">Ctl</th>
@@ -11083,7 +11119,7 @@ function renderOptimizerResults(candidates, sortBy, currentOBS) {
       <th class="opt-th opt-th-num${sortColClass === 'feel' ? ' opt-th-active' : ''}">Fel</th>
       <th class="opt-th opt-th-num${sortColClass === 'durability' ? ' opt-th-active' : ''}">Dur</th>
       <th class="opt-th opt-th-num${sortColClass === 'playability' ? ' opt-th-active' : ''}">Ply</th>
-      <th class="opt-th opt-th-actions">Actions</th>
+      <th class="opt-th opt-th-actions"></th>
     </tr></thead><tbody>`;
 
   top.forEach((c, i) => {
@@ -11092,16 +11128,16 @@ function renderOptimizerResults(candidates, sortBy, currentOBS) {
     const deltaCls = delta > 0.5 ? 'opt-delta-pos' : delta < -0.5 ? 'opt-delta-neg' : 'opt-delta-neutral';
     const tensionLabel = c.type === 'hybrid' ? `${c.tension}/${c.crossesTension}` : `${c.tension}`;
     const typeTag = c.type === 'hybrid' ? '<span class="opt-tag-hybrid">H</span>' : '<span class="opt-tag-full">F</span>';
-    const idx = i; // for action data attribute
+    const idx = i;
 
     html += `<tr class="opt-row${i === 0 ? ' opt-row-top' : ''}" data-opt-idx="${idx}">
       <td class="opt-td opt-td-rank">${i + 1}</td>
       <td class="opt-td opt-td-type">${typeTag}</td>
       <td class="opt-td opt-td-string">${c.label}</td>
-      <td class="opt-td opt-td-gauge">${c.gauge || '—'}</td>
-      <td class="opt-td opt-td-tension">${tensionLabel}</td>
       <td class="opt-td opt-td-num opt-td-obs" style="color:${getObsScoreColor(c.score)};font-weight:700">${c.score.toFixed(1)}</td>
       <td class="opt-td opt-td-num ${deltaCls}">${deltaStr}</td>
+      <td class="opt-td opt-td-gauge">${c.gauge || '—'}</td>
+      <td class="opt-td opt-td-tension">${tensionLabel}</td>
       <td class="opt-td opt-td-num">${c.stats.spin?.toFixed(0) || '—'}</td>
       <td class="opt-td opt-td-num">${c.stats.power?.toFixed(0) || '—'}</td>
       <td class="opt-td opt-td-num">${c.stats.control?.toFixed(0) || '—'}</td>
