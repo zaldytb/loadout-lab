@@ -1075,6 +1075,102 @@
             </div>
           </div>
 
+          <!-- Release Notes (inside HIW page) -->
+          <div class="hiw-divider" id="release-notes"></div>
+
+          <div class="hiw-header">
+            <h2 class="hiw-compact-title">Release notes</h2>
+            <p class="release-notes-sub">Technical changelog — what changed, why, and how it affects your workflow.</p>
+          </div>
+
+          <div class="hiw-section">
+            <div class="hiw-section-num">v2.4</div>
+            <h2 class="hiw-section-title">Tune Sandbox Architecture</h2>
+            <div class="hiw-section-body">
+              <p>
+                The Tune page is now a <strong>constraint visualization + free control</strong> system. The slider no longer mutates your committed loadout — it explores freely against the model's optimal tension window. You see the cost or gain of every adjustment in real time via the <strong>OBS delta chip</strong> (green for gains, red for losses) without committing anything.
+              </p>
+              <p>
+                A frozen <strong>baseline snapshot</strong> captures your loadout when you enter Tune. The "Apply changes" button appears only when your exploration differs from baseline — click it to commit. Until then, your Overview, dock, and saved loadouts are untouched.
+              </p>
+              <div class="hiw-callout">
+                <div class="hiw-callout-icon">◆</div>
+                <p>The blue bar in Build Score = <em>model truth</em> (optimal tension band). The slider knob = <em>your agency</em>. Knob inside blue = ideal zone. Outside = you're trading something off. The UI teaches this visually.</p>
+              </div>
+              <p>
+                <strong>"Best Value Move"</strong> now updates live as you drag — it reflects your current slider position against the optimal window, not just the baseline. The sweep chart's shaded region, slider overlay, and Build Score blue bar all share the same computed optimal window.
+              </p>
+            </div>
+          </div>
+
+          <div class="hiw-section">
+            <div class="hiw-section-num">v2.3</div>
+            <h2 class="hiw-section-title">Build DNA Card</h2>
+            <div class="hiw-section-body">
+              <p>
+                Three separate cards (Stat Profile, Fit Profile, Frame Foundation) merged into a single <strong>Build DNA</strong> card. Stat bars are grouped into semantic clusters — <strong>Attack</strong> (Spin, Power, Launch), <strong>Defense</strong> (Control, Stability, Forgiveness), <strong>Touch</strong> (Feel, Comfort, Maneuverability), <strong>Longevity</strong> (Durability, Playability) — with bars color-coded by performance tier: blue for 70+, default for 60–69, muted below 60.
+              </p>
+              <p>
+                A <strong>Strengths &amp; Gaps</strong> highlight row shows the top 3 and bottom 2 stats as inline chips. The Fit Profile is now a compact footer line inside the same card. Frame Foundation data sits below the radar chart. ~300px of vertical scroll eliminated.
+              </p>
+            </div>
+          </div>
+
+          <div class="hiw-section">
+            <div class="hiw-section-num">v2.2</div>
+            <h2 class="hiw-section-title">Compare Page Refactor</h2>
+            <div class="hiw-section-body">
+              <p>
+                The separate "Setup Editors" panel is gone. Each compare slot now has an <strong>inline accordion editor</strong> — click Edit on a summary card, and the frame/string/tension controls expand inside the card itself. Other cards stay visible, so you never lose comparison context.
+              </p>
+              <p>
+                <strong>N-slot verdict and matrix:</strong> Both now handle 2 or 3 setups dynamically. The verdict generates per-slot category wins and "Pick X if you..." recommendations. The matrix shows N value columns per stat row with the best value highlighted.
+              </p>
+            </div>
+          </div>
+
+          <div class="hiw-section">
+            <div class="hiw-section-num">v2.1</div>
+            <h2 class="hiw-section-title">Optimizer Redesign</h2>
+            <div class="hiw-section-body">
+              <p>
+                Material and Brand filters replaced with <strong>multi-select dropdowns</strong>. Stat minimums collapsed behind a toggle. Action buttons changed from SVG icons to readable text labels: View · Tune · Compare · Save. Column order: OBS and delta now appear right after the string name. Gauge fixed for hybrid setups: displays "17/16L" instead of "—". Horizontal scroll enabled.
+              </p>
+            </div>
+          </div>
+
+          <div class="hiw-section">
+            <div class="hiw-section-num">v2.0</div>
+            <h2 class="hiw-section-title">Ice Court Visual System + Context Dock</h2>
+            <div class="hiw-section-body">
+              <p>
+                Complete visual overhaul: warm cream palette → <strong>cool ice-gray</strong>. Primary accent: lime green → <strong>sky blue</strong>. Typography standardized to sentence case. Score tiers color-coded. Stat bars use monochrome with opacity modulation.
+              </p>
+              <p>
+                <strong>Motion system:</strong> Glass mode switcher, stagger entry cascades, theme crossfade, slider pulse, card hover lift. All animations respect <code>prefers-reduced-motion</code>.
+              </p>
+              <p>
+                <strong>Layout:</strong> Header condensed to 4 primary + 2 utility. Dock narrowed to 300px with a <strong>collapse rail</strong> (64px). Overview hero band with 3rem OBS ring. Tune page reorganized into 3 zones.
+              </p>
+              <p>
+                <strong>Context-Aware Dock:</strong> Mode-specific content — guidance, editor relocation, slot cards, build context. Editor controls physically relocated via DOM manipulation to preserve searchable select instances.
+              </p>
+            </div>
+          </div>
+
+          <div class="hiw-section">
+            <div class="hiw-section-num">v1.x</div>
+            <h2 class="hiw-section-title">Foundation</h2>
+            <div class="hiw-section-body">
+              <p>
+                <strong>Prediction engine:</strong> Four-layer pipeline — frame base stats, string interaction model, tension response curves, composite scoring (OBS). 11-dimensional stat space.
+              </p>
+              <p>
+                <strong>Core features:</strong> Racket Bible, tension sweep charts, hybrid string support, gauge explorer, What-To-Try-Next, optimizer with 200+ candidate scoring, compare mode with radar overlay, loadout save/load/share via URL.
+              </p>
+            </div>
+          </div>
+
         </div>
       </section>
 
@@ -1094,12 +1190,14 @@
         </p>
       </div>
       <div class="footer-right">
+        <button class="footer-link" onclick="switchMode('howitworks'); setTimeout(function(){ var el = document.getElementById('release-notes'); if(el) el.scrollIntoView({behavior:'smooth'}); }, 200);">Release Notes</button>
         <a href="https://ko-fi.com/loadoutlab" target="_blank" rel="noopener noreferrer" class="footer-kofi">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/></svg>
           Buy me a coffee
         </a>
       </div>
     </div>
+
   </footer>
 
   <script src="app.js"></script>

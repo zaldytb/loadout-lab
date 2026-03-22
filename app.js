@@ -11716,8 +11716,18 @@ function _compSelectFrame(racquetId) {
     el.classList.toggle('active', el.dataset.id === racquetId);
   });
 
-  // Render main panel
-  _compRenderMain(racquet);
+  // Transition: fade out → render → fade in
+  var main = document.getElementById('comp-main');
+  if (main) {
+    main.style.opacity = '0.3';
+    main.style.transition = 'opacity 150ms ease-out';
+    setTimeout(function() {
+      _compRenderMain(racquet);
+      main.style.opacity = '1';
+    }, 150);
+  } else {
+    _compRenderMain(racquet);
+  }
 }
 
 function _compRenderMain(racquet) {
@@ -12903,4 +12913,12 @@ document.addEventListener('DOMContentLoaded', () => {
   init();
   handleResponsiveHeader();
   _initDockCollapse();
+
+  // Dock scroll shadow
+  var dock = document.getElementById('build-dock');
+  if (dock) {
+    dock.addEventListener('scroll', function() {
+      dock.classList.toggle('dock-scrolled', dock.scrollTop > 0);
+    }, { passive: true });
+  }
 });
