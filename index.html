@@ -80,6 +80,14 @@
     </header>
     <!-- Fixed Left Pane: Setup & Configuration (always visible) -->
     <aside class="build-dock" id="build-dock">
+      <!-- Collapsed Rail (visible only when dock is collapsed) -->
+      <div class="dock-rail" id="dock-rail">
+        <button class="dock-rail-expand" onclick="toggleDockCollapse()" title="Expand dock">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polyline points="6 4 10 8 6 12"/></svg>
+        </button>
+        <div class="dock-rail-obs" id="dock-rail-obs">—</div>
+        <div class="dock-rail-count" id="dock-rail-count">0</div>
+      </div>
       <!-- Mobile collapsed bar -->
       <div class="dock-mobile-bar" id="dock-mobile-bar" onclick="toggleMobileDock()">
         <div class="dock-mob-summary" id="dock-mob-summary">
@@ -89,6 +97,9 @@
         <svg class="dock-mob-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4 6 8 10 12 6"/></svg>
       </div>
       <div class="builder-panel" id="builder-panel">
+        <button class="dock-collapse-btn" onclick="toggleDockCollapse()" title="Collapse dock">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polyline points="9 3 5 7 9 11"/></svg>
+        </button>
         <!-- Active Loadout Card -->
         <div id="dock-active-loadout" class="dock-lo-card">
           <div id="dock-lo-empty" class="dock-lo-empty dock-lo-quiet">
@@ -420,43 +431,22 @@
           <!-- Hero Band -->
           <div class="overview-hero" id="overview-hero"></div>
 
-          <!-- Stat Profile -->
-          <div class="card stats-card">
-            <div class="card-header">
-              <h3 class="card-title">Stat profile</h3>
-            </div>
-            <div class="stats-layout">
-              <div class="stat-bars" id="stat-bars"></div>
-              <div class="radar-container">
-                <canvas id="radar-chart"></canvas>
+          <!-- Build DNA (unified stats + radar + fit) -->
+          <div class="card build-dna-card">
+            <div class="build-dna-layout">
+              <div class="build-dna-bars">
+                <div class="stat-bars" id="stat-bars"></div>
+                <div class="build-dna-highlights" id="build-dna-highlights"></div>
+              </div>
+              <div class="build-dna-radar">
+                <div class="radar-container">
+                  <canvas id="radar-chart"></canvas>
+                </div>
+                <div class="build-dna-foundation" id="oc-foundation"></div>
               </div>
             </div>
+            <div class="build-dna-fit" id="fit-grid"></div>
           </div>
-
-          <!-- Fit Profile -->
-          <div class="card fit-card" id="fit-card">
-            <div class="card-header">
-              <h3 class="card-title">Fit profile</h3>
-            </div>
-            <div class="fit-grid" id="fit-grid"></div>
-          </div>
-
-          <!-- Progressive Depth -->
-          <details class="overview-details" id="details-foundation">
-            <summary class="overview-details-summary">
-              <svg class="details-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Frame foundation
-            </summary>
-            <div class="overview-details-body" id="oc-foundation"></div>
-          </details>
-
-          <details class="overview-details" id="details-snapshot">
-            <summary class="overview-details-summary">
-              <svg class="details-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Build snapshot
-            </summary>
-            <div class="overview-details-body" id="oc-snapshot"></div>
-          </details>
 
           <!-- Warnings -->
           <div class="card warnings-card hidden" id="warnings-card">
@@ -495,6 +485,7 @@
                   <h3 class="tune-card-title">Build score</h3>
                 </div>
                 <div class="obs-content" id="obs-content"></div>
+                <button class="tune-apply-btn hidden" id="tune-apply-btn" onclick="tuneSandboxCommit()">Apply changes</button>
                 <div class="optimal-content" id="optimal-content"></div>
               </div>
               <div class="tune-card tune-card-slider" id="tune-card-slider">
@@ -637,7 +628,8 @@
           </details>
 
           <!-- Expandable Edit Panels (hidden by default) -->
-          <div class="compare-editors" id="compare-editors" style="display:none;">
+          <!-- Legacy editors panel (replaced by inline card editors) -->
+          <div class="compare-editors" id="compare-editors" style="display:none !important;">
             <div class="compare-editors-header">
               <h3 class="card-title">Setup editors</h3>
               <button class="compare-editors-close" id="compare-editors-close" onclick="closeCompareEditors()">✕ Close</button>
@@ -734,9 +726,9 @@
               </select>
             </div>
 
-            <!-- Stat minimums -->
-            <div class="opt-filter-section">
-              <label class="opt-label">Stat Minimums</label>
+            <!-- Stat minimums (collapsed by default) -->
+            <details class="opt-filter-section opt-min-details">
+              <summary class="opt-min-summary">Stat minimums</summary>
               <div class="opt-min-grid">
                 <div class="opt-min-row"><span>Spin</span><input type="number" id="opt-min-spin" class="opt-min-input" min="0" max="100" value="0" placeholder="0"></div>
                 <div class="opt-min-row"><span>Control</span><input type="number" id="opt-min-control" class="opt-min-input" min="0" max="100" value="0" placeholder="0"></div>
@@ -748,7 +740,7 @@
                 <div class="opt-min-row"><span>Stability</span><input type="number" id="opt-min-stability" class="opt-min-input" min="0" max="100" value="0" placeholder="0"></div>
                 <div class="opt-min-row"><span>Maneuverability</span><input type="number" id="opt-min-maneuverability" class="opt-min-input" min="0" max="100" value="0" placeholder="0"></div>
               </div>
-            </div>
+            </details>
 
             <!-- Tension range -->
             <div class="opt-filter-section">

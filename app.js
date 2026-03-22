@@ -5298,7 +5298,15 @@ function renderDockPanel() {
     // Update OBS ring
     const obsVal = document.getElementById('dock-lo-obs-val');
     const obsRing = document.getElementById('dock-lo-obs-ring');
-    if (obsVal) obsVal.textContent = activeLoadout.obs ? activeLoadout.obs.toFixed(1) : '\u2014';
+    const newDockObs = activeLoadout.obs || 0;
+    if (obsVal) {
+      if (newDockObs > 0 && _prevObsValues.dock != null && _prevObsValues.dock > 0) {
+        animateOBS(obsVal, _prevObsValues.dock, newDockObs, 400);
+      } else {
+        obsVal.textContent = newDockObs > 0 ? newDockObs.toFixed(1) : '\u2014';
+      }
+    }
+    _prevObsValues.dock = newDockObs;
 
     if (obsRing) {
       const obs = activeLoadout.obs || 0;
@@ -5356,6 +5364,7 @@ function renderDockPanel() {
   renderMyLoadouts();
   renderDockCreateSection();
   _syncMobileDockBar();
+  _syncDockRail();
   renderDockContextPanel();
 }
 
@@ -5698,14 +5707,11 @@ function _renderDockPanelCompare(container) {
 
 // --- Dock Compare Helpers ---
 function _dockCompareEdit(slotIndex) {
-  const editors = document.getElementById('compare-editors');
-  if (editors) {
-    editors.style.display = '';
-    const workspace = document.getElementById('workspace');
-    if (workspace) {
-      requestAnimationFrame(() => editors.scrollIntoView({ behavior: 'smooth' }));
-    }
-  }
+  // Open inline card editor
+  _toggleCompareCardEditor(slotIndex);
+  // Scroll card into view
+  var card = document.querySelector('.compare-summary-card[data-slot-index="' + slotIndex + '"]');
+  if (card) requestAnimationFrame(function() { card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); });
 }
 
 function _dockCompareRemove(slotIndex) {
@@ -5819,7 +5825,13 @@ function _syncMobileDockBar() {
   if (!obsEl || !labelEl) return;
   
   if (activeLoadout) {
-    obsEl.textContent = activeLoadout.obs ? activeLoadout.obs.toFixed(1) : '';
+    var newMobObs = activeLoadout.obs || 0;
+    if (newMobObs > 0 && _prevObsValues.mobile != null && _prevObsValues.mobile > 0) {
+      animateOBS(obsEl, _prevObsValues.mobile, newMobObs, 400);
+    } else {
+      obsEl.textContent = newMobObs > 0 ? newMobObs.toFixed(1) : '';
+    }
+    _prevObsValues.mobile = newMobObs;
     labelEl.textContent = activeLoadout.name || 'Active loadout';
   } else {
     obsEl.textContent = '';
@@ -5830,6 +5842,52 @@ function _syncMobileDockBar() {
 function toggleMobileDock() {
   var dock = document.getElementById('build-dock');
   if (dock) dock.classList.toggle('dock-expanded');
+}
+
+// ═══ DOCK COLLAPSE RAIL ═══
+
+function toggleDockCollapse() {
+  var dock = document.getElementById('build-dock');
+  if (!dock) return;
+  var isCollapsed = dock.classList.toggle('dock-collapsed');
+  document.documentElement.style.setProperty('--dock-w', isCollapsed ? '64px' : '300px');
+  try { localStorage.setItem('dockCollapsed', isCollapsed ? '1' : '0'); } catch(e) {}
+  if (isCollapsed) _syncDockRail();
+  // Dispatch resize after CSS transition for chart reflow
+  setTimeout(function() { window.dispatchEvent(new Event('resize')); }, 320);
+}
+
+function _syncDockRail() {
+  var obsEl = document.getElementById('dock-rail-obs');
+  var countEl = document.getElementById('dock-rail-count');
+  if (obsEl) {
+    if (activeLoadout && activeLoadout.obs) {
+      obsEl.textContent = activeLoadout.obs.toFixed(1);
+      obsEl.style.color = getObsScoreColor(activeLoadout.obs);
+    } else {
+      obsEl.textContent = '—';
+      obsEl.style.color = 'var(--text-faint)';
+    }
+  }
+  if (countEl) {
+    var saved = [];
+    try { saved = JSON.parse(localStorage.getItem('savedLoadouts') || '[]'); } catch(e) {}
+    countEl.textContent = saved.length;
+  }
+}
+
+function _initDockCollapse() {
+  try {
+    var collapsed = localStorage.getItem('dockCollapsed') === '1';
+    if (collapsed && window.innerWidth > 1024) {
+      var dock = document.getElementById('build-dock');
+      if (dock) {
+        dock.classList.add('dock-collapsed');
+        document.documentElement.style.setProperty('--dock-w', '64px');
+        _syncDockRail();
+      }
+    }
+  } catch(e) {}
 }
 
 // ============================================
@@ -6126,6 +6184,10 @@ function duplicateActiveLoadout() {
 function resetActiveLoadout() {
   activeLoadout = null;
 
+  // Clear tune sandbox state
+  tuneState.baseline = null;
+  tuneState.explored = null;
+
   // Full editor reset — clear all form elements
   ssInstances['select-racquet']?.setValue('');
   ssInstances['select-string-full']?.setValue('');
@@ -6159,6 +6221,7 @@ function resetActiveLoadout() {
 
   renderDockPanel();
   if (currentMode === 'overview') renderDashboard();
+  if (currentMode === 'tune') refreshTuneIfActive();
 }
 
 function addLoadoutToCompare(loadoutId) {
@@ -7188,9 +7251,8 @@ function renderDashboard() {
   // Fit
   renderFitProfile(fitProfile);
 
-  // Progressive depth (inside <details>)
+  // Progressive depth (foundation now inside Build DNA)
   renderOCFoundation(racquet, stringConfig, stats);
-  renderOCSnapshot(fitProfile);
 
   // Warnings
   renderWarnings(warnings);
@@ -7246,6 +7308,13 @@ function renderOverviewHero(racquet, stringConfig, stats, identity) {
       </div>
     </div>
   `;
+
+  // OBS counting animation on hero value
+  var heroObsEl = el.querySelector('.hero-obs-value');
+  if (heroObsEl && _prevObsValues.hero != null) {
+    animateOBS(heroObsEl, _prevObsValues.hero, score, 500);
+  }
+  _prevObsValues.hero = score;
 }
 
 
@@ -7486,35 +7555,94 @@ function renderOCSnapshot(fitProfile) {
   `;
 }
 
+// Stat bar grouping for Build DNA
+const STAT_GROUPS = [
+  { label: 'Attack', keys: ['spin', 'power', 'launch'] },
+  { label: 'Defense', keys: ['control', 'stability', 'forgiveness'] },
+  { label: 'Touch', keys: ['feel', 'comfort', 'maneuverability'] },
+  { label: 'Longevity', keys: ['durability', 'playability'] }
+];
+
+function _statBarColor(val) {
+  if (val >= 70) return 'var(--fn)';
+  if (val >= 60) return 'var(--text-primary)';
+  return 'var(--text-muted)';
+}
+
 function renderStatBars(stats) {
   const container = $('#stat-bars');
   container.innerHTML = '';
 
-  STAT_KEYS.forEach((key, i) => {
-    const value = stats[key];
-    const row = document.createElement('div');
-    row.className = `stat-row stat-${STAT_CSS_CLASSES[i]}`;
-    row.innerHTML = `
-      <span class="stat-label">${STAT_LABELS[i]}</span>
-      <div class="stat-bar-track">
-        <div class="stat-bar-fill" data-target="${value}"></div>
-      </div>
-      <span class="stat-value">${value}</span>
-    `;
-    container.appendChild(row);
+  const keyToLabel = {};
+  STAT_KEYS.forEach((k, i) => keyToLabel[k] = STAT_LABELS[i]);
+  const keyToClass = {};
+  STAT_KEYS.forEach((k, i) => keyToClass[k] = STAT_CSS_CLASSES[i]);
+
+  let barIdx = 0;
+  STAT_GROUPS.forEach(group => {
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'stat-group';
+    groupDiv.innerHTML = '<div class="stat-group-label">' + group.label + '</div>';
+
+    group.keys.forEach(key => {
+      const value = stats[key];
+      const color = _statBarColor(value);
+      const row = document.createElement('div');
+      row.className = 'stat-row';
+      row.innerHTML = `
+        <span class="stat-label">${keyToLabel[key]}</span>
+        <div class="stat-bar-track">
+          <div class="stat-bar-fill" data-target="${value}" data-color="${color}"></div>
+        </div>
+        <span class="stat-value" style="color:${color}">${value}</span>
+      `;
+      groupDiv.appendChild(row);
+      barIdx++;
+    });
+
+    container.appendChild(groupDiv);
   });
 
-  // Animate bars with opacity modulation
+  // Animate bars
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       container.querySelectorAll('.stat-bar-fill').forEach((bar, idx) => {
         const val = parseFloat(bar.dataset.target);
         bar.style.width = val + '%';
-        bar.style.opacity = (0.25 + (val / 100) * 0.75).toFixed(2);
-        bar.style.transitionDelay = (idx * 50) + 'ms';
+        bar.style.background = bar.dataset.color;
+        bar.style.opacity = (0.35 + (val / 100) * 0.65).toFixed(2);
+        bar.style.transitionDelay = (idx * 40) + 'ms';
       });
     });
   });
+
+  // Highlights: top 3 + bottom 2
+  renderBuildDNAHighlights(stats);
+}
+
+function renderBuildDNAHighlights(stats) {
+  const el = document.getElementById('build-dna-highlights');
+  if (!el) return;
+
+  const entries = STAT_KEYS.map((k, i) => ({ key: k, label: STAT_LABELS[i], val: stats[k] }));
+  const sorted = [...entries].sort((a, b) => b.val - a.val);
+  const top3 = sorted.slice(0, 3);
+  const bot2 = sorted.slice(-2).reverse();
+
+  const topChips = top3.map(s =>
+    '<span class="dna-chip dna-chip-strong">' + s.label + ' <b>' + s.val + '</b></span>'
+  ).join('');
+  const botChips = bot2.map(s =>
+    '<span class="dna-chip dna-chip-gap">' + s.label + ' <b>' + s.val + '</b></span>'
+  ).join('');
+
+  el.innerHTML = `
+    <div class="dna-highlights-row">
+      <span class="dna-highlights-label">Strongest</span>${topChips}
+      <span class="dna-highlights-sep">·</span>
+      <span class="dna-highlights-label">Gaps</span>${botChips}
+    </div>
+  `;
 }
 
 function renderRadarChart(stats) {
@@ -7601,20 +7729,18 @@ function renderRadarChart(stats) {
 
 function renderFitProfile(fitProfile) {
   const grid = $('#fit-grid');
-  grid.innerHTML = `
-    <div class="fit-section best-for">
-      <h4 class="fit-section-title best-for">Best For:</h4>
-      ${fitProfile.bestFor.map(f => `<p class="fit-item">${f}</p>`).join('')}
-    </div>
-    <div class="fit-section watch-out">
-      <h4 class="fit-section-title watch-out">Watch Out:</h4>
-      ${fitProfile.watchOut.map(f => `<p class="fit-item">${f}</p>`).join('')}
-    </div>
-    <div class="fit-section tension-rec">
-      <h4 class="fit-section-title tension-rec">Recommended Tension:</h4>
-      <p class="fit-item">${fitProfile.tensionRec}</p>
-    </div>
-  `;
+  const bestFor = fitProfile.bestFor.join(', ');
+  const watchOut = fitProfile.watchOut.length > 0 && fitProfile.watchOut[0].toLowerCase().indexOf('no major') === -1
+    ? fitProfile.watchOut.join(', ')
+    : '';
+  const tension = fitProfile.tensionRec || '';
+
+  let parts = [];
+  if (bestFor) parts.push('<span class="dna-fit-label dna-fit-best">Best for:</span> ' + bestFor);
+  if (watchOut) parts.push('<span class="dna-fit-label dna-fit-warn">Watch:</span> ' + watchOut);
+  if (tension) parts.push('<span class="dna-fit-label dna-fit-tension">Sweet spot:</span> ' + tension);
+
+  grid.innerHTML = '<p class="dna-fit-line">' + parts.join(' <span class="dna-fit-sep">·</span> ') + '</p>';
 }
 
 function renderWarnings(warnings) {
@@ -7716,10 +7842,11 @@ function addComparisonSlot() {
   renderCompareSummaries();
   renderCompareVerdict();
   renderCompareMatrix();
-  updateComparisonRadar();
-
-  // Auto-open the editor panel so user can configure the new slot
-  openCompareEditor(slotIndex);
+  try { updateComparisonRadar(); } catch(e) {}
+  // Unconfigured cards auto-open in edit mode — no toggle needed
+  // Just scroll to the new card
+  var newCard = document.querySelector('.compare-summary-card[data-slot-index="' + slotIndex + '"]');
+  if (newCard) requestAnimationFrame(function() { newCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); });
 }
 
 function removeComparisonSlot(index) {
@@ -7728,193 +7855,18 @@ function removeComparisonSlot(index) {
   renderCompareSummaries();
   renderCompareVerdict();
   renderCompareMatrix();
-  updateComparisonRadar();
-  renderComparisonDeltas();
+  try { updateComparisonRadar(); } catch(e) {}
+  try { renderComparisonDeltas(); } catch(e) {}
+  try { renderDockContextPanel(); } catch(e) {}
 }
 
 function renderComparisonSlots() {
-  const container = $('#comparison-slots');
-  container.innerHTML = '';
-
-  // Update add button visibility
+  // Legacy: editors panel is hidden. Only update add button visibility.
   const addBtn = $('#btn-add-slot');
-  addBtn.style.display = comparisonSlots.length >= 3 ? 'none' : '';
-
-  comparisonSlots.forEach((slot, index) => {
-    const color = SLOT_COLORS[index];
-    const div = document.createElement('div');
-    div.className = `comparison-slot slot-color-${color.cssClass}`;
-    div.dataset.slotIndex = index;
-
-    const fullbedHTML = `
-      <div class="slot-fullbed-config ${slot.isHybrid ? 'hidden' : ''}" data-slot="${index}">
-        <div class="slot-ss-string" data-slot="${index}" data-value="${slot.stringId || ''}"></div>
-        <div class="row-2col">
-          <div>
-            <label class="field-label accent-cyan">Mains Tension</label>
-            <input type="number" class="text-input slot-mains-tension-fb" data-slot="${index}" value="${slot.mainsTension}" min="30" max="70">
-          </div>
-          <div>
-            <label class="field-label accent-green">Crosses Tension</label>
-            <input type="number" class="text-input slot-crosses-tension-fb" data-slot="${index}" value="${slot.crossesTension}" min="30" max="70">
-          </div>
-        </div>
-        ${slot.stats && !slot.isHybrid ? `<div class="slot-identity" style="text-align:center; padding-top:4px;">${slot.identity?.archetype || '—'}</div>` : ''}
-      </div>`;
-
-    const hybridHTML = `
-      <div class="slot-hybrid-config ${slot.isHybrid ? '' : 'hidden'}" data-slot="${index}">
-        <div class="slot-hybrid-section">
-          <label class="field-label accent-cyan">Mains</label>
-          <div class="slot-ss-mains" data-slot="${index}" data-value="${slot.mainsId || ''}"></div>
-          <div>
-            <label class="field-label">Tension</label>
-            <input type="number" class="text-input slot-mains-tension" data-slot="${index}" value="${slot.mainsTension}" min="30" max="70">
-          </div>
-        </div>
-        <div class="slot-hybrid-section">
-          <label class="field-label accent-green">Crosses</label>
-          <div class="slot-ss-crosses" data-slot="${index}" data-value="${slot.crossesId || ''}"></div>
-          <div>
-            <label class="field-label">Tension</label>
-            <input type="number" class="text-input slot-crosses-tension" data-slot="${index}" value="${slot.crossesTension}" min="30" max="70">
-          </div>
-        </div>
-        ${slot.stats && slot.isHybrid ? `<div class="slot-identity" style="text-align:center; padding-top:4px;">${slot.identity?.archetype || '—'}</div>` : ''}
-      </div>`;
-
-    div.innerHTML = `
-      <div class="slot-header">
-        <span class="slot-label slot-label-${color.cssClass}">SETUP ${color.label}</span>
-        ${_getCompareSlotTag(slot)}
-        <button class="slot-remove" onclick="removeComparisonSlot(${index})" title="Remove">✕</button>
-      </div>
-      <div class="slot-config">
-        <div class="slot-ss-racquet" data-slot="${index}" data-value="${slot.racquetId || ''}"></div>
-        <div class="slot-toggle-group">
-          <button class="slot-toggle-btn ${slot.isHybrid ? '' : 'active'}" data-slot="${index}" data-mode="full">Full Bed</button>
-          <button class="slot-toggle-btn ${slot.isHybrid ? 'active' : ''}" data-slot="${index}" data-mode="hybrid">Hybrid</button>
-        </div>
-        ${fullbedHTML}
-        ${hybridHTML}
-      </div>
-      ${slot.stats ? renderSlotStats(slot.stats, index) + `<button class="slot-tune-btn" onclick="openTuneForSlot(${index})" title="Open Tune for Setup ${SLOT_COLORS[index].label}"><svg width="14" height="14" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="9" r="2" fill="currentColor"/></svg> Tune</button>` : '<div style="padding:8px;text-align:center;color:var(--text-muted);font-size:0.8rem;">Configure to see stats</div>'}
-    `;
-
-    container.appendChild(div);
-  });
-
-  // Initialize searchable selects for each slot
-  container.querySelectorAll('.slot-ss-racquet').forEach(el => {
-    const idx = parseInt(el.dataset.slot);
-    createSearchableSelect(el, {
-      type: 'racquet',
-      placeholder: 'Select Racquet...',
-      value: el.dataset.value || '',
-      onChange: (val) => {
-        comparisonSlots[idx].racquetId = val;
-        recalcSlot(idx);
-      }
-    });
-  });
-
-  container.querySelectorAll('.slot-ss-string').forEach(el => {
-    const idx = parseInt(el.dataset.slot);
-    createSearchableSelect(el, {
-      type: 'string',
-      placeholder: 'Select String...',
-      value: el.dataset.value || '',
-      onChange: (val) => {
-        comparisonSlots[idx].stringId = val;
-        recalcSlot(idx);
-      }
-    });
-  });
-  container.querySelectorAll('.slot-mains-tension-fb').forEach(inp => {
-    inp.addEventListener('input', (e) => {
-      const idx = parseInt(e.target.dataset.slot);
-      comparisonSlots[idx].mainsTension = parseInt(e.target.value) || 55;
-      recalcSlot(idx);
-    });
-  });
-  container.querySelectorAll('.slot-crosses-tension-fb').forEach(inp => {
-    inp.addEventListener('input', (e) => {
-      const idx = parseInt(e.target.dataset.slot);
-      comparisonSlots[idx].crossesTension = parseInt(e.target.value) || 53;
-      recalcSlot(idx);
-    });
-  });
-
-  // Hybrid mains + crosses (searchable)
-  container.querySelectorAll('.slot-ss-mains').forEach(el => {
-    const idx = parseInt(el.dataset.slot);
-    createSearchableSelect(el, {
-      type: 'string',
-      placeholder: 'Select Main String...',
-      value: el.dataset.value || '',
-      onChange: (val) => {
-        comparisonSlots[idx].mainsId = val;
-        recalcSlot(idx);
-      }
-    });
-  });
-  container.querySelectorAll('.slot-ss-crosses').forEach(el => {
-    const idx = parseInt(el.dataset.slot);
-    createSearchableSelect(el, {
-      type: 'string',
-      placeholder: 'Select Cross String...',
-      value: el.dataset.value || '',
-      onChange: (val) => {
-        comparisonSlots[idx].crossesId = val;
-        recalcSlot(idx);
-      }
-    });
-  });
-  container.querySelectorAll('.slot-mains-tension').forEach(inp => {
-    inp.addEventListener('input', (e) => {
-      const idx = parseInt(e.target.dataset.slot);
-      comparisonSlots[idx].mainsTension = parseInt(e.target.value) || 55;
-      recalcSlot(idx);
-    });
-  });
-  container.querySelectorAll('.slot-crosses-tension').forEach(inp => {
-    inp.addEventListener('input', (e) => {
-      const idx = parseInt(e.target.dataset.slot);
-      comparisonSlots[idx].crossesTension = parseInt(e.target.value) || 53;
-      recalcSlot(idx);
-    });
-  });
-
-  // Full Bed / Hybrid toggle
-  container.querySelectorAll('.slot-toggle-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const idx = parseInt(e.target.dataset.slot);
-      const mode = e.target.dataset.mode;
-      const slot = comparisonSlots[idx];
-      slot.isHybrid = (mode === 'hybrid');
-      recalcSlot(idx);
-    });
-  });
-
-  // Render compare suggestions from saved loadouts
-  _renderCompareSuggestions();
+  if (addBtn) addBtn.style.display = comparisonSlots.length >= 3 ? 'none' : '';
 }
 
-function renderSlotStats(stats, slotIndex) {
-  return `
-    <div class="slot-stats">
-      ${STAT_KEYS.map((key, i) => `
-        <div class="slot-stat">
-          <span class="slot-stat-label">${STAT_LABELS[i]}</span>
-          <div class="slot-stat-bar">
-            <div class="slot-stat-fill" style="width:${stats[key]}%;"></div>
-          </div>
-          <span class="slot-stat-value">${stats[key]}</span>
-        </div>
-      `).join('')}
-    </div>
-  `;
-}
+function renderSlotStats() { return ''; }
 
 function recalcSlot(index) {
   const slot = comparisonSlots[index];
@@ -7954,12 +7906,42 @@ function recalcSlot(index) {
     slot.identity = null;
   }
 
+  // Partial update: update card OBS/archetype/meta in-place if card exists
+  var card = document.querySelector('.compare-summary-card[data-slot-index="' + index + '"]');
+  if (card && slot.stats) {
+    var scoreRq = RACQUETS.find(r => r.id === slot.racquetId);
+    var scoreCtx = scoreRq ? { avgTension: (slot.mainsTension + slot.crossesTension) / 2, tensionRange: scoreRq.tensionRange } : null;
+    var newObs = computeCompositeScore(slot.stats, scoreCtx).toFixed(1);
+    var archEl = card.querySelector('.compare-summary-archetype');
+    var obsEl = card.querySelector('.compare-summary-score-value');
+    var metaEl = card.querySelector('.compare-summary-meta-compact');
+    if (archEl) archEl.textContent = slot.identity?.archetype || 'Balanced Setup';
+    if (obsEl) { obsEl.textContent = newObs; obsEl.style.color = getObsScoreColor(parseFloat(newObs)); }
+    if (metaEl) {
+      var mp = [];
+      if (scoreRq) mp.push(scoreRq.name);
+      if (slot.isHybrid) {
+        var m2 = STRINGS.find(s => s.id === slot.mainsId);
+        var x2 = STRINGS.find(s => s.id === slot.crossesId);
+        if (m2 && x2) mp.push(m2.name + ' / ' + x2.name);
+      } else {
+        var str2 = STRINGS.find(s => s.id === slot.stringId);
+        if (str2) mp.push(str2.name);
+      }
+      mp.push('M:' + slot.mainsTension + ' / X:' + slot.crossesTension);
+      metaEl.textContent = mp.join(' · ');
+    }
+  } else {
+    // Full re-render needed (e.g. slot became configured or lost stats)
+    renderCompareSummaries();
+  }
+
   renderComparisonSlots();
-  renderCompareSummaries();
   renderCompareVerdict();
   renderCompareMatrix();
-  updateComparisonRadar();
-  renderComparisonDeltas();
+  try { updateComparisonRadar(); } catch(e) {}
+  try { renderComparisonDeltas(); } catch(e) {}
+  try { renderDockContextPanel(); } catch(e) {}
 }
 
 function updateComparisonRadar() {
@@ -8087,7 +8069,6 @@ function renderCompareSummaries() {
   if (comparisonSlots.length === 0) {
     container.innerHTML = '';
     emptyState.style.display = '';
-    // Hide analysis layers
     $('#compare-verdict').style.display = 'none';
     $('#compare-matrix').style.display = 'none';
     $('#compare-proof').style.display = 'none';
@@ -8098,7 +8079,6 @@ function renderCompareSummaries() {
 
   emptyState.style.display = 'none';
 
-  // Hide analysis if fewer than 2 valid slots
   if (validSlots.length < 2) {
     $('#compare-verdict').style.display = 'none';
     $('#compare-matrix').style.display = 'none';
@@ -8107,114 +8087,237 @@ function renderCompareSummaries() {
     if (rd) rd.style.display = 'none';
   }
 
-  let html = '';
+  // Track which slots are currently editing (preserve across re-render)
+  var prevEditing = {};
+  container.querySelectorAll('.compare-summary-card.compare-card-editing').forEach(function(el) {
+    var idx = el.dataset.slotIndex;
+    if (idx != null) prevEditing[idx] = true;
+  });
+
+  container.innerHTML = '';
+
   comparisonSlots.forEach((slot, index) => {
-    // Render unconfigured slots with a placeholder card
+    const color = SLOT_COLORS[index];
+
+    // Unconfigured placeholder
     if (!slot.stats) {
-      const color = SLOT_COLORS[index];
-      html += `
-        <div class="compare-summary-card slot-color-${color.cssClass}" style="opacity:0.7;">
-          <div class="compare-summary-top">
-            <div class="compare-summary-identity">
-              <span class="compare-summary-label slot-label-${color.cssClass}">SETUP ${color.label}</span>
-              <div class="compare-summary-archetype" style="font-size:0.85rem; opacity:0.6;">NOT CONFIGURED</div>
-              <div class="compare-summary-descriptor">Select frame and string to begin</div>
-            </div>
+      const div = document.createElement('div');
+      div.className = `compare-summary-card compare-card-editing slot-color-${color.cssClass}`;
+      div.dataset.slotIndex = index;
+      div.style.opacity = '0.85';
+      div.innerHTML = `
+        <div class="compare-summary-top">
+          <div class="compare-summary-identity">
+            <span class="compare-summary-label slot-label-${color.cssClass}">Setup ${color.label}</span>
+            <div class="compare-summary-archetype" style="font-size:0.82rem;opacity:0.5;">Not configured</div>
           </div>
-          <div class="compare-summary-actions">
-            <button class="compare-action-btn" onclick="openCompareEditor(${index})">
-              <svg viewBox="0 0 16 16" fill="none"><path d="M11.5 1.5l3 3L5 14H2v-3L11.5 1.5z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Configure
-            </button>
-            <button class="compare-action-btn" onclick="removeComparisonSlot(${index})">
-              <svg viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-              Remove
-            </button>
+          <button class="compare-card-remove" onclick="removeComparisonSlot(${index})" title="Remove">✕</button>
+        </div>
+        <div class="compare-card-editor" data-slot="${index}">
+          <div class="compare-ed-row">
+            <div class="compare-ed-ss-racquet" data-slot="${index}" data-value="${slot.racquetId || ''}"></div>
           </div>
+          <div class="compare-ed-toggle">
+            <button class="compare-ed-toggle-btn ${slot.isHybrid ? '' : 'active'}" data-slot="${index}" data-mode="full">Full Bed</button>
+            <button class="compare-ed-toggle-btn ${slot.isHybrid ? 'active' : ''}" data-slot="${index}" data-mode="hybrid">Hybrid</button>
+          </div>
+          ${_compareEditorStringHTML(slot, index)}
         </div>
       `;
+      container.appendChild(div);
+      _compareInitEditorSS(div, index, slot);
       return;
     }
-    const color = SLOT_COLORS[index];
+
     const racquet = RACQUETS.find(r => r.id === slot.racquetId);
     const slotTensionCtx = racquet ? { avgTension: (slot.mainsTension + slot.crossesTension) / 2, tensionRange: racquet.tensionRange } : null;
     const obsScore = computeCompositeScore(slot.stats, slotTensionCtx).toFixed(1);
     const pct = Math.min(100, Math.max(0, obsScore));
-    const circumference = 2 * Math.PI * 26;
+    const circumference = 2 * Math.PI * 22;
     const dashOffset = circumference * (1 - pct / 100);
     const archetype = slot.identity?.archetype || 'Balanced Setup';
+    const isEditing = prevEditing[index];
 
-    // Build setup meta string
-    let metaHTML = '';
-    if (racquet) metaHTML += `<span><strong>${racquet.name}</strong></span>`;
+    // Compact meta
+    let metaParts = [];
+    if (racquet) metaParts.push(racquet.name);
     if (slot.isHybrid) {
       const m = STRINGS.find(s => s.id === slot.mainsId);
       const x = STRINGS.find(s => s.id === slot.crossesId);
-      if (m && x) metaHTML += `<span>${m.name} / ${x.name}</span>`;
-      metaHTML += `<span>M:${slot.mainsTension} / X:${slot.crossesTension} lbs</span>`;
+      if (m && x) metaParts.push(m.name + ' / ' + x.name);
     } else {
       const str = STRINGS.find(s => s.id === slot.stringId);
-      if (str) metaHTML += `<span>${str.name} ${str.gauge}</span>`;
-      metaHTML += `<span>M:${slot.mainsTension} / X:${slot.crossesTension} lbs</span>`;
+      if (str) metaParts.push(str.name);
     }
+    metaParts.push('M:' + slot.mainsTension + ' / X:' + slot.crossesTension);
 
-    // Short 1-line descriptor
-    const descriptor = getRatingDescriptor(parseFloat(obsScore), slot.identity || { archetype: 'Balanced Setup' });
+    const div = document.createElement('div');
+    div.className = `compare-summary-card slot-color-${color.cssClass}${isEditing ? ' compare-card-editing' : ''}`;
+    div.dataset.slotIndex = index;
 
-    html += `
-      <div class="compare-summary-card slot-color-${color.cssClass}">
-        <div class="compare-summary-top">
-          <div class="compare-summary-identity">
-            <span class="compare-summary-label slot-label-${color.cssClass}">SETUP ${color.label}</span>
-            <div class="compare-summary-archetype">${archetype.toUpperCase()}</div>
-            <div class="compare-summary-descriptor">${descriptor}</div>
-          </div>
-          <div class="compare-summary-score">
-            <div class="compare-summary-score-ring">
-              <svg width="64" height="64" viewBox="0 0 64 64">
-                <circle cx="32" cy="32" r="26" stroke="var(--border-subtle)" stroke-width="3" fill="none" />
-                <circle cx="32" cy="32" r="26" stroke="${color.border}" stroke-width="3" fill="none"
-                  stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}"
-                  stroke-linecap="round" transform="rotate(-90 32 32)" />
-              </svg>
-              <span class="compare-summary-score-value" style="color:${getObsScoreColor(parseFloat(obsScore))}">${obsScore}</span>
-            </div>
-            <span class="compare-summary-score-label">OBS</span>
-          </div>
+    div.innerHTML = `
+      <div class="compare-summary-top">
+        <div class="compare-summary-identity">
+          <span class="compare-summary-label slot-label-${color.cssClass}">Setup ${color.label}</span>
+          <div class="compare-summary-archetype">${archetype}</div>
         </div>
-        <div class="compare-summary-meta">${metaHTML}</div>
-        ${_isCompareSlotStale(slot) ? '<div class="compare-slot-stale"><span class="compare-stale-text">\u21BB Source loadout changed</span><button class="compare-stale-btn" onclick="_refreshCompareSlot(' + index + ')">Refresh</button></div>' : ''}
-        <div class="compare-summary-actions">
-          <button class="compare-action-btn" onclick="openCompareEditor(${index})">
-            <svg viewBox="0 0 16 16" fill="none"><path d="M11.5 1.5l3 3L5 14H2v-3L11.5 1.5z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Edit
-          </button>
-          <button class="compare-action-btn" onclick="openTuneForSlot(${index})">
-            <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/></svg>
-            Tune
-          </button>
-          <button class="compare-action-btn" onclick="removeComparisonSlot(${index})">
-            <svg viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-            Remove
-          </button>
+        <div class="compare-summary-score">
+          <div class="compare-summary-score-ring compare-ring-sm">
+            <svg width="48" height="48" viewBox="0 0 48 48">
+              <circle cx="24" cy="24" r="22" stroke="var(--border-subtle)" stroke-width="2.5" fill="none" />
+              <circle cx="24" cy="24" r="22" stroke="${color.border}" stroke-width="2.5" fill="none"
+                stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}"
+                stroke-linecap="round" transform="rotate(-90 24 24)" />
+            </svg>
+            <span class="compare-summary-score-value" style="color:${getObsScoreColor(parseFloat(obsScore))}">${obsScore}</span>
+          </div>
         </div>
       </div>
+      <div class="compare-summary-meta-compact">${metaParts.join(' · ')}</div>
+      ${_isCompareSlotStale(slot) ? '<div class="compare-slot-stale"><span class="compare-stale-text">\u21BB Source loadout changed</span><button class="compare-stale-btn" onclick="_refreshCompareSlot(' + index + ')">Refresh</button></div>' : ''}
+      <div class="compare-card-actions">
+        <button class="compare-action-btn compare-action-edit" onclick="_toggleCompareCardEditor(${index})">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M11.5 1.5l3 3L5 14H2v-3L11.5 1.5z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Edit
+        </button>
+        <button class="compare-action-btn" onclick="openTuneForSlot(${index})">
+          <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/></svg>
+          Tune
+        </button>
+        <button class="compare-action-btn compare-action-remove" onclick="removeComparisonSlot(${index})">✕</button>
+      </div>
+      <div class="compare-card-editor" data-slot="${index}">
+        <div class="compare-ed-row">
+          <div class="compare-ed-ss-racquet" data-slot="${index}" data-value="${slot.racquetId || ''}"></div>
+        </div>
+        <div class="compare-ed-toggle">
+          <button class="compare-ed-toggle-btn ${slot.isHybrid ? '' : 'active'}" data-slot="${index}" data-mode="full">Full Bed</button>
+          <button class="compare-ed-toggle-btn ${slot.isHybrid ? 'active' : ''}" data-slot="${index}" data-mode="hybrid">Hybrid</button>
+        </div>
+        ${_compareEditorStringHTML(slot, index)}
+        <button class="compare-ed-done" onclick="_toggleCompareCardEditor(${index})">Done</button>
+      </div>
     `;
+
+    container.appendChild(div);
+    if (isEditing) _compareInitEditorSS(div, index, slot);
+  });
+}
+
+function _compareEditorStringHTML(slot, index) {
+  if (slot.isHybrid) {
+    return `
+      <div class="compare-ed-hybrid">
+        <div class="compare-ed-hybrid-half">
+          <label class="compare-ed-label">Mains</label>
+          <div class="compare-ed-ss-mains" data-slot="${index}" data-value="${slot.mainsId || ''}"></div>
+          <input type="number" class="text-input compare-ed-tension" data-slot="${index}" data-target="mainsTension" value="${slot.mainsTension}" min="30" max="70">
+        </div>
+        <div class="compare-ed-hybrid-half">
+          <label class="compare-ed-label">Crosses</label>
+          <div class="compare-ed-ss-crosses" data-slot="${index}" data-value="${slot.crossesId || ''}"></div>
+          <input type="number" class="text-input compare-ed-tension" data-slot="${index}" data-target="crossesTension" value="${slot.crossesTension}" min="30" max="70">
+        </div>
+      </div>`;
+  }
+  return `
+    <div class="compare-ed-fullbed">
+      <div class="compare-ed-ss-string" data-slot="${index}" data-value="${slot.stringId || ''}"></div>
+      <div class="compare-ed-tension-row">
+        <div><label class="compare-ed-label">Mains</label><input type="number" class="text-input compare-ed-tension" data-slot="${index}" data-target="mainsTension" value="${slot.mainsTension}" min="30" max="70"></div>
+        <div><label class="compare-ed-label">Crosses</label><input type="number" class="text-input compare-ed-tension" data-slot="${index}" data-target="crossesTension" value="${slot.crossesTension}" min="30" max="70"></div>
+      </div>
+    </div>`;
+}
+
+function _toggleCompareCardEditor(index) {
+  var card = document.querySelector('.compare-summary-card[data-slot-index="' + index + '"]');
+  if (!card) return;
+  var wasEditing = card.classList.contains('compare-card-editing');
+  card.classList.toggle('compare-card-editing');
+  if (!wasEditing) {
+    // Becoming editing — init searchable selects
+    _compareInitEditorSS(card, index, comparisonSlots[index]);
+  }
+}
+
+function _compareInitEditorSS(card, index, slot) {
+  // Racquet
+  var rEl = card.querySelector('.compare-ed-ss-racquet');
+  if (rEl && !rEl._ssInit) {
+    createSearchableSelect(rEl, {
+      type: 'racquet',
+      placeholder: 'Select Racquet...',
+      value: rEl.dataset.value || '',
+      onChange: function(val) { comparisonSlots[index].racquetId = val; recalcSlot(index); }
+    });
+    rEl._ssInit = true;
+  }
+
+  // Full bed string
+  var sEl = card.querySelector('.compare-ed-ss-string');
+  if (sEl && !sEl._ssInit) {
+    createSearchableSelect(sEl, {
+      type: 'string',
+      placeholder: 'Select String...',
+      value: sEl.dataset.value || '',
+      onChange: function(val) { comparisonSlots[index].stringId = val; recalcSlot(index); }
+    });
+    sEl._ssInit = true;
+  }
+
+  // Hybrid mains
+  var mEl = card.querySelector('.compare-ed-ss-mains');
+  if (mEl && !mEl._ssInit) {
+    createSearchableSelect(mEl, {
+      type: 'string',
+      placeholder: 'Mains...',
+      value: mEl.dataset.value || '',
+      onChange: function(val) { comparisonSlots[index].mainsId = val; recalcSlot(index); }
+    });
+    mEl._ssInit = true;
+  }
+
+  // Hybrid crosses
+  var xEl = card.querySelector('.compare-ed-ss-crosses');
+  if (xEl && !xEl._ssInit) {
+    createSearchableSelect(xEl, {
+      type: 'string',
+      placeholder: 'Crosses...',
+      value: xEl.dataset.value || '',
+      onChange: function(val) { comparisonSlots[index].crossesId = val; recalcSlot(index); }
+    });
+    xEl._ssInit = true;
+  }
+
+  // Tension inputs
+  card.querySelectorAll('.compare-ed-tension').forEach(function(inp) {
+    if (inp._evtInit) return;
+    inp.addEventListener('input', function(e) {
+      var idx = parseInt(e.target.dataset.slot);
+      var target = e.target.dataset.target;
+      comparisonSlots[idx][target] = parseInt(e.target.value) || 55;
+      recalcSlot(idx);
+    });
+    inp._evtInit = true;
   });
 
-  container.innerHTML = html;
+  // Toggle buttons
+  card.querySelectorAll('.compare-ed-toggle-btn').forEach(function(btn) {
+    if (btn._evtInit) return;
+    btn.addEventListener('click', function(e) {
+      var idx = parseInt(e.target.dataset.slot);
+      var mode = e.target.dataset.mode;
+      comparisonSlots[idx].isHybrid = (mode === 'hybrid');
+      recalcSlot(idx);
+    });
+    btn._evtInit = true;
+  });
 }
 
-function openCompareEditor(slotIndex) {
-  const editors = $('#compare-editors');
-  editors.style.display = '';
-  // Scroll to it
-  editors.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function closeCompareEditors() {
-  $('#compare-editors').style.display = 'none';
-}
+// Legacy stubs (editors panel replaced by inline card editors)
+function openCompareEditor(idx) { _toggleCompareCardEditor(idx); }
+function closeCompareEditors() {}
 
 function generateCompareVerdict(slotA, slotB) {
   const a = slotA.stats;
@@ -8300,31 +8403,79 @@ function renderCompareVerdict() {
 
   container.style.display = '';
 
-  const slotA = validSlots[0];
-  const slotB = validSlots[1];
-  const v = generateCompareVerdict(slotA, slotB);
+  const categories = [
+    { label: 'Spin', key: 'spin' }, { label: 'Power', key: 'power' },
+    { label: 'Control', key: 'control' }, { label: 'Comfort', key: 'comfort' },
+    { label: 'Feel', key: 'feel' }, { label: 'Launch', key: 'launch' },
+    { label: 'Stability', key: 'stability' }, { label: 'Forgiveness', key: 'forgiveness' },
+    { label: 'Durability', key: 'durability' }, { label: 'Playability', key: 'playability' }
+  ];
+
+  // Per-slot: compute OBS, wins (categories where this slot is highest by >2pts)
+  const slotData = validSlots.map(function(slot) {
+    const idx = comparisonSlots.indexOf(slot);
+    const color = SLOT_COLORS[idx];
+    const racquet = RACQUETS.find(r => r.id === slot.racquetId);
+    const ctx = racquet ? { avgTension: (slot.mainsTension + slot.crossesTension) / 2, tensionRange: racquet.tensionRange } : null;
+    const obs = computeCompositeScore(slot.stats, ctx);
+    return { slot, idx, color, obs, wins: [], stats: slot.stats };
+  });
+
+  // Determine per-category winner (must lead all others by >2)
+  categories.forEach(function(cat) {
+    var vals = slotData.map(function(d) { return d.stats[cat.key]; });
+    var maxVal = Math.max.apply(null, vals);
+    var maxIdx = vals.indexOf(maxVal);
+    var othersMax = Math.max.apply(null, vals.filter(function(v, i) { return i !== maxIdx; }));
+    if (maxVal - othersMax > 2) {
+      slotData[maxIdx].wins.push(cat.label);
+    }
+  });
+
+  // Best OBS
+  var bestObs = slotData.reduce(function(best, d) { return d.obs > best.obs ? d : best; }, slotData[0]);
+
+  // Build tradeoff sentence
+  var tradeoff = '';
+  var slotsWithWins = slotData.filter(function(d) { return d.wins.length > 0; });
+  if (slotsWithWins.length === 0) {
+    tradeoff = 'All setups perform similarly across categories — differences are marginal.';
+  } else {
+    var parts = slotsWithWins.map(function(d) {
+      return 'Setup ' + d.color.label + ' leads in ' + d.wins.slice(0, 3).join(', ').toLowerCase();
+    });
+    tradeoff = parts.join('. ') + '.';
+    if (bestObs.obs > 0) tradeoff += ' Best OBS: Setup ' + bestObs.color.label + ' (' + bestObs.obs.toFixed(1) + ').';
+  }
+
+  // Pick reasons
+  function buildPickReason(stats) {
+    var traits = [];
+    if (stats.spin >= 70) traits.push('rely on heavy topspin');
+    if (stats.power >= 65) traits.push('want to dictate with pace');
+    if (stats.control >= 72) traits.push('value placement and accuracy');
+    if (stats.comfort >= 70) traits.push('have arm sensitivity');
+    if (stats.feel >= 72) traits.push('play a lot at the net');
+    if (stats.durability >= 78) traits.push('break strings frequently');
+    if (stats.stability >= 68) traits.push('need stability on off-center hits');
+    if (traits.length === 0) traits.push('want a versatile all-court setup');
+    return traits.slice(0, 2);
+  }
+
+  var colsHtml = slotData.map(function(d) {
+    var wins = d.wins.length > 0 ? d.wins.map(function(w) { return '<span class="verdict-win-tag">' + w + '</span>'; }).join('') : '<span class="verdict-win-tag" style="opacity:0.4;">No clear wins</span>';
+    var pick = buildPickReason(d.stats);
+    return '<div class="verdict-col">' +
+      '<span class="verdict-col-header slot-label-' + d.color.cssClass + '">Setup ' + d.color.label + '</span>' +
+      '<div class="verdict-wins">' + wins + '</div>' +
+      '<div class="verdict-pick"><strong>Pick ' + d.color.label + '</strong> if you ' + pick.join(', ') + '</div>' +
+      '</div>';
+  }).join('');
 
   container.innerHTML = `
-    <div class="verdict-header">
-      <h3>COMPARE VERDICT</h3>
-    </div>
-    <div class="verdict-tradeoff">${v.tradeoff}</div>
-    <div class="verdict-columns">
-      <div class="verdict-col">
-        <span class="verdict-col-header slot-label-${v.colorA.cssClass}">SETUP ${v.colorA.label} WINS</span>
-        <div class="verdict-wins">
-          ${v.winsA.length > 0 ? v.winsA.map(w => `<span class="verdict-win-tag">${w}</span>`).join('') : '<span class="verdict-win-tag" style="opacity:0.5;">No clear wins</span>'}
-        </div>
-        <div class="verdict-pick"><strong>Pick ${v.colorA.label} if you</strong> ${v.pickA.join(', ')}</div>
-      </div>
-      <div class="verdict-col">
-        <span class="verdict-col-header slot-label-${v.colorB.cssClass}">SETUP ${v.colorB.label} WINS</span>
-        <div class="verdict-wins">
-          ${v.winsB.length > 0 ? v.winsB.map(w => `<span class="verdict-win-tag">${w}</span>`).join('') : '<span class="verdict-win-tag" style="opacity:0.5;">No clear wins</span>'}
-        </div>
-        <div class="verdict-pick"><strong>Pick ${v.colorB.label} if you</strong> ${v.pickB.join(', ')}</div>
-      </div>
-    </div>
+    <div class="verdict-header"><h3>Verdict</h3></div>
+    <div class="verdict-tradeoff">${tradeoff}</div>
+    <div class="verdict-columns verdict-cols-${validSlots.length}">${colsHtml}</div>
   `;
 }
 
@@ -8345,56 +8496,59 @@ function renderCompareMatrix() {
   proof.style.display = '';
   if (radarDetails) radarDetails.style.display = '';
 
-  const a = validSlots[0];
-  const b = validSlots[1];
-  const colorA = SLOT_COLORS[comparisonSlots.indexOf(a)];
-  const colorB = SLOT_COLORS[comparisonSlots.indexOf(b)];
+  const slotData = validSlots.map(function(slot) {
+    var idx = comparisonSlots.indexOf(slot);
+    return { stats: slot.stats, color: SLOT_COLORS[idx] };
+  });
 
   const groups = [
-    { title: 'PERFORMANCE', keys: ['spin', 'power', 'control', 'launch'] },
-    { title: 'FEEL & COMFORT', keys: ['comfort', 'feel', 'stability', 'forgiveness'] },
-    { title: 'FRAME DYNAMICS', keys: ['maneuverability'] },
-    { title: 'LONGEVITY', keys: ['durability', 'playability'] }
+    { title: 'Performance', keys: ['spin', 'power', 'control', 'launch'] },
+    { title: 'Feel & comfort', keys: ['comfort', 'feel', 'stability', 'forgiveness'] },
+    { title: 'Frame dynamics', keys: ['maneuverability'] },
+    { title: 'Longevity', keys: ['durability', 'playability'] }
   ];
 
   const keyToLabel = {};
   STAT_KEYS.forEach((k, i) => keyToLabel[k] = STAT_LABELS[i]);
 
+  // Column headers
+  var headerDots = slotData.map(function(d) {
+    return '<span style="color:' + d.color.border + ';">● ' + d.color.label + '</span>';
+  }).join('');
+
   let html = `
     <div class="matrix-header">
-      <h3>STAT-BY-STAT</h3>
+      <h3>Stat-by-stat</h3>
       <div style="display:flex;gap:12px;font-size:0.68rem;font-weight:600;letter-spacing:0.06em;">
-        <span style="color:${colorA.border};">● SETUP ${colorA.label}</span>
-        <span style="color:${colorB.border};">● SETUP ${colorB.label}</span>
+        ${headerDots}
       </div>
     </div>
   `;
 
   groups.forEach(group => {
-    html += `<div class="matrix-group">
-      <div class="matrix-group-title">${group.title}</div>`;
+    html += `<div class="matrix-group"><div class="matrix-group-title">${group.title}</div>`;
 
     group.keys.forEach(key => {
-      const valA = a.stats[key];
-      const valB = b.stats[key];
-      const diff = valA - valB;
-      const absDiff = Math.abs(diff);
-      const cls = diff > 0 ? 'positive' : diff < 0 ? 'negative' : 'neutral';
-      const sign = diff > 0 ? '+' : '';
-      const winner = diff > 2 ? colorA.border : diff < -2 ? colorB.border : 'var(--text-muted)';
+      var vals = slotData.map(function(d) { return d.stats[key]; });
+      var maxVal = Math.max.apply(null, vals);
+
+      // Value cells
+      var valCells = slotData.map(function(d) {
+        var isMax = d.stats[key] === maxVal && slotData.length > 1;
+        return '<span class="matrix-val' + (isMax ? ' matrix-val-best' : '') + '" style="color:' + d.color.border + ';">' + d.stats[key] + '</span>';
+      }).join('');
+
+      // Bar overlay (stacked, semi-transparent)
+      var barLayers = slotData.map(function(d, i) {
+        return '<div class="matrix-bar-layer" style="width:' + d.stats[key] + '%;background:' + d.color.border + ';opacity:' + (0.5 - i * 0.12) + ';"></div>';
+      }).join('');
 
       html += `
-        <div class="matrix-row">
+        <div class="matrix-row matrix-row-${slotData.length}col">
           <span class="matrix-stat-label">${keyToLabel[key] || key}</span>
-          <div class="matrix-bar-cell">
-            <div class="matrix-bar-a" style="width:${valA}%;background:${colorA.border};opacity:0.5;border-radius:3px;"></div>
-            <div class="matrix-bar-b" style="width:${valB}%;background:${colorB.border};opacity:0.35;border-radius:3px;top:0;"></div>
-          </div>
-          <span class="matrix-val" style="color:${colorA.border};">${valA}</span>
-          <span class="matrix-val" style="color:${colorB.border};">${valB}</span>
-          <span class="matrix-delta ${cls}"><span class="matrix-winner-dot" style="background:${winner};"></span>${sign}${diff}</span>
-        </div>
-      `;
+          <div class="matrix-bar-cell">${barLayers}</div>
+          ${valCells}
+        </div>`;
     });
 
     html += `</div>`;
@@ -8429,12 +8583,16 @@ let isTuneMode = false;
 let _tuneRefreshing = false;
 let sweepChart = null;
 let tuneState = {
-  baselineTension: 55,       // The tension from the main page (source of truth)
+  baselineTension: 55,       // The tension from baseline snapshot
   exploredTension: 55,       // The slider's current position
   hybridDimension: 'linked', // 'mains', 'crosses', or 'linked'
   sweepData: null,           // cached sweep results
-  baselineStats: null,       // stats at baseline tension
-  optimalWindow: null        // { low, high, anchor, reason }
+  baselineStats: null,       // stats at baseline tension (for sweep ref)
+  optimalWindow: null,       // { low, high, anchor, reason }
+
+  // --- Sandbox state (frozen baseline vs live exploration) ---
+  baseline: null,  // { frameId, stringId, isHybrid, mainsId, crossesId, mainsTension, crossesTension, gauge, mainsGauge, crossesGauge, stats, obs, identity }
+  explored: null   // { stats, obs, identity } — recomputed on every slider/string/gauge change
 };
 
 function toggleTuneMode() {
@@ -8529,8 +8687,47 @@ function updateDeltaTitle(stringConfig) {
   }
 }
 
+function _tuneStringKey(lo) {
+  return lo.isHybrid ? (lo.mainsId + '/' + lo.crossesId) : (lo.stringId || '');
+}
+
 function initTuneMode(setup) {
   const { racquet, stringConfig } = setup;
+
+  // --- Snapshot baseline from activeLoadout (the committed state) ---
+  if (activeLoadout && (!tuneState.baseline || tuneState.baseline._loadoutId !== activeLoadout.id || tuneState.baseline._frameId !== activeLoadout.frameId || tuneState.baseline._stringKey !== _tuneStringKey(activeLoadout))) {
+    var tCtx = buildTensionContext(stringConfig, racquet);
+    var bStats = predictSetup(racquet, stringConfig);
+    var bObs = computeCompositeScore(bStats, tCtx);
+    var bIdent = generateIdentity(bStats, racquet, stringConfig);
+    tuneState.baseline = {
+      _loadoutId: activeLoadout.id,
+      _frameId: activeLoadout.frameId,
+      _stringKey: _tuneStringKey(activeLoadout),
+      frameId: activeLoadout.frameId,
+      stringId: activeLoadout.stringId,
+      isHybrid: activeLoadout.isHybrid,
+      mainsId: activeLoadout.mainsId,
+      crossesId: activeLoadout.crossesId,
+      mainsTension: activeLoadout.mainsTension,
+      crossesTension: activeLoadout.crossesTension,
+      gauge: activeLoadout.gauge,
+      mainsGauge: activeLoadout.mainsGauge,
+      crossesGauge: activeLoadout.crossesGauge,
+      stats: bStats,
+      obs: +bObs.toFixed(1),
+      identity: bIdent
+    };
+  }
+
+  // Initialize explored to baseline
+  if (tuneState.baseline) {
+    tuneState.explored = {
+      stats: tuneState.baseline.stats,
+      obs: tuneState.baseline.obs,
+      identity: tuneState.baseline.identity
+    };
+  }
 
   // Set subtitle
   let subtitle = racquet.name;
@@ -8584,16 +8781,20 @@ function initTuneMode(setup) {
   calculateOptimalWindow(setup);
 
   // Render all modules
-  renderOptimalBuildWindow();
+  renderOptimalBuildWindow(sliderMin, sliderMax);
   renderDeltaVsBaseline();
   renderGaugeExplorer(setup);
   renderBaselineMarker(sliderMin, sliderMax);
   renderOptimalZone(sliderMin, sliderMax);
   renderSweepChart(setup);
   renderBestValueMove();
-  renderOverallBuildScore(setup);
+  renderOverallBuildScore(setup, true);
   renderRecommendedBuilds(setup);
   renderOriginalTensionMarker();
+
+  // Reset Apply button (explored == baseline on entry)
+  var applyBtn = document.getElementById('tune-apply-btn');
+  if (applyBtn) applyBtn.classList.add('hidden');
 }
 
 function runTensionSweep(setup) {
@@ -8674,7 +8875,7 @@ function calculateOptimalWindow(setup) {
   tuneState.optimalWindow = { low, high, anchor, reason };
 }
 
-function renderOptimalBuildWindow() {
+function renderOptimalBuildWindow(sMin, sMax) {
   const container = $('#optimal-content');
   const w = tuneState.optimalWindow;
   if (!w) {
@@ -8685,17 +8886,32 @@ function renderOptimalBuildWindow() {
   const anchorStats = tuneState.sweepData.find(d => d.tension === w.anchor)?.stats;
   if (!anchorStats) return;
 
+  // Use slider range as the scale (matches the tension explorer above)
+  var scaleMin = sMin || w.low;
+  var scaleMax = sMax || w.high;
+  var scaleRange = scaleMax - scaleMin;
+  if (scaleRange <= 0) scaleRange = 1;
+
+  // Optimal window fill position within slider scale
+  var fillLeft = ((w.low - scaleMin) / scaleRange) * 100;
+  var fillRight = ((w.high - scaleMin) / scaleRange) * 100;
+  var fillWidth = fillRight - fillLeft;
+
+  // Anchor dot position within slider scale
+  var anchorPct = ((w.anchor - scaleMin) / scaleRange) * 100;
+  anchorPct = Math.max(2, Math.min(98, anchorPct));
+
   container.innerHTML = `
     <div class="optimal-range">
       <div class="optimal-range-visual">
-        <span class="optimal-range-low">${w.low}</span>
+        <span class="optimal-range-low">${scaleMin}</span>
         <div class="optimal-range-bar">
-          <div class="optimal-range-fill"></div>
-          <div class="optimal-range-anchor" style="left:${w.high > w.low ? ((w.anchor - w.low) / (w.high - w.low)) * 100 : 50}%">
+          <div class="optimal-range-fill" style="left:${fillLeft}%;width:${fillWidth}%"></div>
+          <div class="optimal-range-anchor" style="left:${anchorPct}%">
             <span class="optimal-anchor-label">${w.anchor} lbs</span>
           </div>
         </div>
-        <span class="optimal-range-high">${w.high}</span>
+        <span class="optimal-range-high">${scaleMax}</span>
       </div>
       <p class="optimal-reason">${w.reason}</p>
     </div>
@@ -9182,16 +9398,17 @@ function renderBestValueMove() {
   const w = tuneState.optimalWindow;
   if (!data || !w) { container.innerHTML = ''; return; }
 
-  const baseline = tuneState.baselineTension;
-  const anchor = w.anchor;
-  const diff = anchor - baseline;
+  const current = tuneState.exploredTension;
+  const isInZone = current >= w.low && current <= w.high;
 
-  if (Math.abs(diff) <= 1) {
+  if (isInZone) {
     container.innerHTML = `<div class="best-value-callout best-value-ok">
       <span class="best-value-icon">●</span>
-      <span>You're in the optimal zone. No adjustment needed.</span>
+      <span>You're in the optimal zone (${w.low}–${w.high} lbs). No adjustment needed.</span>
     </div>`;
   } else {
+    const anchor = w.anchor;
+    const diff = anchor - current;
     const direction = diff > 0 ? 'up' : 'down';
     const arrowIcon = diff > 0 ? '↑' : '↓';
     container.innerHTML = `<div class="best-value-callout best-value-move">
@@ -9257,23 +9474,64 @@ function getObsBadgeStyle(score) {
     : 'background: rgba(220, 38, 38, 0.06); color: #DC2626;';
 }
 
-function renderOverallBuildScore(setup) {
+// ---- OBS Counting Animation ----
+let _prevObsValues = { tune: null, hero: null, dock: null, mobile: null };
+
+function animateOBS(el, from, to, duration) {
+  if (!el || isNaN(from) || isNaN(to)) return;
+  if (Math.abs(from - to) < 0.05) { el.textContent = to.toFixed(1); return; }
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    el.textContent = to.toFixed(1);
+    return;
+  }
+  if (el._obsAnim) cancelAnimationFrame(el._obsAnim);
+  duration = duration || 350;
+  var t0 = performance.now();
+  el.textContent = from.toFixed(1);
+  function tick(now) {
+    var p = Math.min((now - t0) / duration, 1);
+    var e = 1 - Math.pow(1 - p, 4); // easeOutQuart
+    el.textContent = (from + (to - from) * e).toFixed(1);
+    if (p < 1) { el._obsAnim = requestAnimationFrame(tick); }
+    else { el._obsAnim = null; }
+  }
+  el._obsAnim = requestAnimationFrame(tick);
+}
+
+function renderOverallBuildScore(setup, animate) {
   const container = $('#obs-content');
   if (!container) return;
   const { racquet, stringConfig } = setup;
-  const stats = predictSetup(racquet, stringConfig);
-  const score = computeCompositeScore(stats, buildTensionContext(stringConfig, racquet));
+
+  // Use explored state if in Tune sandbox, else compute fresh
+  var score, stats;
+  if (currentMode === 'tune' && tuneState.explored && tuneState.explored.obs) {
+    score = tuneState.explored.obs;
+    stats = tuneState.explored.stats;
+  } else {
+    stats = predictSetup(racquet, stringConfig);
+    score = computeCompositeScore(stats, buildTensionContext(stringConfig, racquet));
+  }
+
   const tier = getObsTier(score);
   const pct = Math.min(Math.max(score / 100, 0), 1) * 100;
+
+  // Delta vs baseline (only in Tune sandbox)
+  var deltaHTML = '';
+  if (currentMode === 'tune' && tuneState.baseline && tuneState.baseline.obs) {
+    var delta = score - tuneState.baseline.obs;
+    if (Math.abs(delta) > 0.05) {
+      var sign = delta > 0 ? '+' : '';
+      var deltaCls = delta > 0 ? 'obs-delta-pos' : 'obs-delta-neg';
+      deltaHTML = `<span class="obs-delta-chip ${deltaCls}">${sign}${delta.toFixed(1)}</span>`;
+    }
+  }
 
   // Zone divider lines on the bar
   const zoneLines = OBS_TIERS.slice(1).map(t => 
     `<div class="obs-zone-line" style="left: ${t.min}%"></div>`
   ).join('');
 
-  // Full rank ladder: every tier label positioned at its zone center
-  // Alternate rows (top/bottom) for adjacent labels to prevent overlap
-  // Clamp positions to prevent text clipping at edges
   const ladderLabels = OBS_TIERS.map((t, i) => {
     const centerPct = (t.min + t.max) / 2;
     const clampedPct = Math.max(8, Math.min(92, centerPct));
@@ -9286,6 +9544,7 @@ function renderOverallBuildScore(setup) {
     <div class="obs-top-row">
       <div class="obs-score-group">
         <span class="obs-score-value" style="color:${getObsScoreColor(score)}">${score.toFixed(1)}</span>
+        ${deltaHTML}
         <span class="obs-score-label">Composite</span>
       </div>
       <span class="obs-rank-badge" style="${getObsBadgeStyle(score)}">${tier.label}</span>
@@ -9299,6 +9558,13 @@ function renderOverallBuildScore(setup) {
     </div>
     <p class="obs-subtitle">Composite score · rank ladder</p>
   `;
+
+  // OBS counting animation (skip during slider drag)
+  if (animate && _prevObsValues.tune != null) {
+    var obsEl = container.querySelector('.obs-score-value');
+    if (obsEl) animateOBS(obsEl, _prevObsValues.tune, score, 400);
+  }
+  _prevObsValues.tune = score;
 }
 
 // ---- What To Try Next — 3-bucket contextual recommendations ----
@@ -9855,51 +10121,131 @@ function onTuneSliderInput(e) {
   const valueEl = $('#slider-current-value');
   if (valueEl) {
     valueEl.classList.remove('slider-value-pulse');
-    valueEl.offsetHeight; // reflow to restart animation
+    valueEl.offsetHeight;
     valueEl.classList.add('slider-value-pulse');
   }
+
+  // Recompute explored state from baseline config + new tension
+  _recomputeExploredState();
 
   // Update delta display
   renderDeltaVsBaseline();
 
+  // Update best value move message (reflects explored position)
+  renderBestValueMove();
+
   // Update chart annotation
   if (sweepChart) sweepChart.update('none');
 
-  // Sync dock tension inputs with slider
-  const setup = getCurrentSetup();
-  if (setup) {
-    const dim = tuneState.hybridDimension || 'linked';
-    if (setup.stringConfig.isHybrid) {
-      if (dim === 'linked') {
-        const diff = parseInt($('#input-tension-mains').value) - parseInt($('#input-tension-crosses').value);
-        $('#input-tension-mains').value = val;
-        $('#input-tension-crosses').value = Math.max(0, val - diff);
-      } else if (dim === 'mains') {
-        $('#input-tension-mains').value = val;
-      } else {
-        $('#input-tension-crosses').value = val;
-      }
-    } else {
-      if (dim === 'linked') {
-        const diff = parseInt($('#input-tension-full-mains').value) - parseInt($('#input-tension-full-crosses').value);
-        $('#input-tension-full-mains').value = val;
-        $('#input-tension-full-crosses').value = Math.max(0, val - diff);
-      } else if (dim === 'mains') {
-        $('#input-tension-full-mains').value = val;
-      } else {
-        $('#input-tension-full-crosses').value = val;
-      }
-    }
+  // Re-render OBS card with explored state (shows delta vs baseline)
+  var setup = getCurrentSetup();
+  if (setup) renderOverallBuildScore(setup);
+}
 
-    // Update active loadout via the canonical commit path
-    if (activeLoadout) {
-      commitEditorToLoadout();
-    }
+// Recompute tuneState.explored from baseline config + current slider tension
+function _recomputeExploredState() {
+  if (!tuneState.baseline) return;
+  var bl = tuneState.baseline;
+  var racquet = RACQUETS.find(function(r) { return r.id === bl.frameId; });
+  if (!racquet) return;
 
-    // Re-render OBS card with updated tension
-    const updatedSetup = getCurrentSetup();
-    if (updatedSetup) renderOverallBuildScore(updatedSetup);
+  // Build a stringConfig from baseline config + explored tension
+  var exploredMainsT = bl.mainsTension;
+  var exploredCrossesT = bl.crossesTension;
+  var dim = tuneState.hybridDimension || 'linked';
+  var t = tuneState.exploredTension;
+
+  if (dim === 'linked') {
+    var diff = bl.mainsTension - bl.crossesTension;
+    exploredMainsT = t;
+    exploredCrossesT = Math.max(0, t - diff);
+  } else if (dim === 'mains') {
+    exploredMainsT = t;
+  } else {
+    exploredCrossesT = t;
   }
+
+  var sc;
+  if (bl.isHybrid) {
+    var mainsStr = STRINGS.find(function(s) { return s.id === bl.mainsId; });
+    var crossesStr = STRINGS.find(function(s) { return s.id === bl.crossesId; });
+    if (!mainsStr || !crossesStr) return;
+    sc = { isHybrid: true, mains: mainsStr, crosses: crossesStr, mainsTension: exploredMainsT, crossesTension: exploredCrossesT };
+  } else {
+    var str = STRINGS.find(function(s) { return s.id === bl.stringId; });
+    if (!str) return;
+    sc = { isHybrid: false, string: str, mainsTension: exploredMainsT, crossesTension: exploredCrossesT };
+  }
+
+  var stats = predictSetup(racquet, sc);
+  var tCtx = buildTensionContext(sc, racquet);
+  var obs = computeCompositeScore(stats, tCtx);
+  var identity = generateIdentity(stats, racquet, sc);
+
+  tuneState.explored = {
+    stats: stats,
+    obs: +obs.toFixed(1),
+    identity: identity,
+    mainsTension: exploredMainsT,
+    crossesTension: exploredCrossesT
+  };
+
+  // Show/hide apply button
+  _updateTuneApplyButton();
+}
+
+function _updateTuneApplyButton() {
+  var btn = document.getElementById('tune-apply-btn');
+  if (!btn) return;
+  if (!tuneState.baseline || !tuneState.explored) { btn.classList.add('hidden'); return; }
+  var bl = tuneState.baseline;
+  var ex = tuneState.explored;
+  var changed = Math.abs(ex.obs - bl.obs) > 0.05;
+  if (changed) {
+    btn.classList.remove('hidden');
+    var delta = ex.obs - bl.obs;
+    var sign = delta > 0 ? '+' : '';
+    btn.textContent = 'Apply changes (' + sign + delta.toFixed(1) + ' OBS)';
+  } else {
+    btn.classList.add('hidden');
+  }
+}
+
+function tuneSandboxCommit() {
+  if (!tuneState.explored || !activeLoadout) return;
+
+  // Write explored tension back to dock inputs
+  var ex = tuneState.explored;
+  var bl = tuneState.baseline;
+  var dim = tuneState.hybridDimension || 'linked';
+
+  if (activeLoadout.isHybrid || bl.isHybrid) {
+    var mInput = document.getElementById('input-tension-mains');
+    var xInput = document.getElementById('input-tension-crosses');
+    if (mInput) mInput.value = ex.mainsTension;
+    if (xInput) xInput.value = ex.crossesTension;
+  } else {
+    var fmInput = document.getElementById('input-tension-full-mains');
+    var fxInput = document.getElementById('input-tension-full-crosses');
+    if (fmInput) fmInput.value = ex.mainsTension;
+    if (fxInput) fxInput.value = ex.crossesTension;
+  }
+
+  // Now commit to activeLoadout via canonical path
+  commitEditorToLoadout();
+
+  // Re-snapshot baseline from the now-committed loadout
+  tuneState.baseline = null; // force re-snapshot
+  var setup = getCurrentSetup();
+  if (setup) initTuneMode(setup);
+
+  // Hide apply button immediately
+  var btn = document.getElementById('tune-apply-btn');
+  if (btn) btn.classList.add('hidden');
+
+  // Update dock + overview
+  renderDockPanel();
+  renderDashboard();
 }
 
 function renderTuneHybridToggle(stringConfig) {
@@ -10764,10 +11110,10 @@ function renderOptimizerResults(candidates, sortBy, currentOBS) {
       <td class="opt-td opt-td-num">${c.stats.durability?.toFixed(0) || '—'}</td>
       <td class="opt-td opt-td-num">${c.stats.playability?.toFixed(0) || '—'}</td>
       <td class="opt-td opt-td-actions">
-        <button class="opt-act-btn" title="View in Overview" onclick="optActionView(${idx})"><svg width="13" height="13" viewBox="0 0 15 15" fill="none"><rect x="1" y="1" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="8.5" y="1" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="1" y="8.5" width="12.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.3"/></svg></button>
-        <button class="opt-act-btn" title="Open in Tune" onclick="optActionTune(${idx})"><svg width="13" height="13" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" stroke-width="1.3"/><line x1="7.5" y1="1.5" x2="7.5" y2="4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="7.5" y1="11" x2="7.5" y2="13.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="1.5" y1="7.5" x2="4" y2="7.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><line x1="11" y1="7.5" x2="13.5" y2="7.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="7.5" cy="7.5" r="1.5" fill="currentColor"/></svg></button>
-        <button class="opt-act-btn" title="Add to Compare" onclick="optActionCompare(${idx})"><svg width="13" height="13" viewBox="0 0 15 15" fill="none"><rect x="1" y="2.5" width="5" height="10" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="2.5" width="5" height="10" rx="1" stroke="currentColor" stroke-width="1.3"/><line x1="7.5" y1="5" x2="7.5" y2="10" stroke="currentColor" stroke-width="1.3" stroke-dasharray="1.5 1.5"/></svg></button>
-        <button class="opt-act-btn" title="Add to Loadouts" onclick="optActionSave(${idx})"><svg width="13" height="13" viewBox="0 0 15 15" fill="none"><path d="M11.5 1H3.5A1.5 1.5 0 002 2.5v10A1.5 1.5 0 003.5 14h8a1.5 1.5 0 001.5-1.5v-10A1.5 1.5 0 0011.5 1z" stroke="currentColor" stroke-width="1.2"/><path d="M5 1v4h5V1" stroke="currentColor" stroke-width="1.2"/><path d="M5 10h5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></button>
+        <button class="opt-act-btn" onclick="optActionView(${idx})">View</button>
+        <button class="opt-act-btn" onclick="optActionTune(${idx})">Tune</button>
+        <button class="opt-act-btn" onclick="optActionCompare(${idx})">Compare</button>
+        <button class="opt-act-btn opt-act-save" onclick="optActionSave(${idx})">Save</button>
       </td>
     </tr>`;
   });
@@ -11517,7 +11863,7 @@ function _compPickDiverseBuilds(builds, count) {
 }
 
 const _compArchetypeColors = {
-  'Spin Focus': 'var(--lime)',
+  'Spin Focus': 'var(--fn)',
   'Control Focus': 'var(--blue-tag)',
   'Power Focus': 'var(--orange)',
   'Comfort Build': 'var(--green-tag)',
@@ -12520,4 +12866,5 @@ function _compareQuickAdd() {
 document.addEventListener('DOMContentLoaded', () => {
   init();
   handleResponsiveHeader();
+  _initDockCollapse();
 });
