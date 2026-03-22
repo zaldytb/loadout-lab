@@ -8045,7 +8045,7 @@ function updateSliderLabel() {
   } else if (hasSplitTensions && dim === 'linked') {
     const diff = setup.stringConfig.mainsTension - setup.stringConfig.crossesTension;
     const mainsVal = val;
-    const crossesVal = val - diff;
+    const crossesVal = Math.max(0, val - diff);
     labelEl.textContent = 'Exploring Linked';
     valueEl.textContent = `M ${mainsVal} / X ${crossesVal} lbs`;
   } else {
@@ -8294,9 +8294,9 @@ function renderDeltaVsBaseline() {
       exploreLabel = isAtBaseline ? 'At baseline' : `Crosses: ${tuneState.exploredTension} lbs`;
     } else {
       const diff = setup.stringConfig.mainsTension - setup.stringConfig.crossesTension;
-      baseLabel = `Linked Baseline: M ${tuneState.baselineTension} / X ${tuneState.baselineTension - diff} lbs`;
+      baseLabel = `Linked Baseline: M ${tuneState.baselineTension} / X ${Math.max(0, tuneState.baselineTension - diff)} lbs`;
       if (!isAtBaseline) {
-        exploreLabel = `Linked: M ${tuneState.exploredTension} / X ${tuneState.exploredTension - diff} lbs`;
+        exploreLabel = `Linked: M ${tuneState.exploredTension} / X ${Math.max(0, tuneState.exploredTension - diff)} lbs`;
       }
     }
   }
@@ -8816,11 +8816,13 @@ function renderOverallBuildScore(setup) {
 
   // Full rank ladder: every tier label positioned at its zone center
   // Alternate rows (top/bottom) for adjacent labels to prevent overlap
+  // Clamp positions to prevent text clipping at edges
   const ladderLabels = OBS_TIERS.map((t, i) => {
     const centerPct = (t.min + t.max) / 2;
+    const clampedPct = Math.max(8, Math.min(92, centerPct));
     const isActive = score >= t.min && (score < t.max || (t.max === 100 && score >= t.min));
     const row = i % 2 === 0 ? 'obs-ladder-row-top' : 'obs-ladder-row-bot';
-    return `<span class="obs-ladder-label ${row} ${isActive ? 'obs-ladder-active' : ''}" style="left: ${centerPct}%" data-tier="${t.label}">${t.label}</span>`;
+    return `<span class="obs-ladder-label ${row} ${isActive ? 'obs-ladder-active' : ''}" style="left: ${clampedPct}%" data-tier="${t.label}">${t.label}</span>`;
   }).join('');
 
   container.innerHTML = `
@@ -8833,12 +8835,12 @@ function renderOverallBuildScore(setup) {
     </div>
     <div class="obs-bar-wrapper">
       <div class="obs-bar-track">
-        <div class="obs-marker" style="left: ${pct}%"></div>
+        <div class="obs-marker" style="left: ${Math.max(1, Math.min(99, pct))}%"></div>
       </div>
       <div class="obs-bar-zones">${zoneLines}</div>
       <div class="obs-ladder">${ladderLabels}</div>
     </div>
-    <p class="obs-subtitle">Live composite score · rank ladder</p>
+    <p class="obs-subtitle">Composite score · rank ladder</p>
   `;
 }
 
@@ -9414,7 +9416,7 @@ function onTuneSliderInput(e) {
       if (dim === 'linked') {
         const diff = parseInt($('#input-tension-mains').value) - parseInt($('#input-tension-crosses').value);
         $('#input-tension-mains').value = val;
-        $('#input-tension-crosses').value = val - diff;
+        $('#input-tension-crosses').value = Math.max(0, val - diff);
       } else if (dim === 'mains') {
         $('#input-tension-mains').value = val;
       } else {
@@ -9424,7 +9426,7 @@ function onTuneSliderInput(e) {
       if (dim === 'linked') {
         const diff = parseInt($('#input-tension-full-mains').value) - parseInt($('#input-tension-full-crosses').value);
         $('#input-tension-full-mains').value = val;
-        $('#input-tension-full-crosses').value = val - diff;
+        $('#input-tension-full-crosses').value = Math.max(0, val - diff);
       } else if (dim === 'mains') {
         $('#input-tension-full-mains').value = val;
       } else {
