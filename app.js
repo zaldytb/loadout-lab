@@ -5356,6 +5356,460 @@ function renderDockPanel() {
   renderMyLoadouts();
   renderDockCreateSection();
   _syncMobileDockBar();
+  renderDockContextPanel();
+}
+
+// ============================================
+// CONTEXT-AWARE DOCK PANEL SYSTEM
+// ============================================
+// The dock renders mode-specific content in #dock-context-panel.
+// Each mode gets its own render function that outputs HTML + wires events.
+// Editor controls (searchable selects, tension inputs) are physically
+// relocated via appendChild — instances survive the move.
+
+function renderDockContextPanel() {
+  const container = document.getElementById('dock-context-panel');
+  if (!container) return;
+
+  // Clear mode-specific classes from previous render
+  container.classList.remove('dock-tune-mode');
+
+  switch (currentMode) {
+    case 'compendium': _renderDockPanelBible(container); break;
+    case 'overview':   _renderDockPanelOverview(container); break;
+    case 'tune':       _renderDockPanelTune(container); break;
+    case 'compare':    _renderDockPanelCompare(container); break;
+    case 'optimize':   _renderDockPanelOptimize(container); break;
+    case 'howitworks': _renderDockPanelReference(container); break;
+    default:           _renderDockPanelOverview(container); break;
+  }
+}
+
+// --- Context Action Links Helper ---
+function _dockContextActions(actions) {
+  if (!actions || actions.length === 0) return '';
+  return '<div class="dock-ctx-actions">' +
+    actions.map(a =>
+      `<a class="dock-ctx-action" onclick="${a.onclick}">${a.label}</a>`
+    ).join('') +
+    '</div>';
+}
+
+// --- Guidance Message Helper ---
+function _dockGuidance(icon, title, body) {
+  return `<div class="dock-ctx-guidance">
+    <div class="dock-ctx-guidance-icon">${icon}</div>
+    <div class="dock-ctx-guidance-title">${title}</div>
+    <div class="dock-ctx-guidance-body">${body}</div>
+  </div>`;
+}
+
+// --- Editor Control Relocation ---
+// Moves the .dock-editor-body div between the <details> wrapper and the context panel.
+// Searchable select instances survive because we move DOM nodes, not rebuild.
+
+function _dockReturnEditorHome() {
+  const editorBody = document.querySelector('.dock-editor-body');
+  const editorSection = document.getElementById('dock-editor-section');
+  if (!editorBody || !editorSection) return;
+
+  // Only return if it's currently outside its home
+  if (editorBody.parentElement !== editorSection) {
+    editorSection.appendChild(editorBody);
+  }
+  editorSection.style.display = '';
+}
+
+function _dockRelocateEditorToContext(container) {
+  const editorBody = document.querySelector('.dock-editor-body');
+  const editorSection = document.getElementById('dock-editor-section');
+  if (!editorBody) return false;
+
+  // Move editor body into context panel
+  container.appendChild(editorBody);
+
+  // Hide the empty <details> shell
+  if (editorSection) editorSection.style.display = 'none';
+  return true;
+}
+
+// Safely clear a container without destroying the editor body if it's inside
+function _dockClearNonEditor(container) {
+  const editorBody = container.querySelector('.dock-editor-body');
+  // Remove all children except the editor body
+  while (container.firstChild) {
+    if (container.firstChild === editorBody) break;
+    container.removeChild(container.firstChild);
+  }
+  // Remove children after the editor body too
+  if (editorBody) {
+    while (editorBody.nextSibling) {
+      container.removeChild(editorBody.nextSibling);
+    }
+  }
+}
+
+// --- Mode Panel Implementations ---
+
+function _renderDockPanelBible(container) {
+  // Return editor controls home first
+  _dockReturnEditorHome();
+
+  // Hide editor in Bible mode — user is browsing, not editing
+  const editorSection = document.getElementById('dock-editor-section');
+  if (editorSection) editorSection.style.display = 'none';
+
+  if (!activeLoadout) {
+    // No loadout — onboarding guidance
+    container.innerHTML = _dockGuidance(
+      '🎾',
+      'Getting started',
+      'Browse frames on the right. Each one shows its top string pairings ranked by OBS (overall build score).<br><br>Tap <strong>Set Active</strong> on any build card to load it — then you can tune tension, compare builds, and explore alternatives.'
+    );
+  } else {
+    // Has loadout — show current build summary + action links
+    const racquet = RACQUETS.find(r => r.id === activeLoadout.frameId);
+    const frameName = racquet ? racquet.name : '—';
+    const obs = activeLoadout.obs ? activeLoadout.obs.toFixed(1) : '—';
+
+    let stringName = '—';
+    if (activeLoadout.isHybrid) {
+      const m = STRINGS.find(s => s.id === activeLoadout.mainsId);
+      const x = STRINGS.find(s => s.id === activeLoadout.crossesId);
+      stringName = m && x ? m.name + ' / ' + x.name : '—';
+    } else {
+      const str = STRINGS.find(s => s.id === activeLoadout.stringId);
+      stringName = str ? str.name : '—';
+    }
+
+    container.innerHTML = `
+      <div class="dock-ctx-current">
+        <div class="dock-ctx-label">Current build</div>
+        <div class="dock-ctx-current-name">${activeLoadout.name || frameName}</div>
+        <div class="dock-ctx-current-detail">${stringName} · M${activeLoadout.mainsTension}/X${activeLoadout.crossesTension}</div>
+        <div class="dock-ctx-current-obs">OBS ${obs}</div>
+      </div>
+    ` + _dockContextActions([
+      { label: '→ View build overview', onclick: "switchMode('overview')" },
+      { label: '→ Tune this build', onclick: "switchMode('tune')" },
+      { label: '→ Compare with others', onclick: "switchMode('compare')" },
+      { label: '→ Find a better string', onclick: "switchMode('optimize')" }
+    ]);
+  }
+}
+
+function _renderDockPanelOverview(container) {
+  if (!activeLoadout) {
+    // No loadout — return editor home, show it normally for creation flow
+    _dockReturnEditorHome();
+    // Clear only non-editor content from container
+    _dockClearNonEditor(container);
+    return;
+  }
+
+  // Loadout active — check if editor is already in place
+  const editorBody = document.querySelector('.dock-editor-body');
+  const editorAlreadyHere = editorBody && editorBody.parentElement === container;
+
+  if (!editorAlreadyHere) {
+    // Clear container safely, then relocate editor in
+    _dockClearNonEditor(container);
+    _dockRelocateEditorToContext(container);
+  } else {
+    // Editor already here — clean up elements from other modes
+    const tuneLine = container.querySelector('.dock-tune-frame-line');
+    if (tuneLine) tuneLine.remove();
+    const existingActions = container.querySelector('.dock-ctx-actions');
+    if (existingActions) existingActions.remove();
+  }
+
+  // Add/refresh action links below the editor
+  container.insertAdjacentHTML('beforeend', _dockContextActions([
+    { label: '→ Tune tension curves', onclick: "switchMode('tune')" },
+    { label: '→ Compare with saved', onclick: "switchMode('compare')" },
+    { label: '→ Find a better string', onclick: "switchMode('optimize')" }
+  ]));
+}
+
+function _renderDockPanelTune(container) {
+  if (!activeLoadout) {
+    _dockReturnEditorHome();
+    const editorSection = document.getElementById('dock-editor-section');
+    if (editorSection) editorSection.style.display = 'none';
+    container.innerHTML = _dockGuidance('🎸', 'No build loaded',
+      'Load a build from Overview or the Racket Bible to start tuning.');
+    return;
+  }
+
+  // Add tune-mode class for CSS overrides (hides frame section + tension rows)
+  container.classList.add('dock-tune-mode');
+
+  const racquet = RACQUETS.find(r => r.id === activeLoadout.frameId);
+  const frameName = racquet ? racquet.name : '—';
+
+  // Check if editor is already relocated here
+  const editorBody = document.querySelector('.dock-editor-body');
+  const editorAlreadyHere = editorBody && editorBody.parentElement === container;
+
+  if (!editorAlreadyHere) {
+    _dockReturnEditorHome();
+    _dockClearNonEditor(container);
+
+    // Compact frame info line above the editor
+    container.insertAdjacentHTML('afterbegin', `
+      <div class="dock-tune-frame-line">
+        <span class="dock-ctx-label">Frame</span>
+        <div class="dock-tune-frame-row">
+          <span class="dock-tune-frame-name">${frameName}</span>
+          <a class="dock-tune-change" onclick="switchMode('overview')">change</a>
+        </div>
+      </div>
+    `);
+
+    _dockRelocateEditorToContext(container);
+  } else {
+    // Editor already here — ensure frame line exists (may be missing if coming from Overview)
+    let frameLine = container.querySelector('.dock-tune-frame-line');
+    if (!frameLine) {
+      const editorBody = container.querySelector('.dock-editor-body');
+      const frameHTML = `
+        <div class="dock-tune-frame-line">
+          <span class="dock-ctx-label">Frame</span>
+          <div class="dock-tune-frame-row">
+            <span class="dock-tune-frame-name">${frameName}</span>
+            <a class="dock-tune-change" onclick="switchMode('overview')">change</a>
+          </div>
+        </div>
+      `;
+      if (editorBody) {
+        editorBody.insertAdjacentHTML('beforebegin', frameHTML);
+      } else {
+        container.insertAdjacentHTML('afterbegin', frameHTML);
+      }
+    } else {
+      // Update existing frame name
+      const nameEl = frameLine.querySelector('.dock-tune-frame-name');
+      if (nameEl) nameEl.textContent = frameName;
+    }
+    // Clear old action links
+    const existingActions = container.querySelector('.dock-ctx-actions');
+    if (existingActions) existingActions.remove();
+  }
+
+  // Action links below editor
+  container.insertAdjacentHTML('beforeend', _dockContextActions([
+    { label: '→ Compare with saved', onclick: "switchMode('compare')" },
+    { label: '→ Find a better string', onclick: "switchMode('optimize')" },
+    { label: '→ Back to overview', onclick: "switchMode('overview')" }
+  ]));
+}
+
+function _renderDockPanelCompare(container) {
+  _dockReturnEditorHome();
+  const editorSection = document.getElementById('dock-editor-section');
+  if (editorSection) editorSection.style.display = 'none';
+
+  let html = '';
+
+  // Slot summaries
+  if (comparisonSlots.length > 0) {
+    html += '<div class="dock-ctx-label">Compare slots</div>';
+    html += '<div class="dock-compare-slots">';
+    comparisonSlots.forEach((slot, i) => {
+      const color = SLOT_COLORS[i];
+      const racquet = RACQUETS.find(r => r.id === slot.racquetId);
+      const frameName = racquet ? racquet.name : 'Not set';
+
+      let stringName = '—';
+      if (slot.isHybrid) {
+        const m = STRINGS.find(s => s.id === slot.mainsId);
+        const x = STRINGS.find(s => s.id === slot.crossesId);
+        stringName = m && x ? m.name + ' / ' + x.name : '—';
+      } else {
+        const str = STRINGS.find(s => s.id === slot.stringId);
+        stringName = str ? str.name : '—';
+      }
+
+      let obs = '—';
+      if (slot.stats && racquet) {
+        const tensionCtx = buildTensionContext({
+          isHybrid: slot.isHybrid,
+          mains: slot.isHybrid ? STRINGS.find(s => s.id === slot.mainsId) : null,
+          crosses: slot.isHybrid ? STRINGS.find(s => s.id === slot.crossesId) : null,
+          string: slot.isHybrid ? null : STRINGS.find(s => s.id === slot.stringId),
+          mainsTension: slot.mainsTension,
+          crossesTension: slot.crossesTension
+        }, racquet);
+        obs = computeCompositeScore(slot.stats, tensionCtx).toFixed(1);
+      }
+
+      html += `
+        <div class="dock-compare-slot" style="border-left: 3px solid ${color.border}">
+          <div class="dock-compare-slot-header">
+            <span class="dock-compare-slot-label" style="color: ${color.border}">Slot ${color.label}</span>
+            <span class="dock-compare-slot-obs" style="color:${slot.stats ? getObsScoreColor(parseFloat(obs)) : 'var(--text-faint)'}">${obs}</span>
+          </div>
+          <div class="dock-compare-slot-meta">${frameName}</div>
+          <div class="dock-compare-slot-meta">${stringName} · ${slot.mainsTension}/${slot.crossesTension}</div>
+          <div class="dock-compare-slot-actions">
+            <button class="dock-compare-slot-btn" onclick="_dockCompareEdit(${i})">Edit</button>
+            <button class="dock-compare-slot-btn dock-compare-slot-remove" onclick="_dockCompareRemove(${i})">Remove</button>
+          </div>
+        </div>
+      `;
+    });
+    html += '</div>';
+  }
+
+  // Quick Add from saved loadouts not already in slots
+  const slotKeys = comparisonSlots.map(s => s.racquetId + '-' + (s.stringId || s.mainsId));
+  const available = savedLoadouts.filter(lo => {
+    const key = lo.frameId + '-' + (lo.stringId || lo.mainsId);
+    return !slotKeys.includes(key);
+  });
+
+  if (available.length > 0 && comparisonSlots.length < 3) {
+    html += '<div class="dock-ctx-label">Quick add</div>';
+    html += '<div class="dock-compare-quickadd">';
+    available.slice(0, 5).forEach(lo => {
+      html += `<button class="dock-compare-pill" onclick="_dockCompareQuickAdd('${lo.id}')" title="OBS ${lo.obs ? lo.obs.toFixed(1) : '—'}">
+        ${lo.name || '—'}
+      </button>`;
+    });
+    html += '</div>';
+  }
+
+  // Empty state
+  if (comparisonSlots.length === 0 && savedLoadouts.length === 0 && !activeLoadout) {
+    html = _dockGuidance('⚖️', 'Nothing to compare yet',
+      'Set a build active from the Racket Bible, then come back here.');
+  }
+
+  // Action links
+  const validSlots = comparisonSlots.filter(s => s.stats);
+  html += _dockContextActions([
+    ...(validSlots.length >= 2 ? [{ label: '→ Tune active build', onclick: "switchMode('tune')" }] : []),
+    { label: '→ Optimize from here', onclick: "switchMode('optimize')" },
+    { label: '→ Back to overview', onclick: "switchMode('overview')" }
+  ]);
+
+  container.innerHTML = html;
+}
+
+// --- Dock Compare Helpers ---
+function _dockCompareEdit(slotIndex) {
+  const editors = document.getElementById('compare-editors');
+  if (editors) {
+    editors.style.display = '';
+    const workspace = document.getElementById('workspace');
+    if (workspace) {
+      requestAnimationFrame(() => editors.scrollIntoView({ behavior: 'smooth' }));
+    }
+  }
+}
+
+function _dockCompareRemove(slotIndex) {
+  comparisonSlots.splice(slotIndex, 1);
+
+  try {
+    renderComparisonSlots();
+    renderCompareSummaries();
+    renderCompareVerdict();
+    renderCompareMatrix();
+    updateComparisonRadar();
+  } catch (e) {
+    console.warn('Compare workspace render error after remove:', e);
+  }
+
+  renderDockContextPanel();
+}
+
+function _dockCompareQuickAdd(loadoutId) {
+  const lo = savedLoadouts.find(l => l.id === loadoutId);
+  if (!lo || comparisonSlots.length >= 3) return;
+  _addLoadoutAsSlot(lo);
+
+  // Render workspace (errors here must not block dock update)
+  try {
+    renderComparisonSlots();
+    renderCompareSummaries();
+    renderCompareVerdict();
+    renderCompareMatrix();
+    updateComparisonRadar();
+  } catch (e) {
+    console.warn('Compare workspace render error after quick-add:', e);
+  }
+
+  // Always update dock panel
+  renderDockContextPanel();
+}
+
+function _renderDockPanelOptimize(container) {
+  _dockReturnEditorHome();
+  const editorSection = document.getElementById('dock-editor-section');
+  if (editorSection) editorSection.style.display = 'none';
+
+  if (!activeLoadout) {
+    container.innerHTML = _dockGuidance(
+      '📊',
+      'No build to optimize from',
+      'Load a build first — the optimizer finds better string pairings for your current frame.'
+    ) + _dockContextActions([
+      { label: '→ Browse the Racket Bible', onclick: "switchMode('compendium')" },
+      { label: '→ Try the quiz', onclick: "openFindMyBuild()" }
+    ]);
+    return;
+  }
+
+  const racquet = RACQUETS.find(r => r.id === activeLoadout.frameId);
+  const obs = activeLoadout.obs ? activeLoadout.obs.toFixed(1) : '—';
+
+  // Current string info
+  let stringName = '—';
+  if (activeLoadout.isHybrid) {
+    const m = STRINGS.find(s => s.id === activeLoadout.mainsId);
+    const x = STRINGS.find(s => s.id === activeLoadout.crossesId);
+    stringName = m && x ? m.name + ' / ' + x.name : '—';
+  } else {
+    const str = STRINGS.find(s => s.id === activeLoadout.stringId);
+    stringName = str ? str.name : '—';
+  }
+
+  const tensionLabel = `M${activeLoadout.mainsTension} / X${activeLoadout.crossesTension}`;
+
+  container.innerHTML = `
+    <div class="dock-ctx-current">
+      <div class="dock-ctx-label">Optimizing from</div>
+      <div class="dock-ctx-current-name">${racquet ? racquet.name : '—'}</div>
+      <div class="dock-ctx-current-detail">${stringName} · ${tensionLabel}</div>
+      <div class="dock-ctx-current-obs">OBS ${obs}</div>
+    </div>
+  ` + _dockContextActions([
+    { label: '→ Back to overview', onclick: "switchMode('overview')" },
+    { label: '→ Tune this build', onclick: "switchMode('tune')" },
+    { label: '→ Compare top results', onclick: "switchMode('compare')" }
+  ]);
+}
+
+function _renderDockPanelReference(container) {
+  _dockReturnEditorHome();
+  const editorSection = document.getElementById('dock-editor-section');
+  if (editorSection) editorSection.style.display = 'none';
+
+  const actions = [];
+  if (activeLoadout) {
+    actions.push({ label: '→ Back to your build', onclick: "switchMode('overview')" });
+    actions.push({ label: '→ Tune tension curves', onclick: "switchMode('tune')" });
+  } else {
+    actions.push({ label: '→ Browse the Racket Bible', onclick: "switchMode('compendium')" });
+    actions.push({ label: '→ Try the quiz', onclick: "openFindMyBuild()" });
+  }
+
+  container.innerHTML = _dockGuidance(
+    '📖',
+    'Reference',
+    "You're reading how the prediction engine works."
+  ) + _dockContextActions(actions);
 }
 
 // === Mobile dock bar sync ===
@@ -5817,6 +6271,9 @@ function switchMode(mode) {
     }
   }
   // howitworks mode needs no special init — it's static content
+
+  // Update dock context panel for new mode
+  renderDockContextPanel();
 }
 
 // ============================================
@@ -10947,14 +11404,14 @@ function _compRenderMain(racquet) {
     </div>
 
     <div class="comp-section">
-      <h3 class="comp-section-title">BASE FRAME PROFILE</h3>
+      <h3 class="comp-section-title">Base frame profile</h3>
       <p class="comp-section-sub">Frame-only characteristics before string influence</p>
       <div class="comp-stat-bars">${barsHtml}</div>
     </div>
 
     <div class="comp-section">
       <div class="comp-builds-header">
-        <h3 class="comp-section-title">TOP BUILDS</h3>
+        <h3 class="comp-section-title">Top builds</h3>
         <div class="comp-sort-tabs">${sortTabsHtml}</div>
       </div>
       <div class="comp-build-grid">${cardsHtml}</div>
@@ -11075,7 +11532,21 @@ function _compRenderBuildCard(build, index, racquet) {
   const borderColor = _compArchetypeColors[build.archetype] || 'var(--text-muted)';
   const isHybrid = build.type === 'hybrid';
   const stringLabel = isHybrid ? (build.label || build.string.name) : build.string.name;
-  const metaLabel = isHybrid ? `Hybrid &middot; M:${build.tension} / X:${build.crossesTension} lbs` : `Full Bed &middot; ${build.tension} lbs`;
+  const metaLabel = isHybrid ? `Hybrid · M:${build.tension} / X:${build.crossesTension}` : `Full Bed · ${build.tension} lbs`;
+
+  // Top 3 differentiated stats for inline display
+  const statEntries = [
+    { key: 'spin', label: 'Spin', val: Math.round(s.spin) },
+    { key: 'power', label: 'Pwr', val: Math.round(s.power) },
+    { key: 'control', label: 'Ctrl', val: Math.round(s.control) },
+    { key: 'comfort', label: 'Cmf', val: Math.round(s.comfort) },
+    { key: 'feel', label: 'Feel', val: Math.round(s.feel) },
+    { key: 'durability', label: 'Dur', val: Math.round(s.durability) }
+  ].sort((a, b) => b.val - a.val);
+  const topStats = statEntries.slice(0, 3);
+  const statsInline = topStats.map(st =>
+    `<span class="comp-card-stat-chip">${st.label} <b>${st.val}</b></span>`
+  ).join('');
 
   return `<div class="comp-build-card" style="border-left-color:${borderColor}">
     <div class="comp-card-top">
@@ -11084,19 +11555,12 @@ function _compRenderBuildCard(build, index, racquet) {
     </div>
     <div class="comp-card-string">${stringLabel}</div>
     <div class="comp-card-meta">${metaLabel}</div>
-    <div class="comp-card-stats">
-      <span>SPN <b>${Math.round(s.spin)}</b></span>
-      <span>PWR <b>${Math.round(s.power)}</b></span>
-      <span>CTL <b>${Math.round(s.control)}</b></span>
-      <span>CMF <b>${Math.round(s.comfort)}</b></span>
-      <span>FEL <b>${Math.round(s.feel)}</b></span>
-      <span>DUR <b>${Math.round(s.durability)}</b></span>
-    </div>
     <div class="comp-card-actions">
-      <button class="comp-card-btn" onclick="_compAction('save',${index},event)">Save</button>
-      <button class="comp-card-btn" onclick="_compAction('tune',${index})">Tune</button>
       <button class="comp-card-btn comp-card-btn-primary" onclick="_compAction('setActive',${index})">Set Active</button>
+      <button class="comp-card-btn" onclick="_compAction('tune',${index})">Tune</button>
+      <button class="comp-card-btn" onclick="_compAction('save',${index},event)">Save</button>
     </div>
+    <div class="comp-card-stats-inline">${statsInline}</div>
   </div>`;
 }
 

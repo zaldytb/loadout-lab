@@ -124,6 +124,9 @@
           </div>
         </div>
 
+        <!-- Context-Aware Panel (mode-specific, rendered dynamically) -->
+        <div id="dock-context-panel" class="dock-context-panel"></div>
+
         <!-- My Loadouts Switcher -->
         <div class="dock-my-loadouts" id="dock-my-loadouts">
           <div class="dock-myl-header">
@@ -159,7 +162,7 @@
             Edit Active Loadout
           </summary>
           <div class="dock-editor-body">
-            <div class="panel-section">
+            <div class="panel-section" id="dock-section-frame">
               <h2 class="panel-title">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><line x1="8" y1="5" x2="8" y2="11" stroke="currentColor" stroke-width="1.5"/><line x1="5" y1="8" x2="11" y2="8" stroke="currentColor" stroke-width="1.5"/></svg>
                 Frame
@@ -168,7 +171,7 @@
               <div id="frame-specs" class="frame-specs hidden"></div>
             </div>
 
-            <div class="panel-section">
+            <div class="panel-section" id="dock-section-string">
               <h2 class="panel-title">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" stroke-width="1.5"/><line x1="5" y1="4" x2="5" y2="12" stroke="currentColor" stroke-width="1.5"/><line x1="11" y1="4" x2="11" y2="12" stroke="currentColor" stroke-width="1.5"/></svg>
                 String Setup
@@ -790,7 +793,7 @@
           <!-- Left: Frame Roster -->
           <aside class="comp-roster" id="comp-roster">
             <div class="comp-roster-header">
-              <h3 class="comp-roster-title">FRAMES</h3>
+              <h3 class="comp-roster-title">Frames</h3>
             </div>
             <input type="text" class="comp-search" id="comp-search" placeholder="Search frames...">
             <div class="comp-filters">
