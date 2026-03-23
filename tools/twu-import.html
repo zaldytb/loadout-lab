@@ -265,6 +265,7 @@ tbody td.col-f0:focus,tbody td.col-f1:focus{background:var(--focus-bg)!important
         <li>Visible text copied from TWU comparison or review pages</li>
         <li>Raw HTML from View Source or browser DevTools</li>
         <li>Mixed content from multiple TWU pages — paste more and click Extract again, rows append</li>
+        <li><strong>Full page source</strong> (Ctrl+U / Cmd+U) from a TWU comparison page — contains ALL racquets in the dropdown, not just the two shown. One paste can yield dozens of racquets.</li>
       </ul>
       <h3>Fields Claude can usually extract</h3>
       <table class="ht">
@@ -444,6 +445,12 @@ function setStatus(html, type) {
 function buildFramePrompt(content) {
   return `You are a tennis equipment data extraction tool. Extract structured racquet data from the following Tennis Warehouse University (TWU) content.
 
+The content may be in any of these formats:
+- A comparison table (text or HTML) showing 2 racquets side by side
+- Multiple comparison tables pasted together (extract all unique racquets)
+- Raw HTML page source from a TWU page — look for data embedded in JavaScript variables, <select>/<option> elements listing racquets, and <table class="simtable"> elements
+- Plain text copied from a TWU review or spec page
+
 Return a JSON array where each racquet is an object with these fields:
 - name: string (full racquet name including weight if shown, e.g. "Babolat Pure Aero 100 318g")
 - year: integer (model year if mentioned, otherwise null)
@@ -464,7 +471,8 @@ Return a JSON array where each racquet is an object with these fields:
 - notes: string (any additional relevant info — null if not found)
 
 Rules:
-- Extract ALL racquets found in the content, even partial data
+- Extract ALL unique racquets found in the content, even partial data
+- If the same racquet appears more than once (e.g. in multiple comparison tables), merge the data into one entry — prefer non-null values
 - Always convert to the specified units (sq in, grams, cm)
 - If a value is ambiguous or not present, set it to null
 - Do NOT invent or estimate values — only extract what is explicitly stated
@@ -493,8 +501,10 @@ Return a JSON array where each string is an object with these fields:
 - identity: string (one-phrase characterization — null if not found)
 - notes: string (any additional relevant info — null if not found)
 
+The content may include multiple comparison tables pasted together, raw HTML page source, or mixed formats. Extract ALL unique strings. If the same string appears more than once, merge into one entry preferring non-null values.
+
 Rules:
-- Extract ALL strings found in the content
+- Extract ALL unique strings found in the content
 - If TWU provides scores on a different scale, normalize to 0–100
 - If a twScore sub-field is not present, set it to null (the pipeline will estimate it)
 - Do NOT invent values — only extract what is explicitly stated
@@ -659,11 +669,35 @@ async function extractData() {
 
     const mapper  = mode === 'frame' ? mapExtractedFrame : mapExtractedString;
     const newRows = extracted.map(mapper);
-    newRows.forEach(r => rows.push(r));
+
+    // Dedup: if a row with the same id already exists, merge non-null fields
+    // into the existing row (don't overwrite user edits or non-null values)
+    let added = 0, merged = 0;
+    newRows.forEach(nr => {
+      const existIdx = rows.findIndex(r => r.id && r.id === nr.id);
+      if (existIdx !== -1) {
+        // Merge: fill in blanks on existing row from new extraction
+        const exist = rows[existIdx];
+        getActiveCols().forEach(col => {
+          const k = col.key;
+          if ((!exist[k] || exist._nullCols.has(k)) && nr[k]) {
+            exist[k] = nr[k];
+            exist._nullCols.delete(k);
+          }
+        });
+        merged++;
+      } else {
+        rows.push(nr);
+        added++;
+      }
+    });
     rebuildTable();
     updateSummary();
+    const parts = [];
+    if (added)  parts.push(`${added} new`);
+    if (merged) parts.push(`${merged} merged`);
     setStatus(
-      `Extracted ${extracted.length} ${typeLabel}${extracted.length !== 1 ? 's' : ''} — appended to table.`,
+      `Extracted ${extracted.length} ${typeLabel}${extracted.length !== 1 ? 's' : ''} — ${parts.join(', ') || 'no changes'}.`,
       'ok'
     );
   } catch (err) {
