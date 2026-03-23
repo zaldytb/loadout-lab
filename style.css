@@ -8592,3 +8592,121 @@ html.theme-transitioning *::after {
 .dock-cf-row { display: flex; gap: 8px; }
 .dock-cf-half { flex: 1; }
 
+/* ============================================
+   DOCK EDITOR LAYOUT REDESIGN
+   All rules scoped to .build-dock — no
+   outside elements affected.
+   ============================================ */
+
+/* 1. Hybrid sections — full vertical stack */
+.build-dock .hybrid-section .row-2col {
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+/* 2. Full bed tension — vertical stack */
+.build-dock .fullbed-tension-row {
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+/* 3. Full bed gauge row — full width */
+.build-dock .fullbed-gauge-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.build-dock .fullbed-gauge-row .gauge-select {
+  width: 100%;
+}
+
+/* 4. Hybrid section visual treatment — left accent border */
+.build-dock .hybrid-section {
+  border-left: 3px solid var(--border-medium);
+  padding: var(--space-4);
+  background: var(--bg-input);
+  border-radius: var(--radius-sm);
+}
+/* Mains section: cyan/blue left border */
+.build-dock #hybrid-config .hybrid-section:first-child {
+  border-left-color: var(--fn);
+}
+/* Crosses section: green left border */
+.build-dock #hybrid-config .hybrid-section:last-child {
+  border-left-color: var(--green-tag);
+}
+
+/* 5. String selector — maximize text display */
+.build-dock .searchable-select .ss-trigger {
+  padding-right: 26px;
+  font-size: 0.8rem;
+  background-position: right 8px center;
+}
+
+/* 6. Gauge selector — compact but readable */
+.build-dock .gauge-select {
+  font-size: 0.78rem;
+  padding: 8px var(--space-3);
+  padding-right: 28px;
+}
+
+/* 7. Tension inputs — compact height */
+.build-dock .text-input[type="number"] {
+  padding: 7px var(--space-3);
+  font-size: 0.82rem;
+  height: 36px;
+}
+
+/* 8. Field labels inside dock — tighter spacing */
+.build-dock .field-label {
+  font-size: 0.62rem;
+  margin-bottom: 2px;
+  letter-spacing: 0.06em;
+}
+
+/* 9. Panel section spacing inside dock — tighter */
+.build-dock .panel-section {
+  padding: var(--space-4) var(--space-4);
+  gap: var(--space-3);
+}
+
+/* 10. Full bed tension — inline label+input pattern */
+.build-dock .fullbed-tension-row > div {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.build-dock .fullbed-tension-row .field-label {
+  min-width: 52px;
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
+.build-dock .fullbed-tension-row .text-input {
+  flex: 1;
+}
+
+/* 11. Hybrid section — inline label+input pattern */
+.build-dock .hybrid-section .row-2col > div {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.build-dock .hybrid-section .row-2col .field-label {
+  min-width: 48px;
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
+.build-dock .hybrid-section .row-2col .text-input,
+.build-dock .hybrid-section .row-2col .gauge-select {
+  flex: 1;
+}
+
+/* 13. Searchable select z-index in vertical layout */
+.build-dock .searchable-select {
+  position: relative;
+  z-index: 2;
+}
+.build-dock .searchable-select.ss-open {
+  z-index: 10;
+}
+
