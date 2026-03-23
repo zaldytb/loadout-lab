@@ -123,6 +123,43 @@ npm run pipeline
 
 Requires an Anthropic API key (stored locally in your browser, never sent elsewhere).
 
+#### TWU bulk scraper (full database dump)
+
+Scrapes the entire TWU racquet comparison database and outputs a CSV ready for `ingest.js`.
+Uses only Node.js built-ins — no extra dependencies.
+
+```bash
+# Full scrape — outputs pipeline/data/twu-scrape-YYYY-MM-DD.csv
+npm run scrape:twu
+
+# Test with 5 racquets first
+node pipeline/scripts/scrape-twu.js --limit 5
+
+# Preview the racquet list without fetching data
+node pipeline/scripts/scrape-twu.js --dry-run
+
+# Resume an interrupted run from racquet 150
+node pipeline/scripts/scrape-twu.js --start 150
+
+# Custom output path or slower request rate
+node pipeline/scripts/scrape-twu.js --out path/to/output.csv --delay 500
+```
+
+TWU provides: head size, strung weight, balance, swingweight, and stiffness (RA).
+It does **not** provide beam width, string pattern, or tension range — fill those in after scraping:
+
+1. Open the CSV in `tools/frame-editor.html` or a spreadsheet
+2. Fill in `beamWidth`, `pattern`, `tensionRange`, and `year` (where missing)
+3. Remove any racquets you don't want to import
+4. Run ingest and pipeline:
+
+```bash
+node pipeline/scripts/ingest.js --type frame --csv pipeline/data/twu-scrape-YYYY-MM-DD.csv
+npm run pipeline
+```
+
+Rows missing required fields are skipped by ingest with a clear message — that's expected.
+
 #### GUI — batch frame import (no CLI required)
 
 A desktop app is available in `tools/frame-gui/` for adding multiple frames without using the command line:

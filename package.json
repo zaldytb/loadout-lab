@@ -13,7 +13,8 @@
     "estimate":        "node pipeline/scripts/estimate.js",
     "ingest:frame":    "node pipeline/scripts/ingest.js --type frame",
     "ingest:string":   "node pipeline/scripts/ingest.js --type string",
-    "pipeline":        "npm run validate && npm run export:verify"
+    "pipeline":        "npm run validate && npm run export:verify",
+    "scrape:twu":      "node pipeline/scripts/scrape-twu.js"
   },
   "repository": {
     "type": "git",
