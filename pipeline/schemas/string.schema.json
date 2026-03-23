@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "String",
+  "description": "A string entry in the pipeline data layer. Engine-required fields are in 'required'. Pipeline-only fields (_provenance) are stripped before export to data.js.",
+  "type": "object",
+  "required": [
+    "id", "name", "gauge", "gaugeNum", "material",
+    "stiffness", "tensionLoss", "spinPotential", "twScore"
+  ],
+  "properties": {
+    "id":            { "type": "string", "pattern": "^[a-z0-9-]+$", "description": "Kebab-case unique identifier" },
+    "name":          { "type": "string" },
+    "gauge":         { "type": "string", "description": "Human-readable gauge e.g. '16 (1.30mm)'" },
+    "gaugeNum":      { "type": "number", "description": "Gauge in mm e.g. 1.30" },
+    "material": {
+      "type": "string",
+      "enum": ["Polyester", "Co-Polyester (elastic)", "Multifilament", "Natural Gut", "Synthetic Gut"]
+    },
+    "shape":         { "type": "string", "description": "Cross-section description e.g. 'Octagonal'" },
+    "stiffness":     { "type": "number", "description": "Dynamic stiffness in lb/in (TWU measurement)" },
+    "tensionLoss":   { "type": "number", "description": "Tension loss after break-in as percentage" },
+    "spinPotential": { "type": "number", "description": "TWU friction-based spin scale (4.5 low → 9.4 high)" },
+    "twScore": {
+      "type": "object",
+      "description": "Tennis Warehouse University lab scores (0–100 scale, raw before engine compression)",
+      "required": ["power", "spin", "comfort", "control", "feel", "playabilityDuration", "durability"],
+      "properties": {
+        "power":               { "type": "number" },
+        "spin":                { "type": "number" },
+        "comfort":             { "type": "number" },
+        "control":             { "type": "number" },
+        "feel":                { "type": "number" },
+        "playabilityDuration": { "type": "number" },
+        "durability":          { "type": "number" }
+      },
+      "additionalProperties": false
+    },
+    "identity":      { "type": "string" },
+    "notes":         { "type": "string" },
+
+    "_provenance": {
+      "type": "object",
+      "description": "Pipeline-only: data lineage metadata. Stripped on export.",
+      "required": ["source", "dateAdded", "confidence"],
+      "properties": {
+        "source":          { "type": "string" },
+        "dateAdded":       { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        "confidence":      { "type": "string", "enum": ["high", "medium", "low", "estimated"] },
+        "estimatedFields": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+
+  "_validationRanges": {
+    "_comment": "Ranges used by validate.js. warn = outside expected range. engineNorm = the range the engine normalises over.",
+    "stiffness":     { "warn": [90, 280],  "error": [0, 500],  "engineNorm": [115, 234] },
+    "tensionLoss":   { "warn": [5, 60],    "error": [0, 100],  "engineNorm": [10, 50] },
+    "spinPotential": { "warn": [3, 11],    "error": [0, 20],   "engineNorm": [4.5, 9.0] },
+    "twScore_field": { "warn": [10, 99],   "error": [0, 100] }
+  }
+}
