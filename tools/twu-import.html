@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TWU Data Importer — Loadout Lab</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important;}
+
+:root{
+  --bg:#18181b;--surface:#27272a;--surface2:#3f3f46;--border:#52525b;
+  --text:#f4f4f5;--muted:#a1a1aa;--accent:#60a5fa;
+  --err:#ef4444;--warn:#f59e0b;--null-bg:rgba(245,158,11,.14);
+  --sel:#1a2d42;--focus-bg:#163050;
+  --btn:#3f3f46;--btn-h:#52525b;
+  --frozen-sel:#1a2d42;--ok:#22c55e;
+}
+[data-theme=light]{
+  --bg:#f4f4f5;--surface:#fff;--surface2:#e4e4e7;--border:#d4d4d8;
+  --text:#18181b;--muted:#71717a;--accent:#2563eb;
+  --err:#dc2626;--warn:#b45309;--null-bg:rgba(180,83,9,.09);
+  --sel:#dbeafe;--focus-bg:#eff6ff;
+  --btn:#e4e4e7;--btn-h:#d4d4d8;
+  --frozen-sel:#dbeafe;--ok:#16a34a;
+}
+
+body{
+  font:13px/1.4 system-ui,-apple-system,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);
+  height:100vh;display:flex;flex-direction:column;overflow:hidden;
+}
+#app{display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+
+/* Header */
+#hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);
+  flex-shrink:0;gap:12px;
+}
+#hdr-title{font-weight:700;font-size:15px;letter-spacing:.06em;color:var(--accent);}
+#hdr-actions{display:flex;gap:8px;}
+
+/* Config bar */
+#config-bar{
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  padding:8px 16px;background:var(--surface);border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.mode-group{display:flex;align-items:center;gap:10px;}
+.mode-group strong{font-size:12px;color:var(--muted);}
+.mode-group label{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;}
+.mode-group label input{accent-color:var(--accent);}
+.key-group{display:flex;align-items:center;gap:6px;flex:1;min-width:280px;}
+.key-group>label{font-size:12px;color:var(--muted);white-space:nowrap;}
+#api-key-input{
+  flex:1;background:var(--bg);color:var(--text);
+  border:1px solid var(--border);border-radius:4px;padding:4px 8px;
+  font:12px system-ui,sans-serif;min-width:0;
+}
+#api-key-input:focus{outline:1px solid var(--accent);}
+.key-meta label{display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;color:var(--muted);}
+
+/* Input bar */
+#input-bar{
+  display:flex;flex-direction:column;gap:6px;
+  padding:8px 16px;background:var(--surface);border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+#input-bar>label{font-size:12px;color:var(--muted);}
+#twu-input{
+  width:100%;height:110px;background:var(--bg);color:var(--text);
+  border:1px solid var(--border);border-radius:4px;padding:8px;
+  font:12px/1.4 'SF Mono','Fira Code',monospace;resize:vertical;
+}
+#twu-input:focus{outline:1px solid var(--accent);}
+#input-actions{display:flex;align-items:center;gap:10px;}
+#status-line{font-size:12px;color:var(--muted);}
+#status-line.s-err{color:var(--err);}
+#status-line.s-ok{color:var(--ok);}
+
+/* Buttons */
+button{
+  background:var(--btn);color:var(--text);border:1px solid var(--border);
+  border-radius:5px;padding:5px 10px;cursor:pointer;font-size:12px;
+  line-height:1.4;transition:background .12s;white-space:nowrap;
+}
+button:hover{background:var(--btn-h);}
+button:disabled{opacity:.38;cursor:not-allowed;pointer-events:none;}
+#btn-extract{border-color:var(--accent);background:color-mix(in srgb,var(--btn) 55%,var(--accent) 45%);}
+#btn-extract:hover{background:var(--accent);color:#fff;}
+#btn-download{border-color:var(--accent);background:color-mix(in srgb,var(--btn) 55%,var(--accent) 45%);}
+#btn-download:hover{background:var(--accent);color:#fff;}
+.btn-danger:hover{background:#7f1d1d;border-color:var(--err);}
+
+/* Table */
+#table-wrap{flex:1;overflow:auto;min-height:0;position:relative;}
+table{border-collapse:collapse;table-layout:fixed;width:max-content;}
+th,td{border:1px solid var(--border);padding:3px 7px;overflow:hidden;text-overflow:ellipsis;}
+thead th{
+  background:var(--surface);position:sticky;top:0;z-index:2;
+  font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--muted);user-select:none;white-space:nowrap;height:30px;
+}
+thead th.req-th{color:var(--accent);}
+.req-badge{font-size:9px;margin-left:2px;color:var(--accent);vertical-align:super;}
+tbody td{
+  background:var(--surface);color:var(--text);
+  font-family:'SF Mono','Fira Code','Cascadia Code',monospace;font-size:12px;
+  white-space:nowrap;cursor:text;height:27px;vertical-align:middle;
+}
+tbody td:focus{
+  outline:2px solid var(--accent);outline-offset:-2px;
+  background:var(--focus-bg);z-index:1;position:relative;
+}
+tr.selected td{background:var(--sel);}
+tr.selected td:focus{background:var(--focus-bg);}
+td.cell-err{outline:2px solid var(--err)!important;outline-offset:-2px;}
+td.cell-warn{outline:2px solid var(--warn)!important;outline-offset:-2px;}
+td.cell-null{background:var(--null-bg)!important;}
+td.cell-null:focus{background:var(--focus-bg)!important;}
+
+/* Frozen columns */
+.col-f0{position:sticky;left:0;z-index:2;}
+.col-f1{position:sticky;left:160px;z-index:2;}
+thead th.col-f0,thead th.col-f1{z-index:4;}
+tbody td.col-f0,tbody td.col-f1{background:var(--surface);border-right:2px solid var(--border);}
+tr.selected td.col-f0,tr.selected td.col-f1{background:var(--frozen-sel);}
+tbody td.col-f0:focus,tbody td.col-f1:focus{background:var(--focus-bg)!important;}
+
+/* Footer */
+#footer-bar{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  padding:8px 16px;background:var(--surface);border-top:1px solid var(--border);
+  flex-shrink:0;
+}
+#footer-left{display:flex;gap:8px;}
+#summary{font-size:12px;color:var(--muted);}
+
+/* Pipeline tip */
+#pipeline-tip{
+  padding:6px 16px;background:var(--surface);border-top:1px solid var(--border);
+  font-size:11px;color:var(--muted);flex-shrink:0;
+}
+#pipeline-tip code{
+  background:var(--bg);padding:1px 5px;border-radius:3px;
+  font-family:'SF Mono','Fira Code',monospace;font-size:11px;color:var(--accent);
+}
+
+/* Spinner */
+.spinner{
+  display:inline-block;width:12px;height:12px;
+  border:2px solid var(--border);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Help modal */
+#help-modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:100;
+  display:flex;align-items:center;justify-content:center;
+}
+#help-content{
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  width:min(760px,96vw);max-height:88vh;overflow-y:auto;display:flex;flex-direction:column;
+}
+#help-hdr{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 16px;border-bottom:1px solid var(--border);
+  position:sticky;top:0;background:var(--surface);z-index:1;
+}
+#help-hdr strong{font-size:14px;color:var(--accent);}
+#help-body{padding:16px;display:flex;flex-direction:column;gap:4px;}
+#help-body h3{
+  font-size:11px;color:var(--accent);text-transform:uppercase;
+  letter-spacing:.06em;margin:14px 0 6px;
+}
+#help-body h3:first-child{margin-top:0;}
+#help-body p,#help-body li{font-size:13px;line-height:1.6;}
+#help-body ol,#help-body ul{padding-left:18px;display:flex;flex-direction:column;gap:4px;}
+#help-body code{
+  background:var(--bg);padding:2px 6px;border-radius:3px;
+  font-size:11px;font-family:'SF Mono','Fira Code',monospace;
+}
+.ht{border-collapse:collapse;width:100%;font-size:12px;}
+.ht td,.ht th{border:1px solid var(--border);padding:4px 8px;text-align:left;}
+.ht th{
+  background:var(--surface2);font-weight:600;font-size:11px;
+  text-transform:uppercase;letter-spacing:.04em;color:var(--muted);
+}
+.ht td:first-child{font-family:'SF Mono','Fira Code',monospace;color:var(--accent);}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="hdr">
+    <span id="hdr-title">TWU DATA IMPORTER</span>
+    <div id="hdr-actions">
+      <button id="btn-theme" onclick="toggleTheme()" title="Toggle theme">&#9728;</button>
+      <button onclick="showHelp()">? Help</button>
+    </div>
+  </header>
+
+  <div id="config-bar">
+    <div class="mode-group">
+      <strong>Mode:</strong>
+      <label><input type="radio" name="mode" value="frame" checked onchange="setMode('frame')"> Frames</label>
+      <label><input type="radio" name="mode" value="string" onchange="setMode('string')"> Strings</label>
+    </div>
+    <div class="key-group">
+      <label for="api-key-input">API Key:</label>
+      <input type="password" id="api-key-input" placeholder="sk-ant-…" autocomplete="off" spellcheck="false">
+      <button onclick="toggleKeyVisibility()" title="Show/hide key">&#128065;</button>
+      <button onclick="clearApiKey()" title="Remove stored key">Clear</button>
+    </div>
+    <div class="key-meta">
+      <label><input type="checkbox" id="chk-remember" checked> Remember key</label>
+    </div>
+  </div>
+
+  <div id="input-bar">
+    <label for="twu-input">Paste TWU content below (HTML tables, review text, raw page copy — any format):</label>
+    <textarea id="twu-input" placeholder="Paste Tennis Warehouse University content here…&#10;&#10;Tip: paste more content and click Extract again — new rows append to the table."></textarea>
+    <div id="input-actions">
+      <button id="btn-extract" onclick="extractData()">&#128269; Extract Data</button>
+      <span id="status-line"></span>
+    </div>
+  </div>
+
+  <div id="table-wrap">
+    <table id="editor-table">
+      <thead id="editor-thead"></thead>
+      <tbody id="data-rows"></tbody>
+    </table>
+  </div>
+
+  <div id="footer-bar">
+    <div id="footer-left">
+      <button onclick="addEmptyRow()">+ Add Empty Row</button>
+      <button onclick="deleteSelected()" class="btn-danger">&#10005; Delete Selected</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span id="summary">No rows</span>
+      <button id="btn-download" onclick="downloadCSV()" disabled>&#8595; Download CSV</button>
+    </div>
+  </div>
+
+  <div id="pipeline-tip">
+    Pipeline: <code id="tip-cmd">node pipeline/scripts/ingest.js --type frame --csv twu-frames-YYYY-MM-DD.csv</code>
+    &nbsp;&nbsp;then&nbsp;&nbsp;<code>npm run pipeline</code>
+  </div>
+</div>
+
+<div id="help-modal" hidden>
+  <div id="help-content">
+    <div id="help-hdr">
+      <strong>TWU Data Importer &mdash; Help</strong>
+      <button onclick="hideHelp()">&#10005;</button>
+    </div>
+    <div id="help-body">
+      <h3>What to paste</h3>
+      <p>Paste any content from Tennis Warehouse University pages. Claude handles all formats:</p>
+      <ul>
+        <li>HTML comparison tables (<code>&lt;table class="simtable"&gt;</code>)</li>
+        <li>Visible text copied from TWU comparison or review pages</li>
+        <li>Raw HTML from View Source or browser DevTools</li>
+        <li>Mixed content from multiple TWU pages — paste more and click Extract again, rows append</li>
+      </ul>
+      <h3>Fields Claude can usually extract</h3>
+      <table class="ht">
+        <tr><th>Field</th><th>Source</th></tr>
+        <tr><td>name</td><td>Racquet/string name in table header or review title</td></tr>
+        <tr><td>headSize</td><td>TWU comparison table; auto-converts cm&sup2; &rarr; sq in</td></tr>
+        <tr><td>strungWeight</td><td>TWU weight row; auto-converts oz &rarr; grams</td></tr>
+        <tr><td>balance</td><td>TWU balance row; auto-converts inches &rarr; cm</td></tr>
+        <tr><td>swingweight</td><td>Direct from TWU table</td></tr>
+        <tr><td>stiffness</td><td>"Flex" row in TWU frame table (RA/RDC rating)</td></tr>
+        <tr><td>year</td><td>From review title or product name when present</td></tr>
+      </table>
+      <h3>Fields often missing &mdash; fill in manually</h3>
+      <table class="ht">
+        <tr><td>beamWidth</td><td>Rarely in comparison tables; check manufacturer spec sheet</td></tr>
+        <tr><td>pattern</td><td>Sometimes in TWU spec, sometimes not listed</td></tr>
+        <tr><td>tensionRange</td><td>Manufacturer spec, not always on TWU pages</td></tr>
+      </table>
+      <h3>Cell highlighting</h3>
+      <table class="ht">
+        <tr><td style="color:var(--err)">Red border</td><td>Required field — row excluded from CSV until filled in</td></tr>
+        <tr><td style="color:var(--warn)">Orange border</td><td>Value outside typical range — warning only, still exported</td></tr>
+        <tr><td style="background:var(--null-bg);padding:4px 8px;">Yellow background</td><td>Claude returned null for this optional field — consider filling in</td></tr>
+      </table>
+      <h3>Workflow</h3>
+      <ol>
+        <li>Select mode (Frames or Strings) and enter your Anthropic API key</li>
+        <li>Paste TWU content and click <strong>Extract Data</strong></li>
+        <li>Fill in any red-border cells (required fields Claude couldn&apos;t find)</li>
+        <li>Click <strong>Download CSV</strong> &mdash; only complete rows are included</li>
+        <li>Run: <code>node pipeline/scripts/ingest.js --type frame --csv path/to/twu-frames-YYYY-MM-DD.csv</code></li>
+        <li>Run: <code>npm run pipeline</code> to validate and regenerate data.js</li>
+      </ol>
+      <h3>API key security</h3>
+      <p>Your key is stored only in your browser&apos;s localStorage (when &ldquo;Remember key&rdquo; is checked) and sent exclusively to <code>api.anthropic.com</code>. It is never included in downloaded CSV files or logged to the browser console.</p>
+      <h3>Keyboard shortcuts</h3>
+      <table class="ht">
+        <tr><td>Tab / Shift+Tab</td><td>Move to next / previous cell</td></tr>
+        <tr><td>Enter</td><td>Move to same column in next row (adds row if on last)</td></tr>
+        <tr><td>Escape</td><td>Revert cell to value before editing</td></tr>
+        <tr><td>Click row</td><td>Select row (enables Delete Selected)</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ── Column definitions ─────────────────────────────────────────────────────────
+// Frame CSV columns match: node pipeline/scripts/ingest.js --type frame --help
+const FRAME_COLS = [
+  { key:'id',           label:'id',           type:'id',           req:true,  def:'', w:160,
+    hint:'Kebab-case unique ID — auto-generated from name. e.g. babolat-pure-aero-100-318g' },
+  { key:'name',         label:'name',         type:'string',       req:true,  def:'', w:200,
+    hint:'Full racquet name including weight. e.g. "Babolat Pure Aero 100 318g"' },
+  { key:'year',         label:'year',         type:'integer',      req:true,  def:'', w:58,
+    hint:'Model year, e.g. 2024' },
+  { key:'headSize',     label:'headSize',     type:'number',       req:true,  def:'', w:82,
+    hint:'Head size in sq inches. Typical: 85–115' },
+  { key:'strungWeight', label:'strungWeight', type:'number',       req:true,  def:'', w:100,
+    hint:'Strung weight in grams. Typical: 240–380' },
+  { key:'balance',      label:'balance',      type:'number',       req:true,  def:'', w:75,
+    hint:'Balance point in cm from butt, e.g. 33.0' },
+  { key:'balancePts',   label:'balancePts',   type:'string',       req:false, def:'', w:90,
+    hint:'Human-readable balance, e.g. "4 pts HL" (optional)' },
+  { key:'swingweight',  label:'swingweight',  type:'number',       req:true,  def:'', w:98,
+    hint:'Swingweight in kg·cm². Typical: 260–380' },
+  { key:'stiffness',    label:'stiffness',    type:'number',       req:true,  def:'', w:80,
+    hint:'Frame stiffness RA rating. Typical: 50–80' },
+  { key:'beamWidth',    label:'beamWidth',    type:'beamwidth',    req:true,  def:'', w:92,
+    hint:'Beam width profile in mm, comma-separated. e.g. 23,26,23' },
+  { key:'pattern',      label:'pattern',      type:'pattern',      req:true,  def:'', w:70,
+    hint:'String pattern in NNxNN format, e.g. 16x19' },
+  { key:'tensionRange', label:'tensionRange', type:'tensionrange', req:true,  def:'', w:102,
+    hint:'Tension range in lbs, two numbers comma-separated. e.g. 48,57' },
+  { key:'powerLevel',   label:'powerLevel',   type:'string',       req:false, def:'', w:100,
+    hint:'e.g. "Low-Medium" (optional)' },
+  { key:'strokeStyle',  label:'strokeStyle',  type:'string',       req:false, def:'', w:100,
+    hint:'e.g. "Medium-Full" (optional)' },
+  { key:'swingSpeed',   label:'swingSpeed',   type:'string',       req:false, def:'', w:100,
+    hint:'e.g. "Medium-Fast" (optional)' },
+  { key:'frameProfile', label:'frameProfile', type:'string',       req:false, def:'', w:150,
+    hint:'Free text frame profile description (optional)' },
+  { key:'identity',     label:'identity',     type:'string',       req:false, def:'', w:100,
+    hint:'One-phrase identity tag, e.g. "Spin Cannon" (optional)' },
+  { key:'notes',        label:'notes',        type:'string',       req:false, def:'', w:200,
+    hint:'Free text notes (optional)' },
+];
+
+const MATERIALS = ['Polyester', 'Co-Polyester (elastic)', 'Multifilament', 'Natural Gut', 'Synthetic Gut'];
+
+// String CSV columns match buildString(fields, ...) in pipeline/scripts/ingest.js
+// twScore sub-fields use dot notation (twScore.power) — that is the literal CSV column header
+// that ingest.js reads as fields['twScore.power'] when building the entry.
+const STRING_COLS = [
+  { key:'id',                          label:'id',           type:'id',       req:true,  def:'', w:180,
+    hint:'Kebab-case unique ID — auto-generated from name' },
+  { key:'name',                        label:'name',         type:'string',   req:true,  def:'', w:200,
+    hint:'Full string name, e.g. "Solinco Hyper-G"' },
+  { key:'gauge',                       label:'gauge',        type:'string',   req:true,  def:'', w:120,
+    hint:'Human-readable gauge, e.g. "16 (1.30mm)"' },
+  { key:'gaugeNum',                    label:'gaugeNum',     type:'number',   req:true,  def:'', w:82,
+    hint:'Gauge in mm, e.g. 1.30' },
+  { key:'material',                    label:'material',     type:'material', req:true,  def:'', w:180,
+    hint:'One of: Polyester, Co-Polyester (elastic), Multifilament, Natural Gut, Synthetic Gut' },
+  { key:'shape',                       label:'shape',        type:'string',   req:false, def:'', w:150,
+    hint:'Cross-section, e.g. "Pentagon/5-sided" (optional)' },
+  { key:'stiffness',                   label:'stiffness',    type:'number',   req:true,  def:'', w:82,
+    hint:'Dynamic stiffness in lb/in. Typical: 90–280' },
+  { key:'tensionLoss',                 label:'tensionLoss',  type:'number',   req:true,  def:'', w:90,
+    hint:'Tension loss percentage. Typical: 5–60' },
+  { key:'spinPotential',               label:'spinPotential',type:'number',   req:true,  def:'', w:100,
+    hint:'TWU spin potential. Typical: 3–11' },
+  { key:'twScore.power',               label:'tw.power',     type:'twscore',  req:true,  def:'', w:80,
+    hint:'TWU power score 0–100' },
+  { key:'twScore.spin',                label:'tw.spin',      type:'twscore',  req:true,  def:'', w:75,
+    hint:'TWU spin score 0–100' },
+  { key:'twScore.comfort',             label:'tw.comfort',   type:'twscore',  req:true,  def:'', w:85,
+    hint:'TWU comfort score 0–100' },
+  { key:'twScore.control',             label:'tw.control',   type:'twscore',  req:true,  def:'', w:82,
+    hint:'TWU control score 0–100' },
+  { key:'twScore.feel',                label:'tw.feel',      type:'twscore',  req:true,  def:'', w:72,
+    hint:'TWU feel score 0–100' },
+  { key:'twScore.playabilityDuration', label:'tw.playDur',   type:'twscore',  req:true,  def:'', w:82,
+    hint:'TWU playability duration score 0–100' },
+  { key:'twScore.durability',          label:'tw.durability',type:'twscore',  req:true,  def:'', w:92,
+    hint:'TWU durability score 0–100' },
+  { key:'identity',                    label:'identity',     type:'string',   req:false, def:'', w:100,
+    hint:'One-phrase identity tag (optional)' },
+  { key:'notes',                       label:'notes',        type:'string',   req:false, def:'', w:200,
+    hint:'Free text notes (optional)' },
+];
+
+// ── State ──────────────────────────────────────────────────────────────────────
+let mode   = 'frame';
+let rows   = [];
+let selRow = -1;
+
+function getActiveCols() { return mode === 'frame' ? FRAME_COLS : STRING_COLS; }
+function today() { return new Date().toISOString().slice(0, 10); }
+
+// ── Utilities ──────────────────────────────────────────────────────────────────
+// Must match ingest.js toKebab() exactly
+function toKebab(s) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+// ── API key management ─────────────────────────────────────────────────────────
+function loadApiKey() {
+  try { return localStorage.getItem('twu-import-api-key') || ''; } catch { return ''; }
+}
+function saveApiKey(key) {
+  try { localStorage.setItem('twu-import-api-key', key); } catch {}
+}
+function clearApiKey() {
+  try { localStorage.removeItem('twu-import-api-key'); } catch {}
+  document.getElementById('api-key-input').value = '';
+  setStatus('API key cleared.', 'info');
+}
+function toggleKeyVisibility() {
+  const inp = document.getElementById('api-key-input');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+function getApiKey() {
+  return document.getElementById('api-key-input').value.trim();
+}
+
+// ── Status line ────────────────────────────────────────────────────────────────
+function setStatus(html, type) {
+  const el = document.getElementById('status-line');
+  el.className = type === 'err' ? 's-err' : type === 'ok' ? 's-ok' : '';
+  el.innerHTML = html;
+}
+
+// ── Prompts ────────────────────────────────────────────────────────────────────
+function buildFramePrompt(content) {
+  return `You are a tennis equipment data extraction tool. Extract structured racquet data from the following Tennis Warehouse University (TWU) content.
+
+Return a JSON array where each racquet is an object with these fields:
+- name: string (full racquet name including weight if shown, e.g. "Babolat Pure Aero 100 318g")
+- year: integer (model year if mentioned, otherwise null)
+- headSize: number (square inches — if given in cm², convert: cm² ÷ 6.452 = sq in)
+- strungWeight: number (grams — if given in oz, convert: oz × 28.35 = grams)
+- balance: number (cm from butt — if given in inches, convert: in × 2.54 = cm)
+- balancePts: string (e.g. "4 pts HL" if derivable, otherwise null)
+- swingweight: number (kg·cm²)
+- stiffness: number (RA/RDC rating)
+- beamWidth: string (mm, comma-separated if variable, e.g. "23,26,23" — null if not found)
+- pattern: string (e.g. "16x19" — null if not found)
+- tensionRange: string (e.g. "50,59" — null if not found)
+- powerLevel: string (null if not found)
+- strokeStyle: string (null if not found)
+- swingSpeed: string (null if not found)
+- frameProfile: string (frame construction/technology description — null if not found)
+- identity: string (one-phrase characterization like "Spin Cannon" or "Control Blade" — null if not found)
+- notes: string (any additional relevant info — null if not found)
+
+Rules:
+- Extract ALL racquets found in the content, even partial data
+- Always convert to the specified units (sq in, grams, cm)
+- If a value is ambiguous or not present, set it to null
+- Do NOT invent or estimate values — only extract what is explicitly stated
+- Return ONLY the JSON array, no explanation or markdown fences
+
+Content to parse:
+"""
+${content}
+"""`;
+}
+
+function buildStringPrompt(content) {
+  return `You are a tennis equipment data extraction tool. Extract structured string data from the following Tennis Warehouse University (TWU) content.
+
+Return a JSON array where each string is an object with these fields:
+- name: string (full string name, e.g. "Solinco Hyper-G")
+- gauge: string (e.g. "16 (1.30mm)" or "17 (1.25mm)")
+- gaugeNum: number (mm, e.g. 1.30)
+- material: string (one of: "Polyester", "Co-Polyester (elastic)", "Multifilament", "Natural Gut", "Synthetic Gut")
+- shape: string (e.g. "Pentagon/5-sided", "Round", "Octagonal", "Hexagonal" — null if not found)
+- stiffness: number (lb/in dynamic stiffness — null if not found)
+- tensionLoss: number (percentage, e.g. 26.3 — null if not found)
+- spinPotential: number (TWU spin potential rating — null if not found)
+- twScore: object with sub-fields (each a number 0–100, or null if not present):
+  - power, spin, comfort, control, feel, playabilityDuration, durability
+- identity: string (one-phrase characterization — null if not found)
+- notes: string (any additional relevant info — null if not found)
+
+Rules:
+- Extract ALL strings found in the content
+- If TWU provides scores on a different scale, normalize to 0–100
+- If a twScore sub-field is not present, set it to null (the pipeline will estimate it)
+- Do NOT invent values — only extract what is explicitly stated
+- Return ONLY the JSON array, no explanation or markdown fences
+
+Content to parse:
+"""
+${content}
+"""`;
+}
+
+// ── Claude API call ────────────────────────────────────────────────────────────
+async function callClaude(prompt, apiKey) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 4096,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+
+  if (!resp.ok) {
+    const body = await resp.text().catch(() => '');
+    if (resp.status === 401) throw new Error('Invalid API key — check your key and try again.');
+    if (resp.status === 429) throw new Error('Rate limited — wait a moment and retry.');
+    throw new Error(`API error ${resp.status}: ${body.slice(0, 200)}`);
+  }
+
+  const data = await resp.json();
+  const text = (data?.content?.[0]?.text || '').trim();
+
+  // Strip markdown fences if Claude included them despite instructions
+  const cleaned = text.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
+
+  let parsed;
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch {
+    // Bubble raw text so extractData() can show it
+    const err = new SyntaxError('Could not parse — try pasting less content or a cleaner source.');
+    err.rawResponse = text.slice(0, 400);
+    throw err;
+  }
+
+  if (!Array.isArray(parsed)) {
+    throw new Error(`Expected a JSON array but got ${typeof parsed}. Try a different source.`);
+  }
+  return parsed;
+}
+
+// ── Mapping: Claude objects → flat row objects ─────────────────────────────────
+function mapExtractedFrame(obj) {
+  const nullSet = new Set();
+
+  function str(val, key) {
+    if (val != null) return String(val);
+    nullSet.add(key);
+    return '';
+  }
+
+  const name = (obj.name || '').trim();
+  const row  = { _idManual: false, _nullCols: nullSet };
+  FRAME_COLS.forEach(c => { row[c.key] = c.def; });
+
+  row.name         = name;
+  row.id           = name ? toKebab(name) : (nullSet.add('id'), '');
+  row.year         = obj.year         != null ? String(obj.year)                                   : (nullSet.add('year'),         '');
+  row.headSize     = obj.headSize     != null ? String(Math.round(obj.headSize     * 10) / 10)     : (nullSet.add('headSize'),     '');
+  row.strungWeight = obj.strungWeight != null ? String(Math.round(obj.strungWeight))               : (nullSet.add('strungWeight'), '');
+  row.balance      = obj.balance      != null ? String(Math.round(obj.balance      * 100) / 100)   : (nullSet.add('balance'),      '');
+  row.balancePts   = str(obj.balancePts,   'balancePts');
+  row.swingweight  = obj.swingweight  != null ? String(obj.swingweight)                            : (nullSet.add('swingweight'),  '');
+  row.stiffness    = obj.stiffness    != null ? String(obj.stiffness)                              : (nullSet.add('stiffness'),    '');
+
+  // beamWidth: Claude may return string "23,26,23" or array [23,26,23]
+  if (obj.beamWidth != null) {
+    row.beamWidth = Array.isArray(obj.beamWidth) ? obj.beamWidth.join(',') : String(obj.beamWidth);
+  } else { nullSet.add('beamWidth'); row.beamWidth = ''; }
+
+  row.pattern = str(obj.pattern, 'pattern');
+
+  // tensionRange: Claude may return string "50,59" or array [50,59]
+  if (obj.tensionRange != null) {
+    row.tensionRange = Array.isArray(obj.tensionRange) ? obj.tensionRange.join(',') : String(obj.tensionRange);
+  } else { nullSet.add('tensionRange'); row.tensionRange = ''; }
+
+  row.powerLevel   = str(obj.powerLevel,   'powerLevel');
+  row.strokeStyle  = str(obj.strokeStyle,  'strokeStyle');
+  row.swingSpeed   = str(obj.swingSpeed,   'swingSpeed');
+  row.frameProfile = str(obj.frameProfile, 'frameProfile');
+  row.identity     = str(obj.identity,     'identity');
+  row.notes        = str(obj.notes,        'notes');
+
+  return row;
+}
+
+function mapExtractedString(obj) {
+  const nullSet = new Set();
+
+  function str(val, key) {
+    if (val != null) return String(val);
+    nullSet.add(key);
+    return '';
+  }
+
+  const name = (obj.name || '').trim();
+  const row  = { _idManual: false, _nullCols: nullSet };
+  STRING_COLS.forEach(c => { row[c.key] = c.def; });
+
+  row.name          = name;
+  row.id            = name ? toKebab(name) : (nullSet.add('id'), '');
+  row.gauge         = str(obj.gauge,         'gauge');
+  row.gaugeNum      = obj.gaugeNum      != null ? String(obj.gaugeNum)      : (nullSet.add('gaugeNum'),      '');
+  row.material      = str(obj.material,      'material');
+  row.shape         = str(obj.shape,         'shape');
+  row.stiffness     = obj.stiffness     != null ? String(obj.stiffness)     : (nullSet.add('stiffness'),     '');
+  row.tensionLoss   = obj.tensionLoss   != null ? String(obj.tensionLoss)   : (nullSet.add('tensionLoss'),   '');
+  row.spinPotential = obj.spinPotential != null ? String(obj.spinPotential) : (nullSet.add('spinPotential'), '');
+
+  const ts = (obj.twScore && typeof obj.twScore === 'object') ? obj.twScore : {};
+  ['power', 'spin', 'comfort', 'control', 'feel', 'playabilityDuration', 'durability'].forEach(f => {
+    const key = `twScore.${f}`;
+    if (ts[f] != null) { row[key] = String(ts[f]); }
+    else               { nullSet.add(key); row[key] = ''; }
+  });
+
+  row.identity = str(obj.identity, 'identity');
+  row.notes    = str(obj.notes,    'notes');
+
+  return row;
+}
+
+// ── Main extraction orchestrator ───────────────────────────────────────────────
+async function extractData() {
+  const apiKey = getApiKey();
+  if (!apiKey) { setStatus('Enter an API key first.', 'err'); return; }
+
+  const content = document.getElementById('twu-input').value.trim();
+  if (!content) { setStatus('Paste some TWU content first.', 'err'); return; }
+
+  if (document.getElementById('chk-remember').checked) saveApiKey(apiKey);
+
+  const typeLabel = mode === 'frame' ? 'frame' : 'string';
+  setStatus('<span class="spinner"></span>Calling Claude…', 'info');
+  document.getElementById('btn-extract').disabled = true;
+
+  try {
+    const prompt    = mode === 'frame' ? buildFramePrompt(content) : buildStringPrompt(content);
+    const extracted = await callClaude(prompt, apiKey);
+
+    if (!extracted.length) {
+      setStatus(`Claude found no ${typeLabel}s in the pasted content. Try a different source.`, 'err');
+      return;
+    }
+
+    const mapper  = mode === 'frame' ? mapExtractedFrame : mapExtractedString;
+    const newRows = extracted.map(mapper);
+    newRows.forEach(r => rows.push(r));
+    rebuildTable();
+    updateSummary();
+    setStatus(
+      `Extracted ${extracted.length} ${typeLabel}${extracted.length !== 1 ? 's' : ''} — appended to table.`,
+      'ok'
+    );
+  } catch (err) {
+    if (err.rawResponse) {
+      const escaped = err.rawResponse.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+      setStatus(
+        `${err.message} Raw: <code style="font-size:10px">${escaped.slice(0, 200)}&hellip;</code>`,
+        'err'
+      );
+    } else {
+      setStatus(err.message, 'err');
+    }
+  } finally {
+    document.getElementById('btn-extract').disabled = false;
+  }
+}
+
+// ── Validation ─────────────────────────────────────────────────────────────────
+function validateCell(col, val) {
+  const v = (val || '').trim();
+  if (col.req && !v) return { err: true, msg: 'Required — cannot be empty' };
+  if (!v) return { ok: true };
+
+  switch (col.type) {
+    case 'integer': {
+      const n = Number(v);
+      if (!Number.isInteger(n) || String(n) !== v)
+        return { err: true, msg: 'Must be a whole number, e.g. 2024' };
+      return { ok: true };
+    }
+    case 'number': {
+      const n = parseFloat(v);
+      if (isNaN(n)) return { err: true, msg: 'Must be a valid number' };
+      if (col.key === 'headSize'      && (n < 85   || n > 115)) return { warn:true, msg:`${n} outside typical range 85–115 sq in` };
+      if (col.key === 'swingweight'   && (n < 260  || n > 380)) return { warn:true, msg:`${n} outside typical range 260–380 kg·cm²` };
+      if (col.key === 'strungWeight'  && (n < 240  || n > 380)) return { warn:true, msg:`${n} outside typical range 240–380 g` };
+      if (col.key === 'stiffness' && mode === 'frame' && (n < 50  || n > 80))  return { warn:true, msg:`${n} outside typical range 50–80 RA` };
+      if (col.key === 'stiffness' && mode === 'string' && (n < 90 || n > 280)) return { warn:true, msg:`${n} outside typical range 90–280 lb/in` };
+      if (col.key === 'tensionLoss'   && (n < 5    || n > 60))  return { warn:true, msg:`${n} outside typical range 5–60%` };
+      if (col.key === 'spinPotential' && (n < 3    || n > 11))  return { warn:true, msg:`${n} outside typical range 3–11` };
+      return { ok: true };
+    }
+    case 'twscore': {
+      const n = parseFloat(v);
+      if (isNaN(n))              return { err:true,  msg:'Must be a number 0–100' };
+      if (n < 0 || n > 100)     return { err:true,  msg:`${n} outside valid range 0–100` };
+      if (n < 10 || n > 99)     return { warn:true, msg:`${n} outside typical range 10–99` };
+      return { ok: true };
+    }
+    case 'material':
+      if (!MATERIALS.includes(v))
+        return { err:true, msg:`Must be one of: ${MATERIALS.join(', ')}` };
+      return { ok: true };
+    case 'pattern':
+      if (!/^\d+x\d+$/.test(v)) return { err:true, msg:'Must match NNxNN format, e.g. 16x19' };
+      return { ok: true };
+    case 'beamwidth': {
+      const parts = v.split(',').map(s => parseFloat(s.trim()));
+      if (!parts.length || parts.some(isNaN))
+        return { err:true, msg:'Must be comma-separated numbers, e.g. 23,26,23' };
+      const bad = parts.filter(n => n < 14 || n > 32);
+      if (bad.length) return { warn:true, msg:`Value(s) outside typical 14–32 mm: ${bad.join(', ')}` };
+      return { ok: true };
+    }
+    case 'tensionrange': {
+      const parts = v.split(',').map(s => parseFloat(s.trim()));
+      if (parts.length !== 2 || parts.some(isNaN))
+        return { err:true, msg:'Must be exactly two numbers, e.g. 48,57' };
+      return { ok: true };
+    }
+    case 'id':
+      if (v && !/^[a-z0-9-]+$/.test(v))
+        return { warn:true, msg:'ID should be lowercase letters, digits, and hyphens only' };
+      return { ok: true };
+    default:
+      return { ok: true };
+  }
+}
+
+function isRowComplete(row) {
+  return getActiveCols().every(col => !validateCell(col, row[col.key] || '').err);
+}
+
+// ── Row factory ────────────────────────────────────────────────────────────────
+function makeRow(overrides) {
+  const row = { _idManual: false, _nullCols: new Set() };
+  getActiveCols().forEach(c => { row[c.key] = c.def; });
+  if (overrides) Object.assign(row, overrides);
+  return row;
+}
+
+// ── Row operations ─────────────────────────────────────────────────────────────
+function addEmptyRow() {
+  const row = makeRow();
+  rows.push(row);
+  const ri = rows.length - 1;
+  appendRowToDOM(ri);
+  selectRow(ri);
+  updateSummary();
+  const nameTd = document.querySelector(`#data-rows td[data-row="${ri}"][data-col="1"]`);
+  if (nameTd) setTimeout(() => nameTd.focus(), 0);
+}
+
+function deleteSelected() {
+  if (selRow < 0 || selRow >= rows.length) { alert('Select a row first.'); return; }
+  if (!confirm(`Delete row ${selRow + 1}?`)) return;
+  rows.splice(selRow, 1);
+  selRow = Math.min(selRow, rows.length - 1);
+  rebuildTable();
+  updateSummary();
+}
+
+// ── DOM rendering ──────────────────────────────────────────────────────────────
+function buildTableHeader() {
+  const cols  = getActiveCols();
+  const thead = document.getElementById('editor-thead');
+  thead.innerHTML = '';
+
+  const table = document.getElementById('editor-table');
+  const oldCg = table.querySelector('colgroup');
+  if (oldCg) oldCg.remove();
+  const cg = document.createElement('colgroup');
+  cols.forEach(col => {
+    const c = document.createElement('col');
+    c.style.width = col.w + 'px';
+    cg.appendChild(c);
+  });
+  table.insertBefore(cg, thead);
+
+  const tr = document.createElement('tr');
+  cols.forEach((col, ci) => {
+    const th = document.createElement('th');
+    th.innerHTML = col.label + (col.req ? '<span class="req-badge">*</span>' : '');
+    th.title = col.hint || '';
+    if (col.req) th.classList.add('req-th');
+    if (ci === 0) th.classList.add('col-f0');
+    if (ci === 1) th.classList.add('col-f1');
+    tr.appendChild(th);
+  });
+  thead.appendChild(tr);
+}
+
+function rebuildTable() {
+  document.getElementById('data-rows').innerHTML = '';
+  rows.forEach((_, ri) => appendRowToDOM(ri));
+}
+
+function appendRowToDOM(ri) {
+  const cols  = getActiveCols();
+  const tbody = document.getElementById('data-rows');
+  const row   = rows[ri];
+  const tr    = document.createElement('tr');
+  tr.dataset.row = ri;
+  if (ri === selRow) tr.classList.add('selected');
+  tr.addEventListener('mousedown', () => selectRow(ri));
+
+  cols.forEach((col, ci) => {
+    const td = document.createElement('td');
+    td.contentEditable = 'true';
+    td.spellcheck      = false;
+    td.dataset.row     = ri;
+    td.dataset.col     = ci;
+    td.dataset.key     = col.key;
+    td.textContent     = row[col.key];
+
+    if (ci === 0) td.classList.add('col-f0');
+    if (ci === 1) td.classList.add('col-f1');
+
+    applyValidation(td, col, row[col.key], row._nullCols);
+
+    td.addEventListener('focus',   () => { selectRow(ri); td._origVal = td.textContent; });
+    td.addEventListener('blur',    () => handleBlur(td, ri, ci, col));
+    td.addEventListener('keydown', e  => handleKeydown(e, td, ri, ci));
+
+    tr.appendChild(td);
+  });
+
+  tbody.appendChild(tr);
+}
+
+function handleBlur(td, ri, ci, col) {
+  const val = td.textContent.replace(/[\r\n]+/g, ' ').trim();
+  td.textContent    = val;
+  rows[ri][col.key] = val;
+
+  // Auto-generate ID from name when not manually set
+  if (col.key === 'name' && !rows[ri]._idManual) {
+    const generated = toKebab(val);
+    rows[ri].id = generated;
+    rows[ri]._nullCols.delete('id');
+    const idTd = document.querySelector(`#data-rows td[data-row="${ri}"][data-col="0"]`);
+    if (idTd) {
+      idTd.textContent = generated;
+      applyValidation(idTd, getActiveCols()[0], generated, rows[ri]._nullCols);
+    }
+  }
+  if (col.key === 'id') rows[ri]._idManual = true;
+
+  // Clear null flag once user provides a value
+  if (val) rows[ri]._nullCols.delete(col.key);
+
+  applyValidation(td, col, val, rows[ri]._nullCols);
+  updateSummary();
+}
+
+function handleKeydown(e, td, ri, ci) {
+  const cols = getActiveCols();
+
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    td.textContent = td._origVal !== undefined ? td._origVal : rows[ri][cols[ci].key];
+    td.blur();
+    return;
+  }
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (ri + 1 < rows.length) {
+      const next = document.querySelector(`#data-rows td[data-row="${ri+1}"][data-col="${ci}"]`);
+      if (next) { next.focus(); return; }
+    }
+    rows.push(makeRow());
+    const nri = rows.length - 1;
+    appendRowToDOM(nri);
+    selectRow(nri);
+    updateSummary();
+    setTimeout(() => {
+      const newTd = document.querySelector(`#data-rows td[data-row="${nri}"][data-col="${ci}"]`);
+      if (newTd) newTd.focus();
+    }, 0);
+    return;
+  }
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const dir = e.shiftKey ? -1 : 1;
+    let nci = ci + dir, nri = ri;
+    if (nci < 0)              { nci = cols.length - 1; nri = ri - 1; }
+    else if (nci >= cols.length) { nci = 0;            nri = ri + 1; }
+    if (nri >= 0 && nri < rows.length) {
+      const next = document.querySelector(`#data-rows td[data-row="${nri}"][data-col="${nci}"]`);
+      if (next) next.focus();
+    }
+  }
+}
+
+function applyValidation(td, col, val, nullSet) {
+  td.classList.remove('cell-err', 'cell-warn', 'cell-null');
+  const r = validateCell(col, val);
+  if (r.err) {
+    td.classList.add('cell-err');
+    td.title = r.msg;
+  } else if (r.warn) {
+    td.classList.add('cell-warn');
+    td.title = 'Warning: ' + r.msg;
+  } else {
+    td.title = col.hint || '';
+    // Yellow: optional field where Claude explicitly returned null
+    if (!val && nullSet && nullSet.has(col.key)) {
+      td.classList.add('cell-null');
+    }
+  }
+}
+
+function selectRow(ri) {
+  selRow = ri;
+  document.querySelectorAll('#data-rows tr').forEach((tr, i) => {
+    tr.classList.toggle('selected', i === ri);
+  });
+}
+
+// ── Summary & pipeline tip ─────────────────────────────────────────────────────
+function updateSummary() {
+  const total    = rows.length;
+  const complete = rows.filter(isRowComplete).length;
+  const needAttn = total - complete;
+
+  const summaryParts = [`${total} row${total !== 1 ? 's' : ''}`];
+  if (total > 0) {
+    summaryParts.push(`${complete} complete`);
+    if (needAttn > 0) summaryParts.push(`${needAttn} need${needAttn !== 1 ? '' : 's'} attention`);
+  }
+  document.getElementById('summary').textContent = summaryParts.join(' \u00b7 ');
+
+  const btn = document.getElementById('btn-download');
+  btn.textContent = `\u2193 Download CSV (${complete} complete row${complete !== 1 ? 's' : ''})`;
+  btn.disabled = complete === 0;
+
+  const typeLabel = mode === 'frame' ? 'frame' : 'string';
+  const fname     = `twu-${typeLabel}s-${today()}.csv`;
+  document.getElementById('tip-cmd').textContent =
+    `node pipeline/scripts/ingest.js --type ${typeLabel} --csv ${fname}`;
+}
+
+// ── CSV generation ─────────────────────────────────────────────────────────────
+function quoteCell(val) {
+  if (/[",\r\n]/.test(val)) return '"' + val.replace(/"/g, '""') + '"';
+  return val;
+}
+
+function buildCSVString() {
+  const cols    = getActiveCols();
+  const header  = cols.map(c => c.key).join(',');
+  const dataRows = rows
+    .filter(isRowComplete)
+    .map(row => cols.map(col => quoteCell(row[col.key] || '')).join(','));
+  return [header, ...dataRows].join('\r\n');
+}
+
+function downloadCSV() {
+  const csv  = buildCSVString();
+  const date = today();
+  const type = mode === 'frame' ? 'frames' : 'strings';
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `twu-${type}-${date}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ── Mode switching ─────────────────────────────────────────────────────────────
+function setMode(newMode) {
+  if (newMode === mode) return;
+  if (rows.length > 0) {
+    const label = newMode === 'frame' ? 'Frames' : 'Strings';
+    if (!confirm(`Switch to ${label} mode? This will clear the ${rows.length} current row${rows.length !== 1 ? 's' : ''}.`)) {
+      document.querySelector(`input[name="mode"][value="${mode}"]`).checked = true;
+      return;
+    }
+  }
+  mode   = newMode;
+  rows   = [];
+  selRow = -1;
+  buildTableHeader();
+  rebuildTable();
+  updateSummary();
+  setStatus('', 'info');
+}
+
+// ── Theme ──────────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  const html = document.documentElement;
+  const next = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  html.dataset.theme = next;
+  document.getElementById('btn-theme').textContent = next === 'dark' ? '\u2600' : '\u263E';
+  try { localStorage.setItem('ll-twu-import-theme', next); } catch {}
+}
+
+// ── Help modal ─────────────────────────────────────────────────────────────────
+function showHelp() { document.getElementById('help-modal').hidden = false; }
+function hideHelp() { document.getElementById('help-modal').hidden = true; }
+
+// ── Initialisation ─────────────────────────────────────────────────────────────
+function init() {
+  // Restore theme
+  try {
+    const saved = localStorage.getItem('ll-twu-import-theme');
+    if (saved === 'light') {
+      document.documentElement.dataset.theme = 'light';
+      document.getElementById('btn-theme').textContent = '\u263E';
+    }
+  } catch {}
+
+  // Restore API key
+  const key = loadApiKey();
+  if (key) document.getElementById('api-key-input').value = key;
+
+  // Build initial table header and summary
+  buildTableHeader();
+  rebuildTable();
+  updateSummary();
+
+  // Help modal backdrop click to close
+  document.getElementById('help-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('help-modal')) hideHelp();
+  });
+}
+
+init();
+</script>
+</body>
+</html>

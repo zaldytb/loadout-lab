@@ -109,6 +109,20 @@ node pipeline/scripts/ingest.js --type frame --csv path/to/downloaded.csv
 npm run pipeline
 ```
 
+#### TWU data importer (AI-assisted extraction)
+
+Open `tools/twu-import.html` in any browser. Paste content from Tennis Warehouse University
+pages (comparison tables, review text, or raw HTML), and the tool uses Claude to extract
+structured frame or string data. Review the extracted entries, fill in any missing fields,
+then download CSV and run:
+
+```bash
+node pipeline/scripts/ingest.js --type frame --csv path/to/twu-frames-YYYY-MM-DD.csv
+npm run pipeline
+```
+
+Requires an Anthropic API key (stored locally in your browser, never sent elsewhere).
+
 #### GUI — batch frame import (no CLI required)
 
 A desktop app is available in `tools/frame-gui/` for adding multiple frames without using the command line:
