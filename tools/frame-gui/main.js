@@ -3,7 +3,18 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const { spawn } = require('child_process');
+const { spawn, execSync } = require('child_process');
+
+// ── Node.js availability check ───────────────────────────────────────────────
+
+function isNodeAvailable() {
+  try {
+    execSync('node --version', { stdio: 'ignore' });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 // ── Config helpers ──────────────────────────────────────────────────────────
 
@@ -41,6 +52,17 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  if (!isNodeAvailable()) {
+    dialog.showErrorBox(
+      'Node.js not found',
+      'Loadout Lab Frame Editor requires Node.js to run the import pipeline.\n\n' +
+      'Download it from https://nodejs.org (LTS version recommended), ' +
+      'install it, then relaunch this app.'
+    );
+    app.quit();
+    return;
+  }
+
   createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

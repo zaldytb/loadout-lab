@@ -140,6 +140,8 @@ npm start
 
 The app remembers your repo root between sessions. See [`tools/frame-gui/README.md`](../tools/frame-gui/README.md) for full details.
 
+> **Windows installer:** A standalone `FrameGuiSetup.exe` can be built with `npm run build:win` from `tools/frame-gui/` — no repo clone required for end users. Node.js must still be installed on their machine for the import features to work.
+
 ---
 
 ## Adding a String
