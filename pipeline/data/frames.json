@@ -5158,5 +5158,5365 @@
       "dateAdded": "2026-03-23",
       "confidence": "high"
     }
+  },
+  {
+    "id": "babolat-pure-aero-2019",
+    "name": "Babolat Pure Aero (2019)",
+    "year": 2019,
+    "headSize": 100,
+    "strungWeight": 318,
+    "swingweight": 324,
+    "stiffness": 67,
+    "beamWidth": [
+      21,
+      23,
+      22
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33,
+    "brand": "Babolat",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21/23/22mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=15.4 vibration=143Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-aero-2023",
+    "name": "Babolat Pure Aero 2023",
+    "year": 2023,
+    "headSize": 100,
+    "strungWeight": 318,
+    "swingweight": 322,
+    "stiffness": 65,
+    "beamWidth": [
+      21,
+      23,
+      22
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33,
+    "brand": "Babolat",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21/23/22mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=14.6 vibration=141Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-aero-2026",
+    "name": "Babolat Pure Aero 2026",
+    "year": 2026,
+    "headSize": 100,
+    "strungWeight": 318,
+    "swingweight": 320,
+    "stiffness": 66,
+    "beamWidth": [
+      21,
+      23,
+      22
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33,
+    "brand": "Babolat",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21/23/22mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=15.2 vibration=133Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-aero-98-2023",
+    "name": "Babolat Pure Aero 98 2023",
+    "year": 2023,
+    "headSize": 98,
+    "strungWeight": 323,
+    "swingweight": 327,
+    "stiffness": 65,
+    "beamWidth": [
+      21,
+      23,
+      22
+    ],
+    "pattern": "16x20",
+    "tensionRange": [
+      46,
+      55
+    ],
+    "balance": 32.5,
+    "brand": "Babolat",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21/23/22mm beam, 16x20 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=15.4 vibration=148Hz power=42% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-aero-lite-2019",
+    "name": "Babolat Pure Aero Lite (2019)",
+    "year": 2019,
+    "headSize": 100,
+    "strungWeight": 286,
+    "swingweight": 311,
+    "stiffness": 68,
+    "beamWidth": [
+      21,
+      23,
+      22
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 34.3,
+    "brand": "Babolat",
+    "balancePts": "Even",
+    "powerLevel": "Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21/23/22mm beam, 16x19 pattern",
+    "identity": "Lightweight",
+    "notes": "TWU: twistweight=14.8 vibration=148Hz power=40% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-aero-lite-2026",
+    "name": "Babolat Pure Aero Lite 2026",
+    "year": 2026,
+    "headSize": 100,
+    "strungWeight": 283,
+    "swingweight": 302,
+    "stiffness": 65,
+    "beamWidth": [
+      21,
+      23,
+      22
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33.5,
+    "brand": "Babolat",
+    "balancePts": "2 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21/23/22mm beam, 16x19 pattern",
+    "identity": "Lightweight",
+    "notes": "TWU: twistweight=13.9 vibration=164Hz power=39% sweetzone=14sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-aero-plus-2019",
+    "name": "Babolat Pure Aero Plus (2019)",
+    "year": 2019,
+    "headSize": 100,
+    "strungWeight": 320,
+    "swingweight": 330,
+    "stiffness": 68,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33,
+    "brand": "Babolat",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Medium-High",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Power",
+    "notes": "TWU: twistweight=14.3 vibration=156Hz power=42% sweetzone=17sqin length=27.5in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-aero-plus-2023",
+    "name": "Babolat Pure Aero Plus 2023",
+    "year": 2023,
+    "headSize": 100,
+    "strungWeight": 320,
+    "swingweight": 334,
+    "stiffness": 65,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33,
+    "brand": "Babolat",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Medium-High",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Power",
+    "notes": "TWU: twistweight=14.7 vibration=143Hz power=42% sweetzone=17sqin length=27.5in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-aero-plus-2026",
+    "name": "Babolat Pure Aero Plus 2026",
+    "year": 2026,
+    "headSize": 100,
+    "strungWeight": 320,
+    "swingweight": 330,
+    "stiffness": 65,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33,
+    "brand": "Babolat",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Medium-High",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Power",
+    "notes": "TWU: twistweight=14.5 vibration=145Hz power=42% sweetzone=17sqin length=27.5in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-aero-team-2019",
+    "name": "Babolat Pure Aero Team (2019)",
+    "year": 2019,
+    "headSize": 100,
+    "strungWeight": 301,
+    "swingweight": 307,
+    "stiffness": 69,
+    "beamWidth": [
+      21,
+      23,
+      22
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33,
+    "brand": "Babolat",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21/23/22mm beam, 16x19 pattern",
+    "identity": "All-Rounder",
+    "notes": "TWU: twistweight=14.6 vibration=162Hz power=40% sweetzone=15sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-aero-tour-2019",
+    "name": "Babolat Pure Aero Tour (2019)",
+    "year": 2019,
+    "headSize": 100,
+    "strungWeight": 335,
+    "swingweight": 327,
+    "stiffness": 68,
+    "beamWidth": [
+      21,
+      23,
+      22
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 32.3,
+    "brand": "Babolat",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21/23/22mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=15.1 vibration=155Hz power=42% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-drive-2012",
+    "name": "Babolat Pure Drive (2012)",
+    "year": 2012,
+    "headSize": 100,
+    "strungWeight": 314,
+    "swingweight": 309,
+    "stiffness": 73,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      59
+    ],
+    "balance": 32.9,
+    "brand": "Babolat",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Medium-High",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=14.2 vibration=170Hz power=40% sweetzone=15sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-drive-107-2012",
+    "name": "Babolat Pure Drive 107 (2012)",
+    "year": 2012,
+    "headSize": 107,
+    "strungWeight": 294,
+    "swingweight": 298,
+    "stiffness": 69,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      59
+    ],
+    "balance": 33.8,
+    "brand": "Babolat",
+    "balancePts": "2 pts HL",
+    "powerLevel": "Medium-High",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=13.9 vibration=161Hz power=38% sweetzone=13sqin length=27.2in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-drive-107-2018",
+    "name": "Babolat Pure Drive 107 (2018)",
+    "year": 2018,
+    "headSize": 107,
+    "strungWeight": 303,
+    "swingweight": 310,
+    "stiffness": 69,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      59
+    ],
+    "balance": 33,
+    "brand": "Babolat",
+    "balancePts": "5 pts HL",
+    "powerLevel": "Medium-High",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=15.9 vibration=155Hz power=40% sweetzone=16sqin length=27.2in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-drive-107-2021",
+    "name": "Babolat Pure Drive 107 2021",
+    "year": 2021,
+    "headSize": 107,
+    "strungWeight": 301,
+    "swingweight": 309,
+    "stiffness": 68,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      59
+    ],
+    "balance": 33,
+    "brand": "Babolat",
+    "balancePts": "5 pts HL",
+    "powerLevel": "Medium-High",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=15.5 vibration=152Hz power=40% sweetzone=15sqin length=27.2in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-drive-107-2025",
+    "name": "Babolat Pure Drive 107 2025",
+    "year": 2025,
+    "headSize": 107,
+    "strungWeight": 301,
+    "swingweight": 307,
+    "stiffness": 67,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      59
+    ],
+    "balance": 33,
+    "brand": "Babolat",
+    "balancePts": "5 pts HL",
+    "powerLevel": "Medium-High",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=16.2 vibration=152Hz power=39% sweetzone=16sqin length=27.2in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-drive-107-gt-2009",
+    "name": "Babolat Pure Drive 107 GT 2009",
+    "year": 2009,
+    "headSize": 107,
+    "strungWeight": 298,
+    "swingweight": 318,
+    "stiffness": 67,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      59
+    ],
+    "balance": 33.7,
+    "brand": "Babolat",
+    "balancePts": "3 pts HL",
+    "powerLevel": "Medium-High",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=13.5 vibration=163Hz power=39% sweetzone=14sqin length=27.2in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-drive-110-2018",
+    "name": "Babolat Pure Drive 110 (2018)",
+    "year": 2018,
+    "headSize": 110,
+    "strungWeight": 272,
+    "swingweight": 305,
+    "stiffness": 69,
+    "beamWidth": [
+      24,
+      27,
+      24
+    ],
+    "pattern": "16x20",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 34,
+    "brand": "Babolat",
+    "balancePts": "3 pts HL",
+    "powerLevel": "High",
+    "strokeStyle": "Short",
+    "swingSpeed": "Slow",
+    "frameProfile": "24/27/24mm beam, 16x20 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=14.9 vibration=164Hz power=39% sweetzone=15sqin length=27.6in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-drive-110-2021",
+    "name": "Babolat Pure Drive 110 2021",
+    "year": 2021,
+    "headSize": 110,
+    "strungWeight": 269,
+    "swingweight": 298,
+    "stiffness": 70,
+    "beamWidth": [
+      24,
+      27,
+      24
+    ],
+    "pattern": "16x20",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 34,
+    "brand": "Babolat",
+    "balancePts": "3 pts HL",
+    "powerLevel": "High",
+    "strokeStyle": "Short",
+    "swingSpeed": "Slow",
+    "frameProfile": "24/27/24mm beam, 16x20 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=14.3 vibration=154Hz power=38% sweetzone=13sqin length=27.6in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-drive-2015",
+    "name": "Babolat Pure Drive 2015",
+    "year": 2015,
+    "headSize": 100,
+    "strungWeight": 322,
+    "swingweight": 319,
+    "stiffness": 72,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      59
+    ],
+    "balance": 32.4,
+    "brand": "Babolat",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Medium-High",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=14.9 vibration=163Hz power=41% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-drive-2017",
+    "name": "Babolat Pure Drive 2017",
+    "year": 2017,
+    "headSize": 100,
+    "strungWeight": 318,
+    "swingweight": 324,
+    "stiffness": 71,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      59
+    ],
+    "balance": 33,
+    "brand": "Babolat",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Medium-High",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=14.3 vibration=161Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-drive-2025",
+    "name": "Babolat Pure Drive 2025",
+    "year": 2025,
+    "headSize": 100,
+    "strungWeight": 318,
+    "swingweight": 317,
+    "stiffness": 66,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      59
+    ],
+    "balance": 33,
+    "brand": "Babolat",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Medium-High",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=15.7 vibration=154Hz power=40% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-drive-98-2025",
+    "name": "Babolat Pure Drive 98 2025",
+    "year": 2025,
+    "headSize": 98,
+    "strungWeight": 323,
+    "swingweight": 323,
+    "stiffness": 67,
+    "beamWidth": [
+      21,
+      23,
+      21
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      59
+    ],
+    "balance": 33.5,
+    "brand": "Babolat",
+    "balancePts": "2 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21/23/21mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=15.4 vibration=156Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-drive-lite-2018",
+    "name": "Babolat Pure Drive Lite (2018)",
+    "year": 2018,
+    "headSize": 100,
+    "strungWeight": 286,
+    "swingweight": 300,
+    "stiffness": 69,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      59
+    ],
+    "balance": 34.1,
+    "brand": "Babolat",
+    "balancePts": "1 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Lightweight",
+    "notes": "TWU: twistweight=13.8 vibration=166Hz power=39% sweetzone=14sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-drive-lite-2025",
+    "name": "Babolat Pure Drive Lite 2025",
+    "year": 2025,
+    "headSize": 100,
+    "strungWeight": 283,
+    "swingweight": 295,
+    "stiffness": 68,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      59
+    ],
+    "balance": 34,
+    "brand": "Babolat",
+    "balancePts": "1 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Lightweight",
+    "notes": "TWU: twistweight=13.7 vibration=158Hz power=38% sweetzone=13sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-drive-plus-2018",
+    "name": "Babolat Pure Drive Plus (2018)",
+    "year": 2018,
+    "headSize": 100,
+    "strungWeight": 318,
+    "swingweight": 325,
+    "stiffness": 70,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      59
+    ],
+    "balance": 33,
+    "brand": "Babolat",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Medium-High",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Power",
+    "notes": "TWU: twistweight=13.7 vibration=162Hz power=42% sweetzone=16sqin length=27.5in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-drive-plus-2021",
+    "name": "Babolat Pure Drive Plus 2021",
+    "year": 2021,
+    "headSize": 100,
+    "strungWeight": 318,
+    "swingweight": 324,
+    "stiffness": 69,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      59
+    ],
+    "balance": 33,
+    "brand": "Babolat",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Medium-High",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Power",
+    "notes": "TWU: twistweight=14.2 vibration=154Hz power=41% sweetzone=16sqin length=27.5in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-drive-plus-2025",
+    "name": "Babolat Pure Drive Plus 2025",
+    "year": 2025,
+    "headSize": 100,
+    "strungWeight": 318,
+    "swingweight": 325,
+    "stiffness": 69,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      59
+    ],
+    "balance": 33,
+    "brand": "Babolat",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Medium-High",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Power",
+    "notes": "TWU: twistweight=15 vibration=153Hz power=41% sweetzone=17sqin length=27.5in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-drive-roddick-2012",
+    "name": "Babolat Pure Drive Roddick (2012)",
+    "year": 2012,
+    "headSize": 100,
+    "strungWeight": 336,
+    "swingweight": 328,
+    "stiffness": 72,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      59
+    ],
+    "balance": 32.5,
+    "brand": "Babolat",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Medium-High",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=15.2 vibration=163Hz power=42% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-drive-roddick-plus-2012",
+    "name": "Babolat Pure Drive Roddick Plus (2012)",
+    "year": 2012,
+    "headSize": 100,
+    "strungWeight": 329,
+    "swingweight": 333,
+    "stiffness": 73,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      59
+    ],
+    "balance": 33.2,
+    "brand": "Babolat",
+    "balancePts": "5 pts HL",
+    "powerLevel": "Medium-High",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Power",
+    "notes": "TWU: twistweight=14.4 vibration=164Hz power=42% sweetzone=18sqin length=27.5in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-drive-team-2025",
+    "name": "Babolat Pure Drive Team 2025",
+    "year": 2025,
+    "headSize": 100,
+    "strungWeight": 301,
+    "swingweight": 308,
+    "stiffness": 67,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      59
+    ],
+    "balance": 32.6,
+    "brand": "Babolat",
+    "balancePts": "5 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "All-Rounder",
+    "notes": "TWU: twistweight=15.4 vibration=147Hz power=39% sweetzone=15sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-drive-tour-2018",
+    "name": "Babolat Pure Drive Tour (2018)",
+    "year": 2018,
+    "headSize": 100,
+    "strungWeight": 332,
+    "swingweight": 324,
+    "stiffness": 71,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      59
+    ],
+    "balance": 32.5,
+    "brand": "Babolat",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=14.7 vibration=164Hz power=42% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-drive-tour-2021",
+    "name": "Babolat Pure Drive Tour 2021",
+    "year": 2021,
+    "headSize": 100,
+    "strungWeight": 335,
+    "swingweight": 326,
+    "stiffness": 70,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      59
+    ],
+    "balance": 32.5,
+    "brand": "Babolat",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=15.5 vibration=156Hz power=42% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-drive-tour-plus-2018",
+    "name": "Babolat Pure Drive Tour Plus (2018)",
+    "year": 2018,
+    "headSize": 100,
+    "strungWeight": 332,
+    "swingweight": 328,
+    "stiffness": 71,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      59
+    ],
+    "balance": 32.5,
+    "brand": "Babolat",
+    "balancePts": "8 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=14.1 vibration=162Hz power=42% sweetzone=17sqin length=27.5in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-stike-98-18x20-2024",
+    "name": "Babolat Pure Stike 98 18x20 2024",
+    "year": 2024,
+    "headSize": 98,
+    "strungWeight": 323,
+    "swingweight": 332,
+    "stiffness": 63,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 33,
+    "brand": "Babolat",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Standard Precision",
+    "notes": "TWU: twistweight=15.5 vibration=143Hz power=42% sweetzone=18sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-strike-100-2016",
+    "name": "Babolat Pure Strike 100 (2016)",
+    "year": 2016,
+    "headSize": 100,
+    "strungWeight": 313,
+    "swingweight": 307,
+    "stiffness": 68,
+    "beamWidth": [
+      21,
+      23,
+      21
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33.1,
+    "brand": "Babolat",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21/23/21mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=13.8 vibration=151Hz power=39% sweetzone=14sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-strike-100-16x20-2024",
+    "name": "Babolat Pure Strike 100 16x20 2024",
+    "year": 2024,
+    "headSize": 100,
+    "strungWeight": 323,
+    "swingweight": 320,
+    "stiffness": 61,
+    "beamWidth": [
+      21,
+      23,
+      21
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 32,
+    "brand": "Babolat",
+    "balancePts": "7 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21/23/21mm beam, 16x19 pattern",
+    "identity": "Standard Spin",
+    "notes": "TWU: twistweight=14.8 vibration=135Hz power=41% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-strike-100-2024",
+    "name": "Babolat Pure Strike 100 2024",
+    "year": 2024,
+    "headSize": 100,
+    "strungWeight": 324,
+    "swingweight": 324,
+    "stiffness": 63,
+    "beamWidth": [
+      21,
+      23,
+      21
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33,
+    "brand": "Babolat",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21/23/21mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=15.1 vibration=141Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-strike-16x19-2016",
+    "name": "Babolat Pure Strike 16x19 (2016)",
+    "year": 2016,
+    "headSize": 98,
+    "strungWeight": 321,
+    "swingweight": 325,
+    "stiffness": 65,
+    "beamWidth": [
+      21,
+      23,
+      21
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33,
+    "brand": "Babolat",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21/23/21mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=15.1 vibration=148Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-strike-98-16x19-2024",
+    "name": "Babolat Pure Strike 98 16x19 2024",
+    "year": 2024,
+    "headSize": 98,
+    "strungWeight": 323,
+    "swingweight": 330,
+    "stiffness": 64,
+    "beamWidth": [
+      21,
+      23,
+      21
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33,
+    "brand": "Babolat",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21/23/21mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=15.6 vibration=143Hz power=42% sweetzone=18sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "babolat-pure-strike-team-2024",
+    "name": "Babolat Pure Strike Team 2024",
+    "year": 2024,
+    "headSize": 100,
+    "strungWeight": 303,
+    "swingweight": 307,
+    "stiffness": 64,
+    "beamWidth": [
+      21,
+      23,
+      21
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 34,
+    "brand": "Babolat",
+    "balancePts": "1 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21/23/21mm beam, 16x19 pattern",
+    "identity": "All-Rounder",
+    "notes": "TWU: twistweight=14.1 vibration=153Hz power=39% sweetzone=15sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "dunlop-fx-500-2025",
+    "name": "Dunlop FX 500 2025",
+    "year": 2025,
+    "headSize": 100,
+    "strungWeight": 318,
+    "swingweight": 320,
+    "stiffness": 68,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      45,
+      55
+    ],
+    "balance": 33,
+    "brand": "Dunlop",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=15.9 vibration=160Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "dunlop-fx-500-ls-2025",
+    "name": "Dunlop FX 500 LS 2025",
+    "year": 2025,
+    "headSize": 100,
+    "strungWeight": 301,
+    "swingweight": 307,
+    "stiffness": 67,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      45,
+      55
+    ],
+    "balance": 33.5,
+    "brand": "Dunlop",
+    "balancePts": "2 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=14.7 vibration=160Hz power=40% sweetzone=15sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "dunlop-fx-500-tour-2023",
+    "name": "Dunlop FX 500 Tour 2023",
+    "year": 2023,
+    "headSize": 98,
+    "strungWeight": 320,
+    "swingweight": 317,
+    "stiffness": 65,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      45,
+      55
+    ],
+    "balance": 32.5,
+    "brand": "Dunlop",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=15.1 vibration=146Hz power=40% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "dunlop-fx-500-tour-2025",
+    "name": "Dunlop FX 500 Tour 2025",
+    "year": 2025,
+    "headSize": 98,
+    "strungWeight": 323,
+    "swingweight": 322,
+    "stiffness": 65,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      45,
+      55
+    ],
+    "balance": 32.5,
+    "brand": "Dunlop",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=15.6 vibration=142Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "dunlop-fx-700-2023",
+    "name": "Dunlop FX 700 2023",
+    "year": 2023,
+    "headSize": 107,
+    "strungWeight": 325,
+    "swingweight": 325,
+    "stiffness": 67,
+    "beamWidth": [
+      24,
+      27,
+      24
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      45,
+      55
+    ],
+    "balance": 34.8,
+    "brand": "Dunlop",
+    "balancePts": "Even",
+    "powerLevel": "Medium-High",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium",
+    "frameProfile": "24/27/24mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=16.2 vibration=156Hz power=41% sweetzone=17sqin length=27.5in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "head-boom-mp-2022",
+    "name": "Head Boom MP 2022",
+    "year": 2022,
+    "headSize": 100,
+    "strungWeight": 315,
+    "swingweight": 318,
+    "stiffness": 64,
+    "beamWidth": [
+      22,
+      22,
+      22
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 32.7,
+    "brand": "Head",
+    "balancePts": "5 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "22/22/22mm beam, 16x19 pattern",
+    "identity": "All-Rounder",
+    "notes": "TWU: twistweight=14.3 vibration=144Hz power=40% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "head-boom-mp-2024",
+    "name": "Head Boom MP 2024",
+    "year": 2024,
+    "headSize": 100,
+    "strungWeight": 312,
+    "swingweight": 317,
+    "stiffness": 62,
+    "beamWidth": [
+      22,
+      22,
+      22
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 32.5,
+    "brand": "Head",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "22/22/22mm beam, 16x19 pattern",
+    "identity": "All-Rounder",
+    "notes": "TWU: twistweight=14.3 vibration=147Hz power=40% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "head-boom-pro-2022",
+    "name": "Head Boom Pro 2022",
+    "year": 2022,
+    "headSize": 98,
+    "strungWeight": 329,
+    "swingweight": 325,
+    "stiffness": 67,
+    "beamWidth": [
+      22,
+      22,
+      22
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 32.4,
+    "brand": "Head",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "22/22/22mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=14.6 vibration=146Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "head-boom-pro-2024",
+    "name": "Head Boom Pro 2024",
+    "year": 2024,
+    "headSize": 98,
+    "strungWeight": 326,
+    "swingweight": 323,
+    "stiffness": 64,
+    "beamWidth": [
+      22,
+      22,
+      22
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 32,
+    "brand": "Head",
+    "balancePts": "7 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "22/22/22mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=14.5 vibration=130Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "head-boom-team-2024",
+    "name": "Head Boom Team 2024",
+    "year": 2024,
+    "headSize": 102,
+    "strungWeight": 289,
+    "swingweight": 309,
+    "stiffness": 62,
+    "beamWidth": [
+      22,
+      22,
+      22
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33.6,
+    "brand": "Head",
+    "balancePts": "2 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium",
+    "frameProfile": "22/22/22mm beam, 16x19 pattern",
+    "identity": "All-Rounder",
+    "notes": "TWU: twistweight=15.6 vibration=126Hz power=39% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "head-extreme-mp-2022",
+    "name": "Head Extreme MP 2022",
+    "year": 2022,
+    "headSize": 100,
+    "strungWeight": 318,
+    "swingweight": 322,
+    "stiffness": 66,
+    "beamWidth": [
+      24,
+      26,
+      24
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33,
+    "brand": "Head",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Medium-High",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "24/26/24mm beam, 16x19 pattern",
+    "identity": "All-Rounder",
+    "notes": "TWU: twistweight=14.3 vibration=152Hz power=41% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "head-extreme-tour-2022",
+    "name": "Head Extreme Tour 2022",
+    "year": 2022,
+    "headSize": 98,
+    "strungWeight": 320,
+    "swingweight": 317,
+    "stiffness": 63,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 32.5,
+    "brand": "Head",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=13.9 vibration=138Hz power=40% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "head-graphene-360-gravity-lite-2021",
+    "name": "Head Graphene 360+ Gravity Lite 2021",
+    "year": 2021,
+    "headSize": 104,
+    "strungWeight": 298,
+    "swingweight": 298,
+    "stiffness": 60,
+    "beamWidth": [
+      22,
+      22,
+      22
+    ],
+    "pattern": "16x20",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 34.3,
+    "brand": "Head",
+    "balancePts": "Even",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium",
+    "frameProfile": "22/22/22mm beam, 16x20 pattern",
+    "identity": "Lightweight",
+    "notes": "TWU: twistweight=14.7 vibration=143Hz power=38% sweetzone=13sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "head-graphene-360-gravity-mp-2021",
+    "name": "Head Graphene 360+ Gravity MP 2021",
+    "year": 2021,
+    "headSize": 100,
+    "strungWeight": 312,
+    "swingweight": 323,
+    "stiffness": 62,
+    "beamWidth": [
+      22,
+      22,
+      22
+    ],
+    "pattern": "16x20",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33.5,
+    "brand": "Head",
+    "balancePts": "2 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "22/22/22mm beam, 16x20 pattern",
+    "identity": "All-Rounder",
+    "notes": "TWU: twistweight=14.1 vibration=139Hz power=41% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "head-graphene-360-gravity-pro-2021",
+    "name": "Head Graphene 360+ Gravity Pro 2021",
+    "year": 2021,
+    "headSize": 100,
+    "strungWeight": 332,
+    "swingweight": 332,
+    "stiffness": 62,
+    "beamWidth": [
+      20,
+      20,
+      20
+    ],
+    "pattern": "18x20",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 32.4,
+    "brand": "Head",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Low",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "20/20/20mm beam, 18x20 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=14.5 vibration=138Hz power=42% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "head-graphene-360-gravity-s-2021",
+    "name": "Head Graphene 360+ Gravity S 2021",
+    "year": 2021,
+    "headSize": 104,
+    "strungWeight": 301,
+    "swingweight": 307,
+    "stiffness": 61,
+    "beamWidth": [
+      22,
+      22,
+      22
+    ],
+    "pattern": "16x20",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33.5,
+    "brand": "Head",
+    "balancePts": "2 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "22/22/22mm beam, 16x20 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=15.5 vibration=138Hz power=39% sweetzone=15sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "head-graphene-360-gravity-tour-2021",
+    "name": "Head Graphene 360+ Gravity Tour 2021",
+    "year": 2021,
+    "headSize": 100,
+    "strungWeight": 323,
+    "swingweight": 325,
+    "stiffness": 61,
+    "beamWidth": [
+      22,
+      22,
+      22
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33,
+    "brand": "Head",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "22/22/22mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=14.8 vibration=139Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "head-gravity-mp-l-2025",
+    "name": "Head Gravity MP L 2025",
+    "year": 2025,
+    "headSize": 100,
+    "strungWeight": 295,
+    "swingweight": 308,
+    "stiffness": 57,
+    "beamWidth": [
+      22,
+      22,
+      22
+    ],
+    "pattern": "16x20",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33.8,
+    "brand": "Head",
+    "balancePts": "2 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "22/22/22mm beam, 16x20 pattern",
+    "identity": "All-Rounder",
+    "notes": "TWU: twistweight=14.6 vibration=139Hz power=39% sweetzone=15sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "head-prestige-mp-2021",
+    "name": "Head Prestige MP 2021",
+    "year": 2021,
+    "headSize": 99,
+    "strungWeight": 326,
+    "swingweight": 334,
+    "stiffness": 66,
+    "beamWidth": [
+      20,
+      20,
+      20
+    ],
+    "pattern": "18x20",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33.2,
+    "brand": "Head",
+    "balancePts": "3 pts HL",
+    "powerLevel": "Low",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "20/20/20mm beam, 18x20 pattern",
+    "identity": "All-Rounder",
+    "notes": "TWU: twistweight=15.6 vibration=141Hz power=42% sweetzone=18sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "head-prestige-pro-2021",
+    "name": "Head Prestige Pro 2021",
+    "year": 2021,
+    "headSize": 98,
+    "strungWeight": 337,
+    "swingweight": 327,
+    "stiffness": 60,
+    "beamWidth": [
+      20,
+      20,
+      20
+    ],
+    "pattern": "18x20",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 32.5,
+    "brand": "Head",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Low",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "20/20/20mm beam, 18x20 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=14.4 vibration=133Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "head-prestige-tour-2021",
+    "name": "Head Prestige Tour 2021",
+    "year": 2021,
+    "headSize": 95,
+    "strungWeight": 335,
+    "swingweight": 341,
+    "stiffness": 65,
+    "beamWidth": [
+      20,
+      20,
+      20
+    ],
+    "pattern": "18x20",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 32.6,
+    "brand": "Head",
+    "balancePts": "5 pts HL",
+    "powerLevel": "Low",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "20/20/20mm beam, 18x20 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=14.7 vibration=138Hz power=43% sweetzone=18sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "head-radical-mp-2023",
+    "name": "Head Radical MP 2023",
+    "year": 2023,
+    "headSize": 98,
+    "strungWeight": 318,
+    "swingweight": 323,
+    "stiffness": 65,
+    "beamWidth": [
+      21,
+      23,
+      21
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33,
+    "brand": "Head",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21/23/21mm beam, 16x19 pattern",
+    "identity": "All-Rounder",
+    "notes": "TWU: twistweight=14.5 vibration=150Hz power=41% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "head-radical-pro-2023",
+    "name": "Head Radical Pro 2023",
+    "year": 2023,
+    "headSize": 98,
+    "strungWeight": 332,
+    "swingweight": 325,
+    "stiffness": 64,
+    "beamWidth": [
+      20,
+      23,
+      21
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 32.4,
+    "brand": "Head",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "20/23/21mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=14.3 vibration=150Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "head-radical-team-2023",
+    "name": "Head Radical Team 2023",
+    "year": 2023,
+    "headSize": 102,
+    "strungWeight": 295,
+    "swingweight": 305,
+    "stiffness": 63,
+    "beamWidth": [
+      22,
+      25,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33,
+    "brand": "Head",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "22/25/23mm beam, 16x19 pattern",
+    "identity": "All-Rounder",
+    "notes": "TWU: twistweight=14.9 vibration=143Hz power=39% sweetzone=15sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "head-speed-mp-2022",
+    "name": "Head Speed MP 2022",
+    "year": 2022,
+    "headSize": 100,
+    "strungWeight": 315,
+    "swingweight": 323,
+    "stiffness": 62,
+    "beamWidth": [
+      23,
+      23,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33,
+    "brand": "Head",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/23/23mm beam, 16x19 pattern",
+    "identity": "All-Rounder",
+    "notes": "TWU: twistweight=14.3 vibration=138Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "head-speed-mp-l-2024",
+    "name": "Head Speed MP L 2024",
+    "year": 2024,
+    "headSize": 100,
+    "strungWeight": 295,
+    "swingweight": 313,
+    "stiffness": 60,
+    "beamWidth": [
+      23,
+      23,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33.5,
+    "brand": "Head",
+    "balancePts": "2 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/23/23mm beam, 16x19 pattern",
+    "identity": "All-Rounder",
+    "notes": "TWU: twistweight=13.9 vibration=140Hz power=40% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "head-speed-pro-2022",
+    "name": "Head Speed Pro 2022",
+    "year": 2022,
+    "headSize": 100,
+    "strungWeight": 326,
+    "swingweight": 326,
+    "stiffness": 62,
+    "beamWidth": [
+      23,
+      23,
+      23
+    ],
+    "pattern": "18x20",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 32.5,
+    "brand": "Head",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Low",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "23/23/23mm beam, 18x20 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=14.3 vibration=140Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "head-speed-team-2024",
+    "name": "Head Speed Team 2024",
+    "year": 2024,
+    "headSize": 105,
+    "strungWeight": 283,
+    "swingweight": 306,
+    "stiffness": 61,
+    "beamWidth": [
+      24,
+      24,
+      24
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33.5,
+    "brand": "Head",
+    "balancePts": "3 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium",
+    "frameProfile": "24/24/24mm beam, 16x19 pattern",
+    "identity": "All-Rounder",
+    "notes": "TWU: twistweight=14.9 vibration=143Hz power=39% sweetzone=15sqin length=27.2in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prince-o3-legacy-105-2024",
+    "name": "Prince O3 Legacy 105 2024",
+    "year": 2024,
+    "headSize": 105,
+    "strungWeight": 295,
+    "swingweight": 316,
+    "stiffness": 63,
+    "beamWidth": [
+      24,
+      27,
+      24
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      58
+    ],
+    "balance": 34.5,
+    "brand": "Prince",
+    "balancePts": "Even",
+    "powerLevel": "Medium-High",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium",
+    "frameProfile": "24/27/24mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=15.2 vibration=132Hz power=40% sweetzone=16sqin length=27.25in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prince-o3-legacy-120-2024",
+    "name": "Prince O3 Legacy 120 2024",
+    "year": 2024,
+    "headSize": 120,
+    "strungWeight": 275,
+    "swingweight": 330,
+    "stiffness": 69,
+    "beamWidth": [
+      26,
+      29,
+      26
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      45,
+      55
+    ],
+    "balance": 36,
+    "brand": "Prince",
+    "balancePts": "4 pts HH",
+    "powerLevel": "High",
+    "strokeStyle": "Short",
+    "swingSpeed": "Slow",
+    "frameProfile": "26/29/26mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=19.6 vibration=152Hz power=42% sweetzone=19sqin length=27.25in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prince-o3-phantom-100x-2025",
+    "name": "Prince O3 Phantom 100X 2025",
+    "year": 2025,
+    "headSize": 100,
+    "strungWeight": 326,
+    "swingweight": 324,
+    "stiffness": 65,
+    "beamWidth": [
+      20,
+      20,
+      20
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      58
+    ],
+    "balance": 32,
+    "brand": "Prince",
+    "balancePts": "7 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "20/20/20mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=16.4 vibration=153Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prince-phantom-100p-2024",
+    "name": "Prince Phantom 100P 2024",
+    "year": 2024,
+    "headSize": 100,
+    "strungWeight": 326,
+    "swingweight": 324,
+    "stiffness": 59,
+    "beamWidth": [
+      20,
+      20,
+      20
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      58
+    ],
+    "balance": 32.5,
+    "brand": "Prince",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "20/20/20mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=14.3 vibration=129Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prince-phantom-100x-18x20-2024",
+    "name": "Prince Phantom 100X 18x20 2024",
+    "year": 2024,
+    "headSize": 100,
+    "strungWeight": 335,
+    "swingweight": 327,
+    "stiffness": 59,
+    "beamWidth": [
+      20,
+      20,
+      20
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      58
+    ],
+    "balance": 31.8,
+    "brand": "Prince",
+    "balancePts": "8 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "20/20/20mm beam, 16x19 pattern",
+    "identity": "Standard Precision",
+    "notes": "TWU: twistweight=14.7 vibration=121Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prince-phantom-100x-290g-2024",
+    "name": "Prince Phantom 100X 290g 2024",
+    "year": 2024,
+    "headSize": 100,
+    "strungWeight": 303,
+    "swingweight": 317,
+    "stiffness": 59,
+    "beamWidth": [
+      20,
+      20,
+      20
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      58
+    ],
+    "balance": 33,
+    "brand": "Prince",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "20/20/20mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=14.4 vibration=122Hz power=40% sweetzone=14sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prince-phantom-100x-305g-2024",
+    "name": "Prince Phantom 100X 305g 2024",
+    "year": 2024,
+    "headSize": 100,
+    "strungWeight": 323,
+    "swingweight": 320,
+    "stiffness": 59,
+    "beamWidth": [
+      20,
+      20,
+      20
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      58
+    ],
+    "balance": 32.5,
+    "brand": "Prince",
+    "balancePts": "10 pts HH",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "20/20/20mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=14.9 vibration=122Hz power=40% sweetzone=16sqin length=23in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prince-phantom-107g-2024",
+    "name": "Prince Phantom 107G 2024",
+    "year": 2024,
+    "headSize": 107,
+    "strungWeight": 323,
+    "swingweight": 320,
+    "stiffness": 62,
+    "beamWidth": [
+      19,
+      19,
+      19
+    ],
+    "pattern": "14x18",
+    "tensionRange": [
+      48,
+      58
+    ],
+    "balance": 32,
+    "brand": "Prince",
+    "balancePts": "7 pts HL",
+    "powerLevel": "Low",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "19/19/19mm beam, 14x18 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=15.6 vibration=125Hz power=40% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prince-ripcord-100-265g-2025",
+    "name": "Prince Ripcord 100 265g 2025",
+    "year": 2025,
+    "headSize": 100,
+    "strungWeight": 278,
+    "swingweight": 308,
+    "stiffness": 65,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 34.7,
+    "brand": "Prince",
+    "balancePts": "1 pts HH",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=14.7 vibration=137Hz power=39% sweetzone=15sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prince-ripcord-100-280g-2025",
+    "name": "Prince Ripcord 100 280g 2025",
+    "year": 2025,
+    "headSize": 100,
+    "strungWeight": 295,
+    "swingweight": 315,
+    "stiffness": 66,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 33,
+    "brand": "Prince",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=15.3 vibration=146Hz power=40% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prince-ripcord-100-300g-2025",
+    "name": "Prince Ripcord 100 300g 2025",
+    "year": 2025,
+    "headSize": 100,
+    "strungWeight": 318,
+    "swingweight": 322,
+    "stiffness": 68,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 32.4,
+    "brand": "Prince",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=16.3 vibration=159Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prince-ripstick-100-280g-2025",
+    "name": "Prince Ripstick 100 280g 2025",
+    "year": 2025,
+    "headSize": 100,
+    "strungWeight": 295,
+    "swingweight": 317,
+    "stiffness": 66,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 34.5,
+    "brand": "Prince",
+    "balancePts": "1 pts HH",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=16.2 vibration=148Hz power=40% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prince-ripstick-100-300g-2025",
+    "name": "Prince Ripstick 100 300g 2025",
+    "year": 2025,
+    "headSize": 100,
+    "strungWeight": 318,
+    "swingweight": 326,
+    "stiffness": 67,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 33,
+    "brand": "Prince",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=15.4 vibration=149Hz power=42% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prince-ripstick-98-2025",
+    "name": "Prince Ripstick 98 2025",
+    "year": 2025,
+    "headSize": 98,
+    "strungWeight": 323,
+    "swingweight": 328,
+    "stiffness": 67,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 32.1,
+    "brand": "Prince",
+    "balancePts": "7 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=15.4 vibration=144Hz power=42% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prince-textreme-tour-100-290-2019",
+    "name": "Prince Textreme Tour 100 (290) (2019)",
+    "year": 2019,
+    "headSize": 100,
+    "strungWeight": 306,
+    "swingweight": 325,
+    "stiffness": 65,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 33.5,
+    "brand": "Prince",
+    "balancePts": "2 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=14.8 vibration=138Hz power=41% sweetzone=15sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prince-textreme-tour-100-310-2019",
+    "name": "Prince Textreme Tour 100 (310) (2019)",
+    "year": 2019,
+    "headSize": 100,
+    "strungWeight": 326,
+    "swingweight": 327,
+    "stiffness": 65,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 32,
+    "brand": "Prince",
+    "balancePts": "7 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=15.3 vibration=145Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prince-textreme-tour-100l-260-2019",
+    "name": "Prince Textreme Tour 100L (260) (2019)",
+    "year": 2019,
+    "headSize": 100,
+    "strungWeight": 278,
+    "swingweight": 314,
+    "stiffness": 65,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 34,
+    "brand": "Prince",
+    "balancePts": "1 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=14.2 vibration=149Hz power=40% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prince-textreme-tour-100p-2019",
+    "name": "Prince Textreme Tour 100P (2019)",
+    "year": 2019,
+    "headSize": 100,
+    "strungWeight": 326,
+    "swingweight": 324,
+    "stiffness": 66,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 32,
+    "brand": "Prince",
+    "balancePts": "7 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=15.1 vibration=145Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prince-textreme-tour-95-2019",
+    "name": "Prince Textreme Tour 95 (2019)",
+    "year": 2019,
+    "headSize": 95,
+    "strungWeight": 337,
+    "swingweight": 325,
+    "stiffness": 64,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      57
+    ],
+    "balance": 31.8,
+    "brand": "Prince",
+    "balancePts": "8 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=15.1 vibration=139Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prokennex-black-ace-300-2024",
+    "name": "ProKennex Black Ace (300) 2024",
+    "year": 2024,
+    "headSize": 100,
+    "strungWeight": 318,
+    "swingweight": 324,
+    "stiffness": 55,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 33,
+    "brand": "ProKennex",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=15.8 vibration=130Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prokennex-black-ace-105-2024",
+    "name": "ProKennex Black Ace 105 2024",
+    "year": 2024,
+    "headSize": 105,
+    "strungWeight": 318,
+    "swingweight": 322,
+    "stiffness": 62,
+    "beamWidth": [
+      24,
+      27,
+      24
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      48,
+      58
+    ],
+    "balance": 33,
+    "brand": "ProKennex",
+    "balancePts": "5 pts HL",
+    "powerLevel": "Medium-High",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium",
+    "frameProfile": "24/27/24mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=16.2 vibration=138Hz power=41% sweetzone=0sqin length=27.25in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prokennex-black-ace-pro-2024",
+    "name": "ProKennex Black Ace Pro 2024",
+    "year": 2024,
+    "headSize": 97,
+    "strungWeight": 323,
+    "swingweight": 325,
+    "stiffness": 57,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 33,
+    "brand": "ProKennex",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=15.4 vibration=133Hz power=41% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prokennex-ki-10-305-2018",
+    "name": "ProKennex Ki 10 (305) - 2018",
+    "year": 2018,
+    "headSize": 100,
+    "strungWeight": 320,
+    "swingweight": 330,
+    "stiffness": 70,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 33,
+    "brand": "ProKennex",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=15.4 vibration=158Hz power=42% sweetzone=18sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prokennex-ki-15-260-2018",
+    "name": "ProKennex Ki 15 (260) - 2018",
+    "year": 2018,
+    "headSize": 105,
+    "strungWeight": 275,
+    "swingweight": 316,
+    "stiffness": 70,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 34.8,
+    "brand": "ProKennex",
+    "balancePts": "Even",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=14.6 vibration=168Hz power=40% sweetzone=16sqin length=27.5in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prokennex-ki-15-300-2018",
+    "name": "ProKennex Ki 15 (300) - 2018",
+    "year": 2018,
+    "headSize": 105,
+    "strungWeight": 315,
+    "swingweight": 324,
+    "stiffness": 67,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 33,
+    "brand": "ProKennex",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=15.2 vibration=162Hz power=42% sweetzone=17sqin length=27.5in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prokennex-ki-5-300-2018",
+    "name": "ProKennex Ki 5 (300) - 2018",
+    "year": 2018,
+    "headSize": 100,
+    "strungWeight": 315,
+    "swingweight": 325,
+    "stiffness": 70,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 33,
+    "brand": "ProKennex",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=14.9 vibration=149Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prokennex-ki-5-320-2018",
+    "name": "ProKennex Ki 5 (320) - 2018",
+    "year": 2018,
+    "headSize": 100,
+    "strungWeight": 337,
+    "swingweight": 324,
+    "stiffness": 67,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 32,
+    "brand": "ProKennex",
+    "balancePts": "7 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=14.8 vibration=147Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prokennex-ki-q-20-2021",
+    "name": "ProKennex Ki Q+ 20 (2021)",
+    "year": 2021,
+    "headSize": 110,
+    "strungWeight": 298,
+    "swingweight": 320,
+    "stiffness": 68,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 33,
+    "brand": "ProKennex",
+    "balancePts": "5 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=15.6 vibration=146Hz power=41% sweetzone=17sqin length=27.25in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prokennex-ki-q-5-pro-2021",
+    "name": "ProKennex Ki Q+ 5 Pro (2021)",
+    "year": 2021,
+    "headSize": 100,
+    "strungWeight": 332,
+    "swingweight": 334,
+    "stiffness": 67,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 32,
+    "brand": "ProKennex",
+    "balancePts": "7 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=14.5 vibration=137Hz power=42% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "prokennex-ki-q-tour-315-2019",
+    "name": "ProKennex Ki Q+ Tour (315) (2019)",
+    "year": 2019,
+    "headSize": 98,
+    "strungWeight": 332,
+    "swingweight": 321,
+    "stiffness": 64,
+    "beamWidth": [
+      23,
+      26,
+      23
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 32.5,
+    "brand": "ProKennex",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23/26/23mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=13.5 vibration=141Hz power=41% sweetzone=15sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "volkl-c10-pro-2012",
+    "name": "Volkl C10 Pro 2012",
+    "year": 2012,
+    "headSize": 98,
+    "strungWeight": 347,
+    "swingweight": 331,
+    "stiffness": 65,
+    "beamWidth": [
+      20,
+      20,
+      20
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 31.6,
+    "brand": "Volkl",
+    "balancePts": "8 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "20/20/20mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=14.2 vibration=134Hz power=42% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "wilson-blade-104-2015",
+    "name": "Wilson Blade 104 (2015)",
+    "year": 2015,
+    "headSize": 104,
+    "strungWeight": 306,
+    "swingweight": 314,
+    "stiffness": 58,
+    "beamWidth": [
+      21,
+      21,
+      21
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 33.5,
+    "brand": "Wilson",
+    "balancePts": "2 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "21/21/21mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=15.1 vibration=135Hz power=40% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "wilson-blade-104-2013",
+    "name": "Wilson Blade 104 / 2013",
+    "year": 2013,
+    "headSize": 104,
+    "strungWeight": 262,
+    "swingweight": 303,
+    "stiffness": 60,
+    "beamWidth": [
+      21,
+      21,
+      21
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 33.2,
+    "brand": "Wilson",
+    "balancePts": "5 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "21/21/21mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=14.2 vibration=138Hz power=38% sweetzone=14sqin length=27.5in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "wilson-blade-93-2013",
+    "name": "Wilson Blade 93 / 2013",
+    "year": 2013,
+    "headSize": 93,
+    "strungWeight": 292,
+    "swingweight": 323,
+    "stiffness": 68,
+    "beamWidth": [
+      21,
+      21,
+      21
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 32,
+    "brand": "Wilson",
+    "balancePts": "7 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21/21/21mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=14 vibration=150Hz power=40% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "wilson-blade-98-16x19-2015",
+    "name": "Wilson Blade 98 (16x19) (2015)",
+    "year": 2015,
+    "headSize": 98,
+    "strungWeight": 329,
+    "swingweight": 343,
+    "stiffness": 69,
+    "beamWidth": [
+      21,
+      21,
+      21
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 34.2,
+    "brand": "Wilson",
+    "balancePts": "Even",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21/21/21mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=14.5 vibration=146Hz power=43% sweetzone=18sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "wilson-blade-98-16x19-2013",
+    "name": "Wilson Blade 98 (16x19) / 2013",
+    "year": 2013,
+    "headSize": 98,
+    "strungWeight": 290,
+    "swingweight": 338,
+    "stiffness": 69,
+    "beamWidth": [
+      21,
+      21,
+      21
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 34.4,
+    "brand": "Wilson",
+    "balancePts": "Even",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21/21/21mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=14.3 vibration=150Hz power=42% sweetzone=18sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "wilson-blade-98-18x20-2015",
+    "name": "Wilson Blade 98 (18x20 ) (2015)",
+    "year": 2015,
+    "headSize": 98,
+    "strungWeight": 322,
+    "swingweight": 333,
+    "stiffness": 64,
+    "beamWidth": [
+      21,
+      21,
+      21
+    ],
+    "pattern": "18x20",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 33.7,
+    "brand": "Wilson",
+    "balancePts": "2 pts HL",
+    "powerLevel": "Low",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21/21/21mm beam, 18x20 pattern",
+    "identity": "Standard Precision",
+    "notes": "TWU: twistweight=14.2 vibration=140Hz power=42% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "wilson-blade-98-18x20-2013",
+    "name": "Wilson Blade 98 (18x20) / 2013",
+    "year": 2013,
+    "headSize": 98,
+    "strungWeight": 281,
+    "swingweight": 328,
+    "stiffness": 64,
+    "beamWidth": [
+      21,
+      21,
+      21
+    ],
+    "pattern": "18x20",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 33.5,
+    "brand": "Wilson",
+    "balancePts": "2 pts HL",
+    "powerLevel": "Low",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21/21/21mm beam, 18x20 pattern",
+    "identity": "Standard Precision",
+    "notes": "TWU: twistweight=13.6 vibration=137Hz power=41% sweetzone=15sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "wilson-blade-98s-2015",
+    "name": "Wilson Blade 98S (2015)",
+    "year": 2015,
+    "headSize": 98,
+    "strungWeight": 310,
+    "swingweight": 330,
+    "stiffness": 64,
+    "beamWidth": [
+      21,
+      21,
+      21
+    ],
+    "pattern": "18x20",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 34.2,
+    "brand": "Wilson",
+    "balancePts": "Even",
+    "powerLevel": "Low",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21/21/21mm beam, 18x20 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=13.8 vibration=138Hz power=42% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "wilson-pro-staff-95s-2014",
+    "name": "Wilson Pro Staff 95S (2014)",
+    "year": 2014,
+    "headSize": 95,
+    "strungWeight": 327,
+    "swingweight": 300,
+    "stiffness": 65,
+    "beamWidth": [
+      21.5,
+      21.5,
+      21.5
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 32.2,
+    "brand": "Wilson",
+    "balancePts": "7 pts HL",
+    "powerLevel": "Low",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21.5/21.5/21.5mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=14.6 vibration=147Hz power=38% sweetzone=13sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "wilson-pro-staff-95s-2015",
+    "name": "Wilson Pro Staff 95S (2015)",
+    "year": 2015,
+    "headSize": 95,
+    "strungWeight": 321,
+    "swingweight": 314,
+    "stiffness": 62,
+    "beamWidth": [
+      21.5,
+      21.5,
+      21.5
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 33.8,
+    "brand": "Wilson",
+    "balancePts": "2 pts HL",
+    "powerLevel": "Low",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21.5/21.5/21.5mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=15.2 vibration=145Hz power=40% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "wilson-pro-staff-97-2016",
+    "name": "Wilson Pro Staff 97 (2016)",
+    "year": 2016,
+    "headSize": 97,
+    "strungWeight": 330,
+    "swingweight": 326,
+    "stiffness": 68,
+    "beamWidth": [
+      21.5,
+      21.5,
+      21.5
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 32.5,
+    "brand": "Wilson",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Low",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21.5/21.5/21.5mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=14.9 vibration=152Hz power=42% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "wilson-pro-staff-97-ls-black-2016",
+    "name": "Wilson Pro Staff 97 LS Black (2016)",
+    "year": 2016,
+    "headSize": 97,
+    "strungWeight": 304,
+    "swingweight": 298,
+    "stiffness": 68,
+    "beamWidth": [
+      21.5,
+      21.5,
+      21.5
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 33,
+    "brand": "Wilson",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Low",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21.5/21.5/21.5mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=13.1 vibration=157Hz power=38% sweetzone=13sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "wilson-pro-staff-97s-2016",
+    "name": "Wilson Pro Staff 97S (2016)",
+    "year": 2016,
+    "headSize": 97,
+    "strungWeight": 324,
+    "swingweight": 317,
+    "stiffness": 67,
+    "beamWidth": [
+      21.5,
+      21.5,
+      21.5
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 33,
+    "brand": "Wilson",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Low",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21.5/21.5/21.5mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=14.6 vibration=150Hz power=40% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "wilson-pro-staff-rf97-autograph-2016",
+    "name": "Wilson Pro Staff RF97 Autograph (2016)",
+    "year": 2016,
+    "headSize": 97,
+    "strungWeight": 354,
+    "swingweight": 322,
+    "stiffness": 69,
+    "beamWidth": [
+      21.5,
+      21.5,
+      21.5
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 31.3,
+    "brand": "Wilson",
+    "balancePts": "9 pts HL",
+    "powerLevel": "Low",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21.5/21.5/21.5mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=13.9 vibration=151Hz power=41% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "wilson-pro-staff-rf97-autograph-2018",
+    "name": "Wilson Pro Staff RF97 Autograph 2018",
+    "year": 2018,
+    "headSize": 97,
+    "strungWeight": 357,
+    "swingweight": 335,
+    "stiffness": 68,
+    "beamWidth": [
+      21.5,
+      21.5,
+      21.5
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      50,
+      60
+    ],
+    "balance": 31.5,
+    "brand": "Wilson",
+    "balancePts": "9 pts HL",
+    "powerLevel": "Low",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21.5/21.5/21.5mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=13.9 vibration=151Hz power=42% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "yonex-ezone-100-2025",
+    "name": "Yonex EZONE 100 (2025)",
+    "year": 2025,
+    "headSize": 100,
+    "strungWeight": 318,
+    "swingweight": 315,
+    "stiffness": 68,
+    "beamWidth": [
+      23.8,
+      26.5,
+      22
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      45,
+      60
+    ],
+    "balance": 33,
+    "brand": "Yonex",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23.8/26.5/22mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=14.9 vibration=159Hz power=40% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "yonex-ezone-100-2022",
+    "name": "Yonex EZONE 100 2022",
+    "year": 2022,
+    "headSize": 100,
+    "strungWeight": 318,
+    "swingweight": 317,
+    "stiffness": 67,
+    "beamWidth": [
+      23.8,
+      26.5,
+      22
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      45,
+      60
+    ],
+    "balance": 33,
+    "brand": "Yonex",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23.8/26.5/22mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=15 vibration=150Hz power=40% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "yonex-ezone-100-sl-2025",
+    "name": "Yonex EZONE 100 SL (2025)",
+    "year": 2025,
+    "headSize": 100,
+    "strungWeight": 283,
+    "swingweight": 297,
+    "stiffness": 66,
+    "beamWidth": [
+      23.8,
+      26.5,
+      22
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      45,
+      60
+    ],
+    "balance": 34,
+    "brand": "Yonex",
+    "balancePts": "1 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23.8/26.5/22mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=14.5 vibration=157Hz power=38% sweetzone=13sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "yonex-ezone-100l-2025",
+    "name": "Yonex EZONE 100L (2025)",
+    "year": 2025,
+    "headSize": 100,
+    "strungWeight": 301,
+    "swingweight": 310,
+    "stiffness": 67,
+    "beamWidth": [
+      23.8,
+      26.5,
+      22
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      45,
+      60
+    ],
+    "balance": 33.5,
+    "brand": "Yonex",
+    "balancePts": "2 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23.8/26.5/22mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=14.7 vibration=150Hz power=40% sweetzone=14sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "yonex-ezone-105-2025",
+    "name": "Yonex EZONE 105 (2025)",
+    "year": 2025,
+    "headSize": 105,
+    "strungWeight": 289,
+    "swingweight": 312,
+    "stiffness": 66,
+    "beamWidth": [
+      24,
+      27,
+      23
+    ],
+    "pattern": "16x18",
+    "tensionRange": [
+      45,
+      60
+    ],
+    "balance": 34,
+    "brand": "Yonex",
+    "balancePts": "1 pts HL",
+    "powerLevel": "Medium-High",
+    "strokeStyle": "Medium",
+    "swingSpeed": "Medium",
+    "frameProfile": "24/27/23mm beam, 16x18 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=15.6 vibration=155Hz power=40% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "yonex-ezone-98-2025",
+    "name": "Yonex EZONE 98 (2025)",
+    "year": 2025,
+    "headSize": 98,
+    "strungWeight": 323,
+    "swingweight": 320,
+    "stiffness": 63,
+    "beamWidth": [
+      23.8,
+      26.5,
+      22
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      45,
+      60
+    ],
+    "balance": 32.5,
+    "brand": "Yonex",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23.8/26.5/22mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=15 vibration=139Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "yonex-ezone-98-2022",
+    "name": "Yonex EZONE 98 2022",
+    "year": 2022,
+    "headSize": 98,
+    "strungWeight": 323,
+    "swingweight": 318,
+    "stiffness": 65,
+    "beamWidth": [
+      23.8,
+      26.5,
+      22
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      45,
+      60
+    ],
+    "balance": 32.5,
+    "brand": "Yonex",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23.8/26.5/22mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=14 vibration=144Hz power=40% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "yonex-ezone-98-tour-2025",
+    "name": "Yonex EZONE 98 Tour (2025)",
+    "year": 2025,
+    "headSize": 98,
+    "strungWeight": 332,
+    "swingweight": 335,
+    "stiffness": 62,
+    "beamWidth": [
+      23.8,
+      26.5,
+      22
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      45,
+      60
+    ],
+    "balance": 33,
+    "brand": "Yonex",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23.8/26.5/22mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=15.9 vibration=139Hz power=42% sweetzone=18sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "yonex-ezone-98-tour-2022",
+    "name": "Yonex EZONE 98 Tour 2022",
+    "year": 2022,
+    "headSize": 98,
+    "strungWeight": 332,
+    "swingweight": 332,
+    "stiffness": 64,
+    "beamWidth": [
+      23.8,
+      26.5,
+      22
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      45,
+      60
+    ],
+    "balance": 33,
+    "brand": "Yonex",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "23.8/26.5/22mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=14.9 vibration=144Hz power=42% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "yonex-vcore-100-2021",
+    "name": "Yonex VCORE 100+ (2021)",
+    "year": 2021,
+    "headSize": 100,
+    "strungWeight": 333,
+    "swingweight": 333,
+    "stiffness": 66,
+    "beamWidth": [
+      25.3,
+      25.3,
+      22
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      45,
+      60
+    ],
+    "balance": 34,
+    "brand": "Yonex",
+    "balancePts": "3 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "25.3/25.3/22mm beam, 16x19 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=14.7 vibration=145Hz power=42% sweetzone=17sqin length=27.5in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "yonex-vcore-95-2018",
+    "name": "Yonex VCORE 95 (2018)",
+    "year": 2018,
+    "headSize": 95,
+    "strungWeight": 326,
+    "swingweight": 325,
+    "stiffness": 62,
+    "beamWidth": [
+      21,
+      21,
+      21
+    ],
+    "pattern": "16x20",
+    "tensionRange": [
+      45,
+      60
+    ],
+    "balance": 32,
+    "brand": "Yonex",
+    "balancePts": "7 pts HL",
+    "powerLevel": "Low",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21/21/21mm beam, 16x20 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=13 vibration=139Hz power=41% sweetzone=15sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "yonex-vcore-95-2023",
+    "name": "Yonex VCORE 95 2023",
+    "year": 2023,
+    "headSize": 95,
+    "strungWeight": 326,
+    "swingweight": 321,
+    "stiffness": 61,
+    "beamWidth": [
+      21,
+      21,
+      21
+    ],
+    "pattern": "16x20",
+    "tensionRange": [
+      45,
+      60
+    ],
+    "balance": 32,
+    "brand": "Yonex",
+    "balancePts": "7 pts HL",
+    "powerLevel": "Low",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "21/21/21mm beam, 16x20 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=14 vibration=137Hz power=41% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "yonex-vcore-98-2023",
+    "name": "Yonex VCORE 98 2023",
+    "year": 2023,
+    "headSize": 98,
+    "strungWeight": 323,
+    "swingweight": 318,
+    "stiffness": 62,
+    "beamWidth": [
+      24,
+      24,
+      18
+    ],
+    "pattern": "16x18",
+    "tensionRange": [
+      45,
+      60
+    ],
+    "balance": 32.5,
+    "brand": "Yonex",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "24/24/18mm beam, 16x18 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=13.9 vibration=141Hz power=40% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "yonex-vcore-98-tour-2023",
+    "name": "Yonex VCORE 98 Tour 2023",
+    "year": 2023,
+    "headSize": 98,
+    "strungWeight": 332,
+    "swingweight": 326,
+    "stiffness": 63,
+    "beamWidth": [
+      24,
+      24,
+      18
+    ],
+    "pattern": "16x18",
+    "tensionRange": [
+      45,
+      60
+    ],
+    "balance": 33,
+    "brand": "Yonex",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "24/24/18mm beam, 16x18 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=14.7 vibration=146Hz power=41% sweetzone=17sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "yonex-vcore-98-2021",
+    "name": "Yonex VCORE 98+ (2021)",
+    "year": 2021,
+    "headSize": 98,
+    "strungWeight": 323,
+    "swingweight": 334,
+    "stiffness": 66,
+    "beamWidth": [
+      24,
+      24,
+      18
+    ],
+    "pattern": "16x18",
+    "tensionRange": [
+      45,
+      60
+    ],
+    "balance": 33.5,
+    "brand": "Yonex",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "24/24/18mm beam, 16x18 pattern",
+    "identity": "Standard",
+    "notes": "TWU: twistweight=13.9 vibration=144Hz power=42% sweetzone=17sqin length=27.5in",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "yonex-vcore-pro-97-310-2018",
+    "name": "Yonex VCORE Pro 97 (310) (2018)",
+    "year": 2018,
+    "headSize": 97,
+    "strungWeight": 326,
+    "swingweight": 317,
+    "stiffness": 64,
+    "beamWidth": [
+      24,
+      24,
+      22
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      45,
+      60
+    ],
+    "balance": 32,
+    "brand": "Yonex",
+    "balancePts": "7 pts HL",
+    "powerLevel": "Medium",
+    "strokeStyle": "Medium-Full",
+    "swingSpeed": "Medium-Fast",
+    "frameProfile": "24/24/22mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU: twistweight=13.5 vibration=142Hz power=40% sweetzone=16sqin",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "tecnifibre-tfight-rs-300",
+    "name": "Tecnifibre TFight RS 300",
+    "year": 2021,
+    "headSize": 100,
+    "strungWeight": 300,
+    "swingweight": 290,
+    "stiffness": 64,
+    "beamWidth": [
+      22.5,
+      22.5,
+      22.5
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      49,
+      59
+    ],
+    "balance": 33,
+    "brand": "Tecnifibre",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "22.5/22.5/22.5mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU data. RS series - control-oriented with Isoflex technology.",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "tecnifibre-tfight-rs-305",
+    "name": "Tecnifibre TFight RS 305",
+    "year": 2021,
+    "headSize": 98,
+    "strungWeight": 305,
+    "swingweight": 295,
+    "stiffness": 64,
+    "beamWidth": [
+      22.5,
+      22.5,
+      22.5
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      49,
+      59
+    ],
+    "balance": 33,
+    "brand": "Tecnifibre",
+    "balancePts": "4 pts HL",
+    "powerLevel": "Low-Medium",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "22.5/22.5/22.5mm beam, 16x19 pattern",
+    "identity": "Control",
+    "notes": "TWU data. Heavier RS variant for advanced players.",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
+  },
+  {
+    "id": "tecnifibre-tfight-rs-320",
+    "name": "Tecnifibre TFight RS 320",
+    "year": 2021,
+    "headSize": 98,
+    "strungWeight": 320,
+    "swingweight": 310,
+    "stiffness": 64,
+    "beamWidth": [
+      22.5,
+      22.5,
+      22.5
+    ],
+    "pattern": "16x19",
+    "tensionRange": [
+      49,
+      59
+    ],
+    "balance": 32.5,
+    "brand": "Tecnifibre",
+    "balancePts": "6 pts HL",
+    "powerLevel": "Low",
+    "strokeStyle": "Full",
+    "swingSpeed": "Fast",
+    "frameProfile": "22.5/22.5/22.5mm beam, 16x19 pattern",
+    "identity": "Control Precision",
+    "notes": "TWU data. Heaviest RS - tour level control.",
+    "_meta": {
+      "aeroBonus": 0,
+      "comfortTech": 0,
+      "spinTech": 0,
+      "genBonus": 0
+    },
+    "_provenance": {
+      "source": "csv",
+      "dateAdded": "2026-03-23",
+      "confidence": "high",
+      "estimatedFields": []
+    }
   }
 ]

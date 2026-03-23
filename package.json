@@ -14,7 +14,8 @@
     "ingest:frame":    "node pipeline/scripts/ingest.js --type frame",
     "ingest:string":   "node pipeline/scripts/ingest.js --type string",
     "pipeline":        "npm run validate && npm run export:verify",
-    "scrape:twu":      "node pipeline/scripts/scrape-twu.js"
+    "scrape:twu":      "node pipeline/scripts/scrape-twu.js",
+    "enrich:twu":      "node pipeline/scripts/enrich-twu-csv.js"
   },
   "repository": {
     "type": "git",
