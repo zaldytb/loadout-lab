@@ -915,6 +915,27 @@ body {
     transform: rotate(180deg);
   }
 
+  .dock-mob-theme {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.15s;
+  }
+
+  .dock-mob-theme:hover {
+    color: var(--text-primary);
+  }
+
   /* --- Backdrop --- */
   .dock-backdrop {
     position: fixed;
@@ -983,6 +1004,10 @@ body {
   /* Mobile-only elements: never visible on desktop */
   .dock-mobile-bar {
     display: none !important;
+  }
+
+  .dock-mob-theme {
+    display: none;
   }
 
   .dock-backdrop {
