@@ -66,6 +66,33 @@ Required columns are shown in white; optional columns in grey.
 | spinTech | number | `_meta` tech bonus (default 0) |
 | genBonus | number | `_meta` tech bonus (default 0) |
 
+## Building the installer
+
+### Prerequisites
+
+- Node.js ≥ 18 on the **build machine**
+- Windows (for a native `.exe`; cross-compiling from macOS/Linux requires Wine)
+
+### Steps
+
+```bash
+cd tools/frame-gui
+npm install          # installs Electron + electron-builder
+npm run build:win    # produces dist/FrameGuiSetup.exe
+```
+
+The installer is written to `tools/frame-gui/dist/`. Distribute `FrameGuiSetup.exe` to users.
+
+### Custom icon (optional)
+
+Place a 256×256 `icon.ico` at `tools/frame-gui/build/icon.ico` before running the build. electron-builder will pick it up automatically. Without it, the default Electron icon is used.
+
+### Runtime requirement for end users
+
+The installer bundles Electron but **not** Node.js. Users must have [Node.js](https://nodejs.org) installed to use the Import and Run Pipeline features. The app shows a clear error dialog on launch if Node.js is missing.
+
+---
+
 ## Contract
 
 **The GUI never edits `frames.json` or `data.js` directly.**
