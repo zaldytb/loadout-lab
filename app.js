@@ -3751,7 +3751,7 @@ function getRatingDescriptor(score, identity) {
 
 function renderOCFoundation(racquet, stringConfig, stats) {
   const el = $('#oc-foundation');
-  const sep = '<span class="oc-sep">·</span>';
+  const sep = '<span class="oc-sep">/</span>';
 
   // Get string data
   let strStiff, strTensionLoss, strSpinPot;
@@ -3770,16 +3770,16 @@ function renderOCFoundation(racquet, stringConfig, stats) {
 
   el.innerHTML = `
     <div class="oc-foundation-group">
-      <div class="oc-foundation-group-title">Frame</div>
-      <div class="oc-foundation-group-values">${racquet.strungWeight}g ${sep} SW ${racquet.swingweight} ${sep} ${racquet.stiffness} RA ${sep} ${racquet.pattern}</div>
+      <span class="oc-foundation-group-title">[FRAME]</span>
+      <span class="oc-foundation-group-values">WGHT ${racquet.strungWeight}g ${sep} SW ${racquet.swingweight} ${sep} RA ${racquet.stiffness} ${sep} PAT ${racquet.pattern}</span>
     </div>
     <div class="oc-foundation-group">
-      <div class="oc-foundation-group-title">String</div>
-      <div class="oc-foundation-group-values">Stiffness ${strStiff} ${sep} T-Loss ${strTensionLoss}% ${sep} Spin ${strSpinPot}</div>
+      <span class="oc-foundation-group-title">[STRNG]</span>
+      <span class="oc-foundation-group-values">STIF ${strStiff} ${sep} LOSS ${strTensionLoss}% ${sep} SPIN ${strSpinPot}</span>
     </div>
     <div class="oc-foundation-group">
-      <div class="oc-foundation-group-title">Model</div>
-      <div class="oc-foundation-group-values">Power ${stats.power} ${sep} Control ${stats.control} ${sep} Comfort ${stats.comfort}</div>
+      <span class="oc-foundation-group-title">[MODEL]</span>
+      <span class="oc-foundation-group-values">POWR ${stats.power} ${sep} CTRL ${stats.control} ${sep} COMF ${stats.comfort}</span>
     </div>
   `;
 }
@@ -3828,8 +3828,6 @@ function renderStatBars(stats) {
 
   const keyToLabel = {};
   STAT_KEYS.forEach((k, i) => keyToLabel[k] = STAT_LABELS[i]);
-  const keyToClass = {};
-  STAT_KEYS.forEach((k, i) => keyToClass[k] = STAT_CSS_CLASSES[i]);
 
   let barIdx = 0;
   STAT_GROUPS.forEach(group => {
@@ -3839,15 +3837,18 @@ function renderStatBars(stats) {
 
     group.keys.forEach(key => {
       const value = stats[key];
-      const color = _statBarColor(value);
+      const isHigh = value > 70;
+      const highClass = isHigh ? ' high' : '';
       const row = document.createElement('div');
       row.className = 'stat-row';
       row.innerHTML = `
-        <span class="stat-label">${keyToLabel[key]}</span>
-        <div class="stat-bar-track">
-          <div class="stat-bar-fill" data-target="${value}" data-color="${color}"></div>
+        <div class="stat-row-header">
+          <span class="stat-label">${keyToLabel[key]}</span>
+          <span class="stat-value">${value}</span>
         </div>
-        <span class="stat-value" style="color:${color}">${value}</span>
+        <div class="stat-bar-track">
+          <div class="stat-bar-fill${highClass}" data-target="${value}"></div>
+        </div>
       `;
       groupDiv.appendChild(row);
       barIdx++;
@@ -3862,8 +3863,6 @@ function renderStatBars(stats) {
       container.querySelectorAll('.stat-bar-fill').forEach((bar, idx) => {
         const val = parseFloat(bar.dataset.target);
         bar.style.width = val + '%';
-        bar.style.background = bar.dataset.color;
-        bar.style.opacity = (0.35 + (val / 100) * 0.65).toFixed(2);
         bar.style.transitionDelay = (idx * 40) + 'ms';
       });
     });
@@ -3882,20 +3881,63 @@ function renderBuildDNAHighlights(stats) {
   const top3 = sorted.slice(0, 3);
   const bot2 = sorted.slice(-2).reverse();
 
-  const topChips = top3.map(s =>
-    '<span class="dna-chip dna-chip-strong">' + s.label + ' <b>' + s.val + '</b></span>'
+  // Hardware log format: [+] for strong, [-] for gaps
+  const topLogs = top3.map(s =>
+    '<span class="dna-log-strong">[+] ' + s.label.toUpperCase() + ' ' + s.val + '</span>'
   ).join('');
-  const botChips = bot2.map(s =>
-    '<span class="dna-chip dna-chip-gap">' + s.label + ' <b>' + s.val + '</b></span>'
+  const botLogs = bot2.map(s =>
+    '<span class="dna-log-gap">[-] ' + s.label.toUpperCase() + ' ' + s.val + '</span>'
   ).join('');
 
   el.innerHTML = `
     <div class="dna-highlights-row">
-      <span class="dna-highlights-label">Strongest</span>${topChips}
-      <span class="dna-highlights-sep">·</span>
-      <span class="dna-highlights-label">Gaps</span>${botChips}
+      <span class="dna-highlights-label">STRONG</span>${topLogs}
+      <span class="dna-highlights-label">GAP</span>${botLogs}
     </div>
   `;
+}
+
+// ---- Ballistic HUD Tooltip Handler ----
+function radarTooltipHandler(context) {
+  // Tooltip element creation
+  let tooltipEl = document.getElementById('chartjs-tooltip');
+  
+  if (!tooltipEl) {
+    tooltipEl = document.createElement('div');
+    tooltipEl.id = 'chartjs-tooltip';
+    tooltipEl.className = 'chartjs-tooltip';
+    document.body.appendChild(tooltipEl);
+  }
+  
+  const tooltip = context.tooltip;
+  
+  // Hide if no tooltip
+  if (tooltip.opacity === 0) {
+    tooltipEl.style.opacity = 0;
+    return;
+  }
+  
+  // Get data
+  const dataPoint = tooltip.dataPoints?.[0];
+  if (!dataPoint) return;
+  
+  const label = dataPoint.label;
+  const value = dataPoint.raw;
+  
+  // Build tooltip content
+  tooltipEl.innerHTML = `
+    <div class="tooltip-label">// ${label}</div>
+    <div class="tooltip-value">
+      <div class="tooltip-marker"></div>
+      <span>${value}</span>
+    </div>
+  `;
+  
+  // Position
+  const position = context.chart.canvas.getBoundingClientRect();
+  tooltipEl.style.opacity = 1;
+  tooltipEl.style.left = (position.left + window.scrollX + tooltip.caretX + 15) + 'px';
+  tooltipEl.style.top = (position.top + window.scrollY + tooltip.caretY - 10) + 'px';
 }
 
 function renderRadarChart(stats) {
@@ -3905,8 +3947,8 @@ function renderRadarChart(stats) {
 
   const isDark = document.documentElement.dataset.theme === 'dark';
   // Digicraft Brutalism — Artful Red accent
-  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
-  const angleColor = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)';
+  const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+  const angleColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
   const labelColor = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.44)';
   const accentColor = '#AF0000'; // Artful Red
   const fillColor = 'rgba(175, 0, 0, 0.06)'; // Barely visible tinted fill
@@ -3936,40 +3978,48 @@ function renderRadarChart(stats) {
         pointBackgroundColor: accentColor,
         pointBorderColor: 'transparent',
         pointRadius: 3,
-        pointHoverRadius: 5
+        pointHoverRadius: 6,
+        hitRadius: 30
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: true,
+      layout: {
+        padding: 0
+      },
       plugins: {
-        legend: { display: false }
+        legend: { display: false },
+        tooltip: {
+          enabled: false,
+          external: radarTooltipHandler
+        }
+      },
+      elements: {
+        point: {
+          hitRadius: 30,
+          hoverRadius: 6
+        }
       },
       scales: {
         r: {
-          beginAtZero: true,
+          min: 0,
           max: 100,
           ticks: {
-            stepSize: 25,
-            display: false
+            display: false,
+            stepSize: 20
           },
           grid: {
             color: gridColor,
-            circular: false,
-            lineWidth: 0.5
+            circular: true,
+            lineWidth: 1
           },
           angleLines: {
             color: angleColor,
-            lineWidth: 0.5
+            lineWidth: 1
           },
           pointLabels: {
-            font: {
-              family: "'Inter', sans-serif",
-              size: 10,
-              weight: 500
-            },
-            color: labelColor,
-            padding: 4
+            display: false
           }
         }
       },
@@ -5293,19 +5343,22 @@ function renderOptimalBuildWindow(sMin, sMax) {
     <div class="optimal-stats-grid">
       <div class="optimal-stat">
         <span class="optimal-stat-label">Control</span>
-        <span class="optimal-stat-value">${anchorStats.control}</span>
+        <span class="optimal-stat-value${anchorStats.control > 70 ? ' high' : ''}">${anchorStats.control}</span>
       </div>
+      <div class="optimal-stat-divider"></div>
       <div class="optimal-stat">
         <span class="optimal-stat-label">Comfort</span>
-        <span class="optimal-stat-value">${anchorStats.comfort}</span>
+        <span class="optimal-stat-value${anchorStats.comfort > 70 ? ' high' : ''}">${anchorStats.comfort}</span>
       </div>
+      <div class="optimal-stat-divider"></div>
       <div class="optimal-stat">
         <span class="optimal-stat-label">Spin</span>
-        <span class="optimal-stat-value">${anchorStats.spin}</span>
+        <span class="optimal-stat-value${anchorStats.spin > 70 ? ' high' : ''}">${anchorStats.spin}</span>
       </div>
+      <div class="optimal-stat-divider"></div>
       <div class="optimal-stat">
         <span class="optimal-stat-label">Power</span>
-        <span class="optimal-stat-value">${anchorStats.power}</span>
+        <span class="optimal-stat-value${anchorStats.power > 70 ? ' high' : ''}">${anchorStats.power}</span>
       </div>
     </div>
   `;
@@ -5922,17 +5975,19 @@ function renderOverallBuildScore(setup, animate) {
   }
   batteryHTML += '</div>';
 
+  const isSRank = tier.label === 'S Rank';
+  const rankClass = isSRank ? 'obs-rank-badge s-rank' : 'obs-rank-badge';
+  
   container.innerHTML = `
     <div class="obs-top-row">
       <div class="obs-score-group">
-        <span class="obs-score-value" style="color:${getObsScoreColor(score)}">${score.toFixed(1)}</span>
+        <span class="obs-score-value">${score.toFixed(1)}</span>
         ${deltaHTML}
-        <span class="obs-score-label">Composite</span>
       </div>
-      <span class="obs-rank-badge" style="${getObsBadgeStyle(score)}">${tier.label}</span>
+      <span class="${rankClass}">${tier.label}</span>
     </div>
     ${batteryHTML}
-    <p class="obs-subtitle">Composite score · rank ladder</p>
+    <p class="obs-subtitle">Overall Build Score · rank ladder</p>
   `;
 
   // OBS counting animation (skip during slider drag)
