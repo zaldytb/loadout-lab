@@ -1818,7 +1818,7 @@ function _renderDockPanelCompare(container) {
         <div class="dock-compare-slot" style="border-left: 3px solid ${color.border}">
           <div class="dock-compare-slot-header">
             <span class="dock-compare-slot-label" style="color: ${color.border}">Slot ${color.label}</span>
-            <span class="dock-compare-slot-obs" style="color:${slot.stats ? getObsScoreColor(parseFloat(obs)) : 'var(--text-faint)'}">${obs}</span>
+            <span class="dock-compare-slot-obs" style="color:${slot.stats ? getObsScoreColor(parseFloat(obs)) : 'var(--dc-storm)'}">${obs}</span>
           </div>
           <div class="dock-compare-slot-meta">${frameName}</div>
           <div class="dock-compare-slot-meta">${stringName} · ${slot.mainsTension}/${slot.crossesTension}</div>
@@ -2059,7 +2059,7 @@ function _syncDockRail() {
       obsEl.style.color = getObsScoreColor(activeLoadout.obs);
     } else {
       obsEl.textContent = '—';
-      obsEl.style.color = 'var(--text-faint)';
+      obsEl.style.color = 'var(--dc-storm)';
     }
   }
   if (countEl) {
@@ -2904,11 +2904,35 @@ const STAT_LABELS_FULL = ['Spin', 'Power', 'Control', 'Launch', 'Feel', 'Comfort
 const STAT_CSS_CLASSES = ['spin', 'power', 'control', 'launch', 'feel', 'comfort', 'stability', 'forgiveness', 'maneuverability', 'durability', 'playability'];
 
 function getSlotColors() {
-  const isDark = document.documentElement.dataset.theme === 'dark';
+  // Digicraft Brutalism — Slot A is Artful Red (active), B and C are platinum ghosts
   return [
-    { border: isDark ? '#38BDF8' : '#0EA5E9', bg: isDark ? 'rgba(56, 189, 248, 0.16)' : 'rgba(14, 165, 233, 0.14)', bgFaint: isDark ? 'rgba(56, 189, 248, 0.06)' : 'rgba(14, 165, 233, 0.06)', label: 'A', cssClass: 'a', borderDash: [] },
-    { border: isDark ? '#A78BFA' : '#8B5CF6', bg: isDark ? 'rgba(167, 139, 250, 0.16)' : 'rgba(139, 92, 246, 0.14)', bgFaint: isDark ? 'rgba(167, 139, 250, 0.06)' : 'rgba(139, 92, 246, 0.06)', label: 'B', cssClass: 'b', borderDash: [6, 3] },
-    { border: isDark ? '#FB923C' : '#F97316', bg: isDark ? 'rgba(251, 146, 60, 0.16)' : 'rgba(249, 115, 22, 0.14)', bgFaint: isDark ? 'rgba(251, 146, 60, 0.06)' : 'rgba(249, 115, 22, 0.06)', label: 'C', cssClass: 'c', borderDash: [2, 3] }
+    { 
+      // Slot A: Artful Red — the "active" read
+      border: 'rgba(175, 0, 0, 0.8)', 
+      bg: 'rgba(175, 0, 0, 0.06)', 
+      bgFaint: 'rgba(175, 0, 0, 0.04)', 
+      label: 'A', 
+      cssClass: 'a', 
+      borderDash: [] 
+    },
+    { 
+      // Slot B: Platinum ghost
+      border: 'rgba(220, 223, 226, 0.5)', 
+      bg: 'rgba(220, 223, 226, 0.03)', 
+      bgFaint: 'rgba(220, 223, 226, 0.02)', 
+      label: 'B', 
+      cssClass: 'b', 
+      borderDash: [6, 3] 
+    },
+    { 
+      // Slot C: Faintest platinum
+      border: 'rgba(220, 223, 226, 0.25)', 
+      bg: 'rgba(220, 223, 226, 0.02)', 
+      bgFaint: 'rgba(220, 223, 226, 0.01)', 
+      label: 'C', 
+      cssClass: 'c', 
+      borderDash: [2, 2] 
+    }
   ];
 }
 let SLOT_COLORS = getSlotColors();
@@ -3523,7 +3547,7 @@ function renderOverviewHero(racquet, stringConfig, stats, identity) {
           <circle class="ring-fill" cx="50" cy="50" r="42"
             stroke-dasharray="${circumference.toFixed(1)}"
             stroke-dashoffset="${dashOffset.toFixed(1)}"
-            style="stroke:${getObsScoreColor(score)}" />
+            style="stroke:${getObsRingColor()}" />
         </svg>
         <span class="hero-obs-value" style="color:${getObsScoreColor(score)}">${score.toFixed(1)}</span>
       </div>
@@ -3794,9 +3818,8 @@ const STAT_GROUPS = [
 ];
 
 function _statBarColor(val) {
-  if (val >= 70) return 'var(--fn)';
-  if (val >= 60) return 'var(--text-primary)';
-  return 'var(--text-muted)';
+  // Digicraft Brutalism — monochrome stat bars, no color coding
+  return 'var(--dc-platinum)';
 }
 
 function renderStatBars(stats) {
@@ -3881,11 +3904,12 @@ function renderRadarChart(stats) {
   const data = STAT_KEYS.map(k => stats[k]);
 
   const isDark = document.documentElement.dataset.theme === 'dark';
-  const gridColor = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)';
-  const angleColor = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.04)';
+  // Digicraft Brutalism — Artful Red accent
+  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
+  const angleColor = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)';
   const labelColor = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.44)';
-  const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--fn').trim() || '#0EA5E9';
-  const fillColor = isDark ? 'rgba(56, 189, 248, 0.12)' : 'rgba(14, 165, 233, 0.10)';
+  const accentColor = '#AF0000'; // Artful Red
+  const fillColor = 'rgba(175, 0, 0, 0.06)'; // Barely visible tinted fill
 
   if (currentRadarChart) {
     currentRadarChart.data.datasets[0].data = data;
@@ -3908,11 +3932,11 @@ function renderRadarChart(stats) {
         data,
         backgroundColor: fillColor,
         borderColor: accentColor,
-        borderWidth: 1.5,
+        borderWidth: 2,
         pointBackgroundColor: accentColor,
         pointBorderColor: 'transparent',
-        pointRadius: 2.5,
-        pointHoverRadius: 4
+        pointRadius: 3,
+        pointHoverRadius: 5
       }]
     },
     options: {
@@ -3940,7 +3964,7 @@ function renderRadarChart(stats) {
           },
           pointLabels: {
             font: {
-              family: "'General Sans', sans-serif",
+              family: "'Inter', sans-serif",
               size: 10,
               weight: 500
             },
@@ -4226,7 +4250,7 @@ function updateComparisonRadar() {
         legend: {
           display: true,
           labels: {
-            font: { family: "'General Sans', sans-serif", size: 11, weight: 500 },
+            font: { family: "'Inter', sans-serif", size: 11, weight: 500 },
             color: legendColor,
             usePointStyle: true,
             padding: 16
@@ -4241,7 +4265,7 @@ function updateComparisonRadar() {
           grid: { color: gridColor, circular: false, lineWidth: 0.5 },
           angleLines: { color: angleColor, lineWidth: 0.5 },
           pointLabels: {
-            font: { family: "'General Sans', sans-serif", size: 10, weight: 500 },
+            font: { family: "'Inter', sans-serif", size: 10, weight: 500 },
             color: labelColor
           }
         }
@@ -5530,11 +5554,14 @@ function renderSweepChart(setup) {
   const tensions = data.map(d => d.tension);
   const isDark = document.documentElement.dataset.theme === 'dark';
 
+  // Digicraft Brutalism — Artful Red primary, clean lines for others
   const curveColors = {
-    control: { border: isDark ? '#38BDF8' : '#0EA5E9', bg: isDark ? 'rgba(56,189,248,0.10)' : 'rgba(14,165,233,0.08)' },
-    comfort: { border: isDark ? '#A78BFA' : '#8B5CF6', bg: isDark ? 'rgba(167,139,250,0.10)' : 'rgba(139,92,246,0.08)' },
-    spin:    { border: isDark ? '#FB923C' : '#F97316', bg: isDark ? 'rgba(251,146,60,0.10)' : 'rgba(249,115,22,0.08)' },
-    power:   { border: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.30)', bg: 'transparent' }
+    // Primary: Control gets the red accent with barely visible fill
+    control: { border: '#AF0000', bg: 'rgba(175, 0, 0, 0.03)' },
+    // Others: platinum lines only, no fill
+    comfort: { border: 'rgba(220, 223, 226, 0.4)', bg: 'transparent' },
+    spin:    { border: 'rgba(220, 223, 226, 0.25)', bg: 'transparent' },
+    power:   { border: 'rgba(220, 223, 226, 0.15)', bg: 'transparent' }
   };
 
   const datasets = [
@@ -5545,7 +5572,7 @@ function renderSweepChart(setup) {
       backgroundColor: curveColors.control.bg,
       fill: true,
       tension: 0.3,
-      borderWidth: 2,
+      borderWidth: 2.5,
       pointRadius: 0,
       pointHoverRadius: 0,
       pointStyle: false,
@@ -5556,9 +5583,9 @@ function renderSweepChart(setup) {
       data: data.map(d => d.stats.comfort),
       borderColor: curveColors.comfort.border,
       backgroundColor: curveColors.comfort.bg,
-      fill: true,
+      fill: false,
       tension: 0.3,
-      borderWidth: 2,
+      borderWidth: 1.5,
       pointRadius: 0,
       pointHoverRadius: 0,
       pointStyle: false,
@@ -5569,9 +5596,9 @@ function renderSweepChart(setup) {
       data: data.map(d => d.stats.spin),
       borderColor: curveColors.spin.border,
       backgroundColor: curveColors.spin.bg,
-      fill: true,
+      fill: false,
       tension: 0.3,
-      borderWidth: 2,
+      borderWidth: 1.5,
       pointRadius: 0,
       pointHoverRadius: 0,
       pointStyle: false,
@@ -5618,7 +5645,7 @@ function renderSweepChart(setup) {
         ctx.stroke();
         ctx.setLineDash([]);
         ctx.fillStyle = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)';
-        ctx.font = "500 10px 'General Sans', sans-serif";
+        ctx.font = "500 10px 'Inter', sans-serif";
         ctx.textAlign = 'center';
         ctx.fillText('BASELINE', bx, chartArea.top - 6);
         ctx.restore();
@@ -5629,15 +5656,16 @@ function renderSweepChart(setup) {
         const ex = xScale.getPixelForValue(tuneState.exploredTension);
         if (ex >= chartArea.left && ex <= chartArea.right) {
           ctx.save();
-          ctx.strokeStyle = isDark ? '#38BDF8' : '#0EA5E9';
+          // Digicraft Brutalism — monochrome explored marker
+          ctx.strokeStyle = isDark ? 'rgba(220, 223, 226, 0.8)' : 'rgba(26, 26, 26, 0.7)';
           ctx.lineWidth = 1.5;
           ctx.setLineDash([]);
           ctx.beginPath();
           ctx.moveTo(ex, chartArea.top);
           ctx.lineTo(ex, chartArea.bottom);
           ctx.stroke();
-          ctx.fillStyle = isDark ? '#38BDF8' : '#0EA5E9';
-          ctx.font = "600 10px 'General Sans', sans-serif";
+          ctx.fillStyle = isDark ? 'rgba(220, 223, 226, 0.8)' : 'rgba(26, 26, 26, 0.7)';
+          ctx.font = "600 10px 'Inter', sans-serif";
           ctx.textAlign = 'center';
           ctx.fillText(`${tuneState.exploredTension} lbs`, ex, chartArea.top - 6);
           ctx.restore();
@@ -5650,7 +5678,8 @@ function renderSweepChart(setup) {
         const lx = xScale.getPixelForValue(w.low);
         const rx = xScale.getPixelForValue(w.high);
         ctx.save();
-        ctx.fillStyle = isDark ? 'rgba(56,189,248,0.06)' : 'rgba(14,165,233,0.08)';
+        // Digicraft Brutalism — subtle red tint for optimal window
+        ctx.fillStyle = 'rgba(175, 0, 0, 0.08)';
         ctx.fillRect(lx, chartArea.top, rx - lx, chartArea.bottom - chartArea.top);
         ctx.restore();
       }
@@ -5680,13 +5709,14 @@ function renderSweepChart(setup) {
         legend: {
           display: true,
           labels: {
-            font: { family: "'General Sans', sans-serif", size: 11, weight: 500 },
+            font: { family: "'JetBrains Mono', monospace", size: 9, weight: 600 },
             color: legendColor,
             usePointStyle: true,
             pointStyle: 'circle',
             padding: 16,
-            boxWidth: 8,
-            boxHeight: 8
+            boxWidth: 6,
+            boxHeight: 6,
+            textTransform: 'uppercase'
           }
         },
         tooltip: {
@@ -5696,7 +5726,7 @@ function renderSweepChart(setup) {
           borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
           borderWidth: 1,
           titleFont: { family: "'JetBrains Mono', monospace", size: 12, weight: 600 },
-          bodyFont: { family: "'General Sans', sans-serif", size: 11 },
+          bodyFont: { family: "'Inter', sans-serif", size: 11 },
           padding: 10,
           cornerRadius: 6,
           callbacks: {
@@ -5710,7 +5740,7 @@ function renderSweepChart(setup) {
           title: {
             display: true,
             text: 'Tension (lbs)',
-            font: { family: "'General Sans', sans-serif", size: 11, weight: 500 },
+            font: { family: "'Inter', sans-serif", size: 11, weight: 500 },
             color: tickColor
           },
           grid: { color: gridColor, lineWidth: 0.5 },
@@ -5726,7 +5756,7 @@ function renderSweepChart(setup) {
           title: {
             display: true,
             text: 'Rating',
-            font: { family: "'General Sans', sans-serif", size: 11, weight: 500 },
+            font: { family: "'Inter', sans-serif", size: 11, weight: 500 },
             color: tickColor
           },
           grid: { color: gridColor, lineWidth: 0.5 },
@@ -5761,7 +5791,9 @@ function renderBestValueMove() {
     const anchor = w.anchor;
     const diff = anchor - current;
     const direction = diff > 0 ? 'up' : 'down';
-    const arrowIcon = diff > 0 ? '↑' : '↓';
+    const SVG_CHEV_UP = '<svg width="10" height="10" viewBox="0 0 10 10" style="display:inline-block;vertical-align:middle"><path d="M2 7L5 3L8 7" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="square"/></svg>';
+    const SVG_CHEV_DOWN = '<svg width="10" height="10" viewBox="0 0 10 10" style="display:inline-block;vertical-align:middle"><path d="M2 3L5 7L8 3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="square"/></svg>';
+    const arrowIcon = diff > 0 ? SVG_CHEV_UP : SVG_CHEV_DOWN;
     container.innerHTML = `<div class="best-value-callout best-value-move">
       <span class="best-value-icon">${arrowIcon}</span>
       <span><strong>Best Value Move:</strong> ${direction} ${Math.abs(diff)} lbs to ${anchor} lbs for peak balanced performance.</span>
@@ -5793,36 +5825,34 @@ function getObsTier(score) {
 
 // Ice Court score color system — monochrome + fn blue at peak
 function getObsScoreColor(score) {
-  const isDark = document.documentElement.dataset.theme === 'dark';
-  if (score >= 80) return isDark ? 'var(--fn, #38BDF8)' : 'var(--fn, #0EA5E9)';
-  if (score >= 60) return 'var(--text-primary)';
-  if (score >= 40) return 'var(--text-muted)';
-  return 'var(--text-faint)';
+  // Digicraft Brutalism — monochrome OBS score display
+  // All scores use the same color; differentiation is via the rank ladder position
+  return 'var(--dc-white)';
+}
+
+function getObsRingColor() {
+  // Digicraft Brutalism — Artful Red when exploring, platinum when static
+  // Check if we're in tune mode and tension has been adjusted from baseline
+  if (typeof tuneState !== 'undefined' && tuneState.exploredTension !== tuneState.baselineTension) {
+    return '#AF0000'; // Artful Red when exploring
+  }
+  return 'var(--dc-border-active)'; // Platinum when static/saved
 }
 
 function getObsBadgeStyle(score) {
+  // Digicraft Brutalism — monochrome badge styling
+  // Differentiation via opacity, not color
   const isDark = document.documentElement.dataset.theme === 'dark';
-  if (score >= 80) return isDark
-    ? 'background: rgba(56, 189, 248, 0.12); color: #38BDF8;'
-    : 'background: rgba(14, 165, 233, 0.10); color: #0369A1;';
-  if (score >= 70) return isDark
-    ? 'background: rgba(250, 250, 250, 0.08); color: #FAFAFA;'
-    : 'background: rgba(24, 24, 27, 0.06); color: #18181B;';
-  if (score >= 60) return isDark
-    ? 'background: rgba(161, 161, 170, 0.10); color: #A1A1AA;'
-    : 'background: rgba(63, 63, 70, 0.08); color: #3F3F46;';
-  if (score >= 50) return isDark
-    ? 'background: rgba(113, 113, 122, 0.10); color: #71717A;'
-    : 'background: rgba(113, 113, 122, 0.08); color: #71717A;';
-  if (score >= 40) return isDark
-    ? 'background: rgba(251, 191, 36, 0.10); color: #FBBF24;'
-    : 'background: rgba(217, 119, 6, 0.08); color: #B45309;';
-  if (score >= 30) return isDark
-    ? 'background: rgba(251, 146, 60, 0.10); color: #FB923C;'
-    : 'background: rgba(234, 88, 12, 0.08); color: #C2410C;';
-  return isDark
-    ? 'background: rgba(248, 113, 113, 0.10); color: #F87171;'
-    : 'background: rgba(220, 38, 38, 0.06); color: #DC2626;';
+  const bg = isDark ? '220, 223, 226' : '26, 26, 26';
+  const text = isDark ? '240, 242, 244' : '10, 10, 10';
+  
+  if (score >= 80) return `background: rgba(${bg}, 0.12); color: rgba(${text}, 0.95);`;
+  if (score >= 70) return `background: rgba(${bg}, 0.10); color: rgba(${text}, 0.85);`;
+  if (score >= 60) return `background: rgba(${bg}, 0.08); color: rgba(${text}, 0.75);`;
+  if (score >= 50) return `background: rgba(${bg}, 0.06); color: rgba(${text}, 0.65);`;
+  if (score >= 40) return `background: rgba(${bg}, 0.05); color: rgba(${text}, 0.55);`;
+  if (score >= 30) return `background: rgba(${bg}, 0.04); color: rgba(${text}, 0.50);`;
+  return `background: rgba(${bg}, 0.03); color: rgba(${text}, 0.45);`;
 }
 
 // ---- OBS Counting Animation ----
@@ -5883,12 +5913,16 @@ function renderOverallBuildScore(setup, animate) {
     `<div class="obs-zone-line" style="left: ${t.min}%"></div>`
   ).join('');
 
+  // Ladder shows only tier indicators (dots), not full labels
+  // The full tier label is shown in the obs-rank-badge only
   const ladderLabels = OBS_TIERS.map((t, i) => {
     const centerPct = (t.min + t.max) / 2;
     const clampedPct = Math.max(8, Math.min(92, centerPct));
     const isActive = score >= t.min && (score < t.max || (t.max === 100 && score >= t.min));
     const row = i % 2 === 0 ? 'obs-ladder-row-top' : 'obs-ladder-row-bot';
-    return `<span class="obs-ladder-label ${row} ${isActive ? 'obs-ladder-active' : ''}" style="left: ${clampedPct}%" data-tier="${t.label}">${t.label}</span>`;
+    // Only show a dot indicator, not the full label
+    const indicator = isActive ? '•' : '';
+    return `<span class="obs-ladder-label ${row} ${isActive ? 'obs-ladder-active' : ''}" style="left: ${clampedPct}%" data-tier="${t.label}">${indicator}</span>`;
   }).join('');
 
   container.innerHTML = `
@@ -8345,20 +8379,21 @@ function _compPickDiverseBuilds(builds, count) {
   return result.slice(0, count);
 }
 
+// Digicraft Brutalism — monochrome archetype colors (all use same base with varying opacity)
 const _compArchetypeColors = {
-  'Spin Focus': 'var(--fn)',
-  'Control Focus': 'var(--blue-tag)',
-  'Power Focus': 'var(--orange)',
-  'Comfort Build': 'var(--green-tag)',
-  'Feel Build': 'var(--purple)',
-  'Durability Build': 'var(--amber-tag)',
-  'Balanced': 'var(--text-muted)'
+  'Spin Focus': 'rgba(220, 223, 226, 0.9)',
+  'Control Focus': 'rgba(220, 223, 226, 0.8)',
+  'Power Focus': 'rgba(220, 223, 226, 0.7)',
+  'Comfort Build': 'rgba(220, 223, 226, 0.75)',
+  'Feel Build': 'rgba(220, 223, 226, 0.85)',
+  'Durability Build': 'rgba(220, 223, 226, 0.65)',
+  'Balanced': 'rgba(220, 223, 226, 0.5)'
 };
 
 function _compRenderBuildCard(build, index, racquet) {
   const s = build.stats;
   const obsStyle = getObsBadgeStyle(build.score);
-  const borderColor = _compArchetypeColors[build.archetype] || 'var(--text-muted)';
+  const borderColor = _compArchetypeColors[build.archetype] || 'var(--dc-storm)';
   const isHybrid = build.type === 'hybrid';
   const stringLabel = isHybrid ? (build.label || build.string.name) : build.string.name;
   const metaLabel = isHybrid ? `Hybrid · M:${build.tension} / X:${build.crossesTension}` : `Full Bed · ${build.tension} lbs`;
@@ -8568,7 +8603,7 @@ function _fmbRenderFrameCard(fr, idx) {
     'Power Focus': 'var(--orange)',
     'Comfort Build': 'var(--green-tag)',
     'Feel Build': 'var(--purple)',
-    'Durability Build': 'var(--text-muted)',
+    'Durability Build': 'var(--dc-storm)',
     'Balanced': 'var(--text-secondary)'
   };
 
