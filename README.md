@@ -1,176 +1,77 @@
-# Loadout Lab
+# Tennis Loadout Lab
 
-A physics-based tennis equipment analysis tool. Pick a racquet, string, and tension — the engine predicts how your setup will play across nine attributes (power, spin, control, comfort, feel, stability, forgiveness, launch, maneuverability).
+**Frame × String × Tension Prediction Engine**
 
-## Running the app
+Physics-based tennis equipment prediction tool. Calculates composite performance scores across 11 attributes by modeling frame physics, string properties, tension effects, and hybrid interactions.
 
-No build step required. Open `index.html` directly in any modern browser:
+Zero dependencies. No build step. Three files: `index.html`, `app.js`, `style.css` + `data.js` (generated).
 
-```
-open index.html          # macOS
-xdg-open index.html      # Linux
-start index.html         # Windows
-```
+## Quick Start
 
-Or serve locally with any static file server:
+Open `index.html` in any browser. That's it.
 
-```
-npx serve .
-python3 -m http.server 8080
-```
+## Architecture
 
-## Modes
+### Prediction Engine (app.js)
 
-| Mode | Description |
-|------|-------------|
-| Overview | Dashboard summary of the active loadout |
-| Tune | Adjust tension and see live score deltas |
-| Compare | Side-by-side analysis of up to 3 loadouts |
-| Optimize | Frame recommendation engine (Find My Build quiz) |
-| Bible | Full racquet compendium with raw specs |
-| How It Works | In-app explanation of the prediction model |
+4-layer pipeline: Frame Physics → String Profile → Tension Modifier → Hybrid Interaction
 
-## Project structure
+- **L0** `calcFrameBase()` — normalizes raw specs, derives 9 attributes, applies technology bonuses
+- **L1** `calcBaseStringProfile()` + `calcStringFrameMod()` — string scoring with frame coupling
+- **L2** `calcTensionModifier()` — pattern-aware tension effects
+- **L3** `calcHybridInteraction()` — mains/crosses pairing bonuses
 
-```
-index.html   — app shell and static layout (1,200 lines)
-app.js       — all data and logic (≈13,000 lines)
-style.css    — design system and component styles (≈8,000 lines)
-```
+Composite score (OBS) maps to a 10-tier ranking system.
 
-No framework, no bundler, no dependencies beyond Chart.js (CDN) and Google Fonts.
+### Data Layer
 
-## Data layer (`app.js`)
+Equipment data lives in `pipeline/data/` as JSON files. The browser loads `data.js` which is generated from these files.
 
-| Constant | Contents |
-|----------|----------|
-| `RACQUETS[]` | 60+ racquet specs: stiffness, beam, swingweight, pattern, balance, weight |
-| `STRINGS[]` | 100+ string specs: TWU scores, stiffness, tensionLoss, spinPotential, gauge |
-| `FRAME_META{}` | Per-frame technology bonuses (aero, comfortTech, spinTech, genBonus) not captured by raw specs |
+- `pipeline/data/frames.json` — racquet database (source of truth)
+- `pipeline/data/strings.json` — string database (source of truth)
+- `data.js` — generated, never edit directly
 
-## Prediction engine (`app.js`)
+### Design System
 
-The engine is a four-layer pipeline called via `predictSetup(racquet, stringConfig)`:
-
-```
-Layer 0 — calcFrameBase(racquet)
-  Normalizes raw specs → [0,1], computes 9 attribute scores via
-  weighted linear models, enforces tradeoff ceilings, compresses to 50–85.
-
-Layer 1 — calcBaseStringProfile(stringData)
-  Derives standalone string scores from TWU-measured stiffness,
-  tensionLoss, and spinPotential. No frame interaction yet.
-
-  calcStringFrameMod(stringData)
-  String × frame interaction modifiers (material affinity, stiffness pairing).
-
-Layer 2 — calcTensionModifier(mainsTension, crossesTension, tensionRange, pattern)
-  Pattern-aware tension overlay. Open beds (≤18 crosses) reward
-  mains-tighter differentials; dense beds (≥20 crosses) prefer near-equal.
-  Absolute level shifts power ↔ control ~2pts per 2 lbs from midpoint.
-
-Layer 3 — calcHybridInteraction(mains, crosses)   [hybrid setups only]
-  Pairing-specific bonuses/penalties for gut×poly, multi×poly, etc.
-```
-
-Final scores are blended and clamped to [0, 100] before display.
-
-## Loadout persistence
-
-Loadouts are stored in `localStorage`. The Share button encodes the active
-loadout into a URL query string (`?build=…`) for easy sharing without a backend.
+"Digicraft Brutalism" — monochrome base (#1A1A1A void, #DCDFE2 platinum, #5E666C storm) with #AF0000 artful red accent for data visualization. Inter + JetBrains Mono typography. Halftone grain textures. No drop shadows.
 
 ## Data Pipeline
-
-Equipment data (racquets, strings) lives in `pipeline/data/` as JSON files. The browser loads `data.js` which is generated from these JSON files.
 
 ### Adding new equipment
 
 ```bash
-# Add a frame interactively
+# Interactive
 npm run ingest:frame
-
-# Add a string interactively (supports twScore estimation)
 npm run ingest:string
 
-# Batch import strings from CSV
+# Batch CSV import
+node pipeline/scripts/ingest.js --type frame --csv path/to/file.csv
 node pipeline/scripts/ingest.js --type string --csv path/to/file.csv
 
-# Batch import frames from CSV
-node pipeline/scripts/ingest.js --type frame --csv path/to/frames.csv
-```
-
-#### Visual batch editor (no CLI required)
-
-Open `tools/frame-editor.html` in any browser to add frames in a spreadsheet-like table. Fill in rows, click Download CSV, then run:
-
-```bash
-node pipeline/scripts/ingest.js --type frame --csv path/to/downloaded.csv
+# After any addition
 npm run pipeline
 ```
 
-#### TWU data importer (AI-assisted extraction)
+### Visual tools (browser-based, no install)
 
-Open `tools/twu-import.html` in any browser. Paste content from Tennis Warehouse University
-pages (comparison tables, review text, or raw HTML), and the tool uses Claude to extract
-structured frame or string data. Review the extracted entries, fill in any missing fields,
-then download CSV and run:
+- `tools/frame-editor.html` — spreadsheet-style batch frame editor, exports CSV
+- `tools/twu-import.html` — AI-assisted extraction from TWU pages using Claude API
 
-```bash
-node pipeline/scripts/ingest.js --type frame --csv path/to/twu-frames-YYYY-MM-DD.csv
-npm run pipeline
-```
-
-Requires an Anthropic API key (stored locally in your browser, never sent elsewhere).
-
-#### TWU bulk scraper (full database dump)
-
-Scrapes the entire TWU racquet comparison database and outputs a CSV ready for `ingest.js`.
-Uses only Node.js built-ins — no extra dependencies.
+### TWU bulk scraping
 
 ```bash
-# Full scrape — outputs pipeline/data/twu-scrape-YYYY-MM-DD.csv
+# Scrape all racquets from TWU comparison database
 npm run scrape:twu
 
-# Test with 5 racquets first
-node pipeline/scripts/scrape-twu.js --limit 5
+# Scrape polyester string data
+npm run scrape:twu-strings
 
-# Preview the racquet list without fetching data
-node pipeline/scripts/scrape-twu.js --dry-run
+# Enrich scraped frames with inferred specs (beamWidth, pattern, etc.)
+npm run enrich:twu -- --input pipeline/data/twu-scrape-YYYY-MM-DD.csv --filter --dedup
 
-# Resume an interrupted run from racquet 150
-node pipeline/scripts/scrape-twu.js --start 150
-
-# Custom output path or slower request rate
-node pipeline/scripts/scrape-twu.js --out path/to/output.csv --delay 500
+# Enrich scraped strings with gauge, shape, identity
+npm run enrich:twu-strings -- --input pipeline/data/twu-strings-raw-YYYY-MM-DD.csv --filter
 ```
-
-TWU provides: head size, strung weight, balance, swingweight, and stiffness (RA).
-It does **not** provide beam width, string pattern, or tension range — fill those in after scraping:
-
-1. Open the CSV in `tools/frame-editor.html` or a spreadsheet
-2. Fill in `beamWidth`, `pattern`, `tensionRange`, and `year` (where missing)
-3. Remove any racquets you don't want to import
-4. Run ingest and pipeline:
-
-```bash
-node pipeline/scripts/ingest.js --type frame --csv pipeline/data/twu-scrape-YYYY-MM-DD.csv
-npm run pipeline
-```
-
-Rows missing required fields are skipped by ingest with a clear message — that's expected.
-
-#### GUI — batch frame import (no CLI required)
-
-A desktop app is available in `tools/frame-gui/` for adding multiple frames without using the command line:
-
-```bash
-cd tools/frame-gui
-npm install
-npm start
-```
-
-Select the repo root on first launch. Use the table editor to add or paste frame rows, then click **Import into Loadout Lab**. The GUI writes a CSV to `pipeline/import/` and runs the ingest script automatically — it never edits `frames.json` or `data.js` directly. See [`tools/frame-gui/README.md`](tools/frame-gui/README.md) for full details.
 
 ### Pipeline commands
 
@@ -178,34 +79,58 @@ Select the repo root on first launch. Use the table editor to add or paste frame
 |---------|-------------|
 | `npm run validate` | Check all data against schemas |
 | `npm run export` | Regenerate data.js from JSON |
-| `npm run export:verify` | Regenerate + run canary tests |
+| `npm run export:verify` | Regenerate + canary regression test |
 | `npm run canary` | Run 5 regression canaries |
 | `npm run canary:baseline` | Re-record canary expected values |
-| `npm run estimate` | Show estimation accuracy stats |
+| `npm run estimate` | Show string estimation accuracy stats |
+| `npm run calibrate` | Re-fit string estimation coefficients |
 | `npm run pipeline` | Full validate + export + verify |
+| `npm run scrape:twu` | Scrape TWU racquet database |
+| `npm run scrape:twu-strings` | Scrape TWU string database |
+| `npm run enrich:twu` | Enrich scraped frame CSV |
+| `npm run enrich:twu-strings` | Enrich scraped string CSV (if script exists) |
 
 ### File structure
 
 ```
-pipeline/
-  data/
-    frames.json        ← 129 racquets (source of truth)
-    strings.json       ← 52 strings (source of truth)
-    canaries.json      ← regression test definitions
-  schemas/
-    frame.schema.json  ← validation schema for frames
-    string.schema.json ← validation schema for strings
-  scripts/
-    extract.js         ← one-time: extract data from app.js
-    validate.js        ← schema + range validation
-    estimate.js        ← string property estimation
-    ingest.js          ← add new entries (interactive/CSV)
-    canary-test.js     ← regression canary runner
-    export-to-app.js   ← JSON → data.js generator
-  engine/
-    core.js            ← portable engine (22 functions, Node.js)
+├── index.html              ← app shell
+├── app.js                  ← engine + UI (~9,000 lines)
+├── style.css               ← Digicraft design system
+├── data.js                 ← generated from pipeline (never edit)
+├── package.json
+│
+├── pipeline/
+│   ├── data/
+│   │   ├── frames.json         ← racquet database (source of truth)
+│   │   ├── strings.json        ← string database (source of truth)
+│   │   └── canaries.json       ← regression test definitions
+│   ├── schemas/
+│   │   ├── frame.schema.json   ← validation schema
+│   │   └── string.schema.json  ← validation schema
+│   ├── scripts/
+│   │   ├── validate.js         ← schema + range validation
+│   │   ├── estimate.js         ← string property estimation (OLS-fitted)
+│   │   ├── calibrate.js        ← re-fit estimation coefficients
+│   │   ├── ingest.js           ← add entries (interactive + CSV batch)
+│   │   ├── canary-test.js      ← regression canary runner
+│   │   ├── export-to-app.js    ← JSON → data.js generator
+│   │   ├── extract.js          ← one-time migration (DO NOT RE-RUN)
+│   │   ├── scrape-twu.js       ← TWU racquet scraper
+│   │   ├── scrape-twu-strings.js ← TWU string scraper
+│   │   ├── enrich-twu-csv.js   ← frame enrichment + filtering
+│   │   └── enrich-twu-strings.js ← string enrichment + filtering
+│   └── engine/
+│       └── core.js             ← portable engine (22 functions, Node.js)
+│
+└── tools/
+    ├── frame-editor.html       ← visual batch frame editor
+    └── twu-import.html         ← AI-assisted TWU data extraction
 ```
 
-### Key principle
+### Key principles
 
-`pipeline/data/*.json` is the source of truth. `data.js` is generated — never edit it directly. `app.js` contains only engine + UI — no equipment data.
+- `pipeline/data/*.json` is the source of truth
+- `data.js` is generated — never edit directly
+- `app.js` contains only engine + UI — no equipment data
+- The engine is deterministic — same inputs always produce same outputs
+- Canary tests guard against regression on every export
