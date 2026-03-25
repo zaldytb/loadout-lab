@@ -7126,21 +7126,21 @@ textarea:focus-visible {
 .comp-build-card {
   position: relative;
   background: transparent;
-  border: 1px solid var(--dc-storm, #5E666C);
+  border: 1px solid rgba(150, 150, 150, 0.2);
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   transition: border-color 0.2s ease;
 }
 .comp-build-card:hover {
-  border-color: var(--dc-platinum, #DCDFE2);
+  border-color: var(--dc-storm, #5E666C);
 }
 
 /* 2. The Featured Override */
 .comp-build-featured {
   grid-column: 1 / -1;
   border-color: var(--dc-accent, #FF4500);
-  background: linear-gradient(180deg, rgba(255, 69, 0, 0.03) 0%, transparent 100%);
+  box-shadow: 0 0 15px rgba(255, 69, 0, 0.1);
 }
 .comp-card-badge {
   position: absolute;
@@ -7214,7 +7214,7 @@ textarea:focus-visible {
 }
 .comp-card-btn {
   background: transparent;
-  border: 1px solid var(--dc-storm, #5E666C);
+  border: 1px solid rgba(150, 150, 150, 0.25);
   color: var(--dc-platinum, #DCDFE2);
   font-family: var(--dc-font-mono, monospace);
   font-size: 9px;
@@ -7226,8 +7226,8 @@ textarea:focus-visible {
   text-align: center;
 }
 .comp-card-btn:hover {
-  background: var(--dc-platinum, #DCDFE2);
-  color: var(--dc-void, #1A1A1A);
+  background: rgba(150, 150, 150, 0.1);
+  border-color: var(--dc-storm, #5E666C);
 }
 .comp-card-btn-primary {
   border-color: var(--dc-accent, #FF4500);
@@ -7274,8 +7274,8 @@ textarea:focus-visible {
 
 /* 1. The Modulator Bento Box */
 .comp-modulator-panel {
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid var(--dc-storm, #5E666C);
+  background: rgba(150, 150, 150, 0.04);
+  border: 1px solid rgba(150, 150, 150, 0.15);
   padding: 2rem;
   margin-bottom: 2.5rem;
   display: flex;
@@ -7326,7 +7326,7 @@ textarea:focus-visible {
 .comp-modulator-input, .comp-modulator-select {
   background: transparent;
   border: none;
-  border-bottom: 1px solid var(--dc-storm, #5E666C);
+  border-bottom: 1px solid rgba(150, 150, 150, 0.3);
   color: var(--dc-platinum, #DCDFE2);
   font-family: var(--dc-font-mono, monospace);
   font-size: 14px;
