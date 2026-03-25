@@ -8474,44 +8474,45 @@ function _compRenderMain(racquet) {
     </div>
 
     <!-- String Modulator Panel -->
-    <div class="comp-modulator-panel">
-      <div class="comp-modulator-header">
-        <span class="comp-modulator-title">//STRING MODULATOR</span>
-        <div class="comp-inject-mode">
-          <button class="comp-inject-mode-btn active" data-mode="fullbed" onclick="_compSetInjectMode('fullbed')">Full Bed</button>
-          <button class="comp-inject-mode-btn" data-mode="hybrid" onclick="_compSetInjectMode('hybrid')">Hybrid</button>
+    <div class="bg-transparent border border-dc-storm/30 p-5 md:p-6 mb-10 flex flex-col gap-5">
+      
+      <div class="flex justify-between items-center border-b border-dc-storm/30 pb-3 mb-1">
+        <span class="font-mono text-[11px] text-dc-accent uppercase tracking-[0.2em]">//STRING MODULATOR</span>
+        <div class="flex gap-4">
+          <button class="comp-inject-mode-btn text-dc-accent border-dc-accent border-b-2 pb-1 font-mono text-[10px] uppercase tracking-widest hover:text-dc-platinum transition-colors" data-mode="fullbed" onclick="_compSetInjectMode('fullbed')">Full Bed</button>
+          <button class="comp-inject-mode-btn text-dc-storm border-transparent border-b-2 pb-1 font-mono text-[10px] uppercase tracking-widest hover:text-dc-platinum transition-colors" data-mode="hybrid" onclick="_compSetInjectMode('hybrid')">Hybrid</button>
         </div>
       </div>
       
-      <div class="comp-modulator-grid">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
         <!-- Mains Column -->
-        <div class="comp-modulator-group" id="comp-mains-col">
-          <span class="comp-modulator-label" id="comp-mains-label">// STRING</span>
+        <div class="flex flex-col gap-3" id="comp-mains-col">
+          <span class="font-mono text-[9px] text-dc-storm uppercase tracking-[0.2em]" id="comp-mains-label">// STRING</span>
           <div id="comp-mains-select" class="comp-string-select-container"></div>
-          <div class="comp-modulator-subgrid">
-            <select class="comp-modulator-select" id="comp-mains-gauge">
+          <div class="grid grid-cols-2 gap-4">
+            <select class="appearance-none bg-transparent border-b border-dc-storm/50 text-dc-void dark:text-dc-platinum font-mono text-sm py-2 outline-none focus:border-dc-accent transition-colors bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2712%27%20height=%2712%27%20viewBox=%270%200%2024%2024%27%20fill=%27none%27%20stroke=%27%235E666C%27%20stroke-width=%272%27%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27%3E%3Cpolyline%20points=%276%209%2012%2015%2018%209%27%3E%3C/polyline%3E%3C/svg%3E')] bg-no-repeat bg-right pr-5 cursor-pointer" id="comp-mains-gauge">
               <option value="">Gauge...</option>
             </select>
-            <input type="number" class="comp-modulator-input" id="comp-mains-tension" value="52" min="30" max="70" step="1">
+            <input type="number" class="bg-transparent border-b border-dc-storm/50 text-dc-void dark:text-dc-platinum font-mono text-sm py-2 outline-none focus:border-dc-accent transition-colors" id="comp-mains-tension" value="52" min="30" max="70" step="1">
           </div>
         </div>
         
         <!-- Crosses Column (hidden string selector in fullbed) -->
-        <div class="comp-modulator-group" id="comp-crosses-col">
-          <span class="comp-modulator-label" id="comp-crosses-label">// CROSSES</span>
+        <div class="flex flex-col gap-3" id="comp-crosses-col">
+          <span class="font-mono text-[9px] text-dc-storm uppercase tracking-[0.2em]" id="comp-crosses-label">// CROSSES</span>
           <div id="comp-crosses-select" class="comp-string-select-container" style="display:none;"></div>
-          <div class="comp-modulator-subgrid">
-            <select class="comp-modulator-select" id="comp-crosses-gauge">
+          <div class="grid grid-cols-2 gap-4">
+            <select class="appearance-none bg-transparent border-b border-dc-storm/50 text-dc-void dark:text-dc-platinum font-mono text-sm py-2 outline-none focus:border-dc-accent transition-colors bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2712%27%20height=%2712%27%20viewBox=%270%200%2024%2024%27%20fill=%27none%27%20stroke=%27%235E666C%27%20stroke-width=%272%27%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27%3E%3Cpolyline%20points=%276%209%2012%2015%2018%209%27%3E%3C/polyline%3E%3C/svg%3E')] bg-no-repeat bg-right pr-5 cursor-pointer" id="comp-crosses-gauge">
               <option value="">Gauge...</option>
             </select>
-            <input type="number" class="comp-modulator-input" id="comp-crosses-tension" value="50" min="30" max="70" step="1">
+            <input type="number" class="bg-transparent border-b border-dc-storm/50 text-dc-void dark:text-dc-platinum font-mono text-sm py-2 outline-none focus:border-dc-accent transition-colors" id="comp-crosses-tension" value="50" min="30" max="70" step="1">
           </div>
         </div>
       </div>
-      
-      <div class="flex gap-2 mt-4">
-        <button class="flex-1 font-mono text-mouse uppercase tracking-[0.05em] px-3 py-1 border border-dc-platinum bg-transparent text-dc-platinum hover:bg-dc-platinum hover:text-dc-void transition-colors disabled:opacity-40 disabled:cursor-not-allowed" id="comp-inject-apply" disabled onclick="_compApplyInjection()">Apply</button>
-        <button class="font-mono text-mouse uppercase tracking-[0.05em] px-3 py-1 border border-dc-storm bg-transparent text-dc-storm hover:border-dc-platinum hover:text-dc-platinum transition-colors" onclick="_compClearInjection()">Clear</button>
+
+      <div class="flex gap-2 mt-2">
+        <button class="flex-1 font-mono text-[10px] uppercase tracking-widest px-4 py-2 border border-dc-storm/50 text-dc-void dark:text-dc-platinum hover:bg-dc-storm/20 hover:border-dc-storm transition-colors disabled:opacity-30 disabled:cursor-not-allowed" id="comp-inject-apply" disabled onclick="_compApplyInjection()">Apply</button>
+        <button class="font-mono text-[10px] uppercase tracking-widest px-4 py-2 border border-dc-storm/50 text-dc-storm hover:bg-dc-storm/10 hover:text-dc-void dark:hover:text-dc-platinum hover:border-dc-storm transition-colors" onclick="_compClearInjection()">Clear</button>
       </div>
     </div>
 
@@ -8551,9 +8552,19 @@ let _compInjectState = {
 function _compSetInjectMode(mode) {
   _compInjectState.mode = mode;
   
-  // Update button states
+  // Update button states - Tailwind class injection
   document.querySelectorAll('.comp-inject-mode-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.mode === mode);
+    const isActive = btn.dataset.mode === mode;
+    
+    // Strip old state
+    btn.classList.remove('text-dc-accent', 'border-dc-accent', 'text-dc-storm', 'border-transparent');
+    
+    // Apply new state
+    if (isActive) {
+      btn.classList.add('text-dc-accent', 'border-dc-accent');
+    } else {
+      btn.classList.add('text-dc-storm', 'border-transparent');
+    }
   });
   
   const crossesSelect = document.getElementById('comp-crosses-select');

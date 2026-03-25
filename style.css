@@ -7113,95 +7113,6 @@ textarea:focus-visible {
    ============================================ */
 
 /* 1. The Modulator Bento Box */
-.comp-modulator-panel {
-  background: rgba(150, 150, 150, 0.04);
-  border: 1px solid rgba(150, 150, 150, 0.15);
-  padding: 2rem;
-  margin-bottom: 2.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-/* 2. Section Header & Toggle Array */
-.comp-modulator-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 1rem;
-  margin-bottom: 0.5rem;
-}
-.comp-modulator-title {
-  font-family: var(--dc-font-mono, monospace);
-  font-size: 11px;
-  color: var(--dc-accent, #FF4500);
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-}
-
-/* 3. Input Grid Configuration */
-.comp-modulator-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
-}
-@media (min-width: 768px) {
-  .comp-modulator-grid { grid-template-columns: 1fr 1fr; }
-}
-
-/* 4. Form Elements (Kill Native OS Styles) */
-.comp-modulator-group {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.comp-modulator-label {
-  font-family: var(--dc-font-mono, monospace);
-  font-size: 9px;
-  color: var(--dc-storm, #5E666C);
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-}
-.comp-modulator-input, .comp-modulator-select {
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid rgba(150, 150, 150, 0.3);
-  color: var(--dc-platinum, #DCDFE2);
-  font-family: var(--dc-font-mono, monospace);
-  font-size: 14px;
-  padding: 0.5rem 0;
-  outline: none;
-  transition: border-color 0.2s ease;
-}
-.comp-modulator-select {
-  appearance: none;
-  -webkit-appearance: none;
-  cursor: pointer;
-  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235E666C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0 center;
-  background-size: 12px;
-  padding-right: 20px;
-}
-.comp-modulator-input:focus, .comp-modulator-select:focus {
-  border-color: var(--dc-accent, #FF4500);
-}
-
-/* Sub-controls (Gauge & Tension horizontal row) */
-.comp-modulator-subgrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-/* 5. Action Buttons Footer */
-.comp-modulator-actions {
-  display: flex;
-  justify-content: flex-start;
-  gap: 1rem;
-  margin-top: 1rem;
-}
 
 .comp-presets-empty {
   font-family: var(--dc-font);
@@ -9627,22 +9538,11 @@ textarea:focus-visible {
   opacity: 0.9;
 }
 
-.comp-modulator-title {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.25em;
-}
-
 .comp-section-title {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.2em;
 }
-
-.comp-modulator-header {
-  font-weight: 600;
-}
-
 
 /* ============================================
    COMP-SECTION FONT SIZE BOOST (+2px)
@@ -9668,11 +9568,12 @@ textarea:focus-visible {
    MODULATOR LABEL & SELECT SYNC
    ============================================ */
 
-.comp-modulator-label,
+/* ============================================
+   MODULATOR LABEL SYNC (keep for dropdown alignment)
+   ============================================ */
 .comp-string-select-container .searchable-select .ss-trigger {
   font-size: 10px;
 }
-
 
 /* ============================================
    STAT TRACK DENSITY FIX
