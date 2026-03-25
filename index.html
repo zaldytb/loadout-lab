@@ -856,7 +856,7 @@
         <div class="comp-pill-bar">
           <button class="comp-pill active" data-comp-tab="rackets" onclick="_compSwitchTab('rackets')">Rackets</button>
           <button class="comp-pill" data-comp-tab="strings" onclick="_compSwitchTab('strings')">Strings</button>
-          <button class="comp-pill" data-comp-tab="leaderboard" onclick="_compSwitchTab('leaderboard')">Leaderboard</button>
+          <button class="comp-pill" data-comp-tab="leaderboard" onclick="_compSwitchTab('leaderboard')">Rankings</button>
         </div>
 
         <!-- Tab Content: Rackets -->
@@ -954,13 +954,9 @@
           
         </div>
 
-        <!-- Tab Content: Leaderboard (Placeholder) -->
+        <!-- Tab Content: Leaderboard -->
         <div class="comp-tab-panel hidden" id="comp-tab-leaderboard">
-          <div class="comp-tab-placeholder">
-            <span class="comp-tab-placeholder-icon">🔧</span>
-            <h3>Coming Soon</h3>
-            <p>String compendium and playstyle leaderboard are in development.</p>
-          </div>
+          <!-- Rendered by initLeaderboard() on first tab visit -->
         </div>
       </section>
 
