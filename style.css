@@ -7047,13 +7047,12 @@ textarea:focus-visible {
 }
 
 .comp-stat-label {
-  width: 100px;
   font-family: var(--dc-font-mono);
   font-size: 9px;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--dc-storm);
-  flex-shrink: 0;
+  opacity: 0.78;
 }
 
 /* Telemetry Stat Tracks - Stripped Brutalism */
@@ -7182,29 +7181,34 @@ textarea:focus-visible {
   color: var(--dc-accent, #FF4500);
   text-transform: uppercase;
   letter-spacing: 0.15em;
+  font-weight: 600;
+  opacity: 0.88;
 }
 .comp-card-obs {
   font-family: var(--dc-font-mono, monospace);
-  font-size: 3rem;
-  font-weight: 600;
-  line-height: 0.8;
+  font-size: clamp(2.5rem, 4vw, 3.5rem);
+  font-weight: 650;
+  line-height: 0.82;
   color: var(--dc-platinum, #DCDFE2);
-  letter-spacing: -0.04em;
+  letter-spacing: -0.055em;
 }
 
 .comp-card-string {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: clamp(1.1rem, 2vw, 1.35rem);
+  font-weight: 620;
   color: var(--dc-platinum, #DCDFE2);
   margin-bottom: 0.25rem;
-  line-height: 1.2;
-  padding-right: 60px; /* Prevents overlap with massive OBS score */
+  line-height: 1.15;
+  max-width: 18ch;
+  text-wrap: balance;
 }
 .comp-card-meta {
   font-family: var(--dc-font-mono, monospace);
-  font-size: 11px;
+  font-size: 9px;
   color: var(--dc-storm, #5E666C);
   margin-bottom: 1.5rem;
+  opacity: 0.82;
+  letter-spacing: 0.08em;
 }
 
 .comp-card-reason {
@@ -7588,30 +7592,30 @@ textarea:focus-visible {
 }
 .comp-hero-weight-num {
   font-family: var(--dc-font-mono, monospace);
-  font-size: 3rem;
+  font-size: clamp(2rem, 3vw, 2.75rem);
   font-weight: 600;
   line-height: 0.85;
   color: var(--dc-platinum, #DCDFE2);
+  opacity: 0.92;
 }
 
 /* 3. The Title & Trigger */
 .comp-hero-name {
-  font-size: 2.25rem;
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  line-height: 1.05;
+  font-size: clamp(2.8rem, 5vw, 4.5rem);
+  font-weight: 650;
+  letter-spacing: -0.045em;
+  line-height: 0.96;
   color: var(--dc-platinum, #DCDFE2);
   margin: 0;
-  padding-right: 120px; /* Buffer for absolute weight */
+  padding-right: 120px;
   display: flex;
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
   cursor: pointer;
   transition: color 0.2s;
-}
-@media (min-width: 1024px) {
-  .comp-hero-name { font-size: 3rem; }
+  max-width: 11ch;
+  text-wrap: balance;
 }
 .comp-hero-name .hud-trigger {
   font-family: var(--dc-font-mono, monospace);
@@ -7643,9 +7647,10 @@ textarea:focus-visible {
 }
 .comp-hero-identity {
   font-family: var(--dc-font-mono, monospace);
-  font-size: 0.875rem;
+  font-size: 10px;
   text-transform: uppercase;
   color: var(--dc-storm, #5E666C);
+  opacity: 0.88;
 }
 
 /* 5. Notes / Description */
@@ -7683,10 +7688,11 @@ textarea:focus-visible {
 }
 .comp-hero-spec-label {
   font-family: var(--dc-font-mono);
-  font-size: 7px;
-  letter-spacing: 0.3em;
+  font-size: 8px;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--dc-storm);
+  opacity: 0.72;
 }
 
 /* 7. Console Output (The Logs) */
@@ -7720,11 +7726,10 @@ textarea:focus-visible {
 
 .comp-stat-group-title {
   font-family: var(--dc-font-mono);
-  font-size: 9px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.25em;
-  color: var(--dc-storm);
+  letter-spacing: 0.22em;
   color: var(--dc-storm);
   margin: 0 0 var(--space-3) 0;
   padding-bottom: var(--space-2);
@@ -9806,9 +9811,9 @@ textarea:focus-visible {
 }
 
 .comp-modulator-title {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.25em;
 }
 
 .comp-section-title {
@@ -9857,7 +9862,7 @@ textarea:focus-visible {
    ============================================ */
 
 .comp-stat-row {
-  gap: 8px;
+  gap: 12px;
 }
 
 .comp-stat-label {
