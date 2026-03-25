@@ -8153,6 +8153,22 @@ let _compCurrentBuilds = []; // stores sorted builds for current frame (for inde
 // COMPENDIUM V2 — RACKET SHOWROOM
 // ============================================
 
+// String compendium global state (declared before use)
+let _stringSelectedId = null;
+let _stringsInitialized = false;
+
+// String Modulator State (for frame injection)
+let _stringModState = {
+  stringId: null,
+  frameId: null,
+  mode: 'fullbed',
+  gauge: '',
+  mainsTension: 52,
+  crossesTension: 50,
+  baseStats: null,
+  previewStats: null
+};
+
 // Tab switching for pill bar
 function _compSwitchTab(tab) {
   // Update pill buttons
@@ -8169,6 +8185,41 @@ function _compSwitchTab(tab) {
   if (activePanel) {
     activePanel.classList.remove('hidden');
   }
+  
+  // Initialize string compendium on first visit
+  if (tab === 'strings' && !_stringsInitialized) {
+    _stringsInitialized = true;
+    
+    // Delay slightly to ensure DOM is ready
+    setTimeout(() => {
+      try {
+        _stringRenderRoster();
+        if (typeof STRINGS !== 'undefined' && STRINGS.length > 0) {
+          _stringSelectedId = STRINGS[0].id;
+          _stringRenderMain(STRINGS[0]);
+        } else {
+          console.error('STRINGS data not available');
+          const main = document.getElementById('string-main');
+          if (main) {
+            main.innerHTML = '<div class="flex flex-col items-center justify-center h-64 text-dc-red"><p class="font-mono text-sm">Error: String database not loaded</p></div>';
+          }
+        }
+        
+        // Wire up string filter events
+        const stringSearch = document.getElementById('string-search');
+        const stringFilterMaterial = document.getElementById('string-filter-material');
+        const stringFilterShape = document.getElementById('string-filter-shape');
+        const stringFilterStiffness = document.getElementById('string-filter-stiffness');
+        
+        if (stringSearch) stringSearch.addEventListener('input', _stringRenderRoster);
+        if (stringFilterMaterial) stringFilterMaterial.addEventListener('change', _stringRenderRoster);
+        if (stringFilterShape) stringFilterShape.addEventListener('change', _stringRenderRoster);
+        if (stringFilterStiffness) stringFilterStiffness.addEventListener('change', _stringRenderRoster);
+      } catch (err) {
+        console.error('String compendium init error:', err);
+      }
+    }, 100);
+  }
 }
 
 // Toggle Query HUD overlay with scroll-lock
@@ -8182,6 +8233,846 @@ function _compToggleHud() {
     } else {
       document.body.style.overflow = '';
     }
+  }
+}
+
+// ============================================
+// STRING COMPENDIUM
+// ============================================
+
+// Toggle String HUD overlay
+function _stringToggleHud() {
+  const hud = document.getElementById('string-hud');
+  if (hud) {
+    hud.classList.toggle('active');
+    if (hud.classList.contains('active')) {
+      document.getElementById('string-search').focus();
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+  }
+}
+
+// Get filtered strings based on search and filters
+function _stringGetFilteredStrings() {
+  const search = (document.getElementById('string-search').value || '').toLowerCase();
+  const material = document.getElementById('string-filter-material').value;
+  const shape = document.getElementById('string-filter-shape').value;
+  const stiffness = document.getElementById('string-filter-stiffness').value;
+
+  return STRINGS.filter(s => {
+    if (search && !s.name.toLowerCase().includes(search)) return false;
+    if (material && !s.material.includes(material)) return false;
+    if (shape && !s.shape.toLowerCase().includes(shape.toLowerCase())) return false;
+    if (stiffness === 'soft' && s.stiffness >= 180) return false;
+    if (stiffness === 'medium' && (s.stiffness < 180 || s.stiffness > 210)) return false;
+    if (stiffness === 'stiff' && s.stiffness <= 210) return false;
+    return true;
+  });
+}
+
+// Render string roster in HUD
+function _stringRenderRoster() {
+  const list = document.getElementById('string-list');
+  const strings = _stringGetFilteredStrings();
+
+  list.innerHTML = strings.map(s => {
+    const isActive = s.id === _stringSelectedId;
+    const baseClasses = "bg-transparent border text-left flex flex-col justify-between gap-4 transition-all duration-200 cursor-pointer p-4";
+    const borderClasses = isActive 
+      ? "border-dc-accent" 
+      : "border-dc-storm dark:border-dc-platinum-dim hover:border-dc-platinum";
+    const archetype = _stringGetArchetype(s);
+    return `<button class="${baseClasses} ${borderClasses}" data-id="${s.id}" onclick="_stringSelectString('${s.id}')">
+      <div class="flex justify-between items-start gap-2">
+        <span class="text-base font-semibold leading-tight tracking-tight text-dc-void dark:text-dc-platinum">${s.name}</span>
+      </div>
+      <div class="flex flex-col gap-1">
+        <span class="font-mono text-[8px] uppercase tracking-[0.15em] text-dc-accent">${archetype}</span>
+        <span class="font-mono text-[10px] text-dc-storm">${s.material} // ${s.shape}</span>
+        <span class="font-mono text-[11px] font-semibold text-dc-void dark:text-dc-platinum">${Math.round(s.stiffness)} lb/in</span>
+      </div>
+    </button>`;
+  }).join('');
+}
+
+// Get string archetype based on twScore
+function _stringGetArchetype(s) {
+  const scores = s.twScore || {};
+  if (scores.spin >= 85 && scores.control >= 80) return 'Spin Control';
+  if (scores.spin >= 85) return 'Spin Focus';
+  if (scores.control >= 85) return 'Control';
+  if (scores.power >= 75) return 'Power';
+  if (scores.comfort >= 80) return 'Comfort';
+  if (scores.durability >= 85) return 'Durability';
+  return 'All-Rounder';
+}
+
+// Select string and render main content
+function _stringSelectString(stringId) {
+  // Auto-close HUD on selection
+  const hud = document.getElementById('string-hud');
+  if (hud) {
+    hud.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  
+  _stringSelectedId = stringId;
+  const string = STRINGS.find(s => s.id === stringId);
+  if (!string) return;
+
+  // Highlight in roster
+  document.querySelectorAll('#string-list > button').forEach(el => {
+    const isActive = el.dataset.id === stringId;
+    el.classList.remove('border-dc-accent', 'border-dc-platinum-dim');
+    el.classList.add(isActive ? 'border-dc-accent' : 'border-dc-platinum-dim');
+  });
+
+  _stringRenderMain(string);
+}
+
+// Generate "Best for" and "Watch out" pills for strings
+function _stringGeneratePills(string) {
+  const scores = string.twScore || {};
+  const bestFor = [];
+  const watchOut = [];
+  
+  if (scores.spin >= 85) bestFor.push('SPIN GENERATION');
+  if (scores.control >= 85) bestFor.push('PRECISION SHOTS');
+  if (scores.power >= 75) bestFor.push('FREE POWER');
+  if (scores.comfort >= 80) bestFor.push('ARM COMFORT');
+  if (scores.durability >= 85) bestFor.push('LONGEVITY');
+  if (scores.playabilityDuration >= 85) bestFor.push('TENSION MAINTENANCE');
+  
+  if (scores.comfort < 60) watchOut.push('STIFF FEEL');
+  if (scores.durability < 60) watchOut.push('FAST BREAKAGE');
+  if (string.tensionLoss > 30) watchOut.push('HIGH TENSION DROP');
+  if (scores.power < 50) watchOut.push('LOW POWER OUTPUT');
+  
+  return { bestFor, watchOut };
+}
+
+// Render string battery bars from twScore
+function _stringRenderBatteryBars(string) {
+  const scores = string.twScore || {};
+  const groups = [
+    { title: 'Response', stats: [
+      { id: 'power', label: 'Power', val: scores.power || 50 },
+      { id: 'spin', label: 'Spin', val: scores.spin || 50 },
+      { id: 'control', label: 'Control', val: scores.control || 50 }
+    ]},
+    { title: 'Feel', stats: [
+      { id: 'feel', label: 'Feel', val: scores.feel || 50 },
+      { id: 'comfort', label: 'Comfort', val: scores.comfort || 50 },
+      { id: 'playability', label: 'Playability', val: scores.playabilityDuration || 50 }
+    ]},
+    { title: 'Longevity', stats: [
+      { id: 'durability', label: 'Durability', val: scores.durability || 50 },
+      { id: 'tension', label: 'Tension Loss', val: Math.max(0, 100 - (string.tensionLoss || 0) * 2) }
+    ]}
+  ];
+
+  let html = '<div class="flex flex-col gap-6">';
+  groups.forEach(g => {
+    html += `<div class="flex flex-col">
+      <h4 class="font-mono text-[9px] text-dc-storm uppercase tracking-[0.2em] border-b border-dc-border pb-2 mb-3">${g.title}</h4>
+      <div class="flex flex-col gap-2.5">`;
+    
+    g.stats.forEach(s => {
+      const pct = Math.max(0, Math.min(100, s.val));
+      const totalSegments = 25;
+      const filledSegments = Math.round((pct / 100) * totalSegments);
+      
+      let batteryHtml = '<div class="flex flex-1 gap-[2px] h-1.5 items-center">';
+      for(let i = 0; i < totalSegments; i++) {
+        const bgClass = i < filledSegments 
+          ? 'bg-dc-void dark:bg-dc-platinum'
+          : 'bg-black/10 dark:bg-white/10';
+        batteryHtml += `<div class="flex-1 h-full rounded-[1px] transition-colors duration-150 ${bgClass}"></div>`;
+      }
+      batteryHtml += '</div>';
+
+      html += `
+        <div class="flex items-center gap-4 group">
+          <span class="font-mono text-[9px] text-dc-storm group-hover:text-dc-platinum transition-colors uppercase tracking-[0.15em] w-28">${s.label}</span>
+          ${batteryHtml}
+          <span class="font-mono text-[11px] font-bold text-dc-void dark:text-dc-platinum w-8 text-right">${Math.round(s.val)}</span>
+        </div>`;
+    });
+    html += `</div></div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+// Find similar strings based on twScore profile
+function _stringFindSimilarStrings(sourceId, limit = 4) {
+  const source = STRINGS.find(s => s.id === sourceId);
+  if (!source) return [];
+  
+  const scores = ['power', 'spin', 'comfort', 'control', 'feel', 'durability'];
+  
+  return STRINGS
+    .filter(s => s.id !== sourceId)
+    .map(s => {
+      const distance = scores.reduce((sum, key) => {
+        const diff = (s.twScore[key] || 50) - (source.twScore[key] || 50);
+        return sum + diff * diff;
+      }, 0);
+      return { string: s, distance };
+    })
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, limit)
+    .map(r => r.string);
+}
+
+// Find best frames for this string
+function _stringFindBestFrames(stringId, limit = 4) {
+  const string = STRINGS.find(s => s.id === stringId);
+  if (!string) return [];
+  
+  const stringConfig = {
+    isHybrid: false,
+    string: string,
+    mains: string,
+    crosses: string,
+    mainsTension: 52,
+    crossesTension: 50
+  };
+  
+  return RACQUETS
+    .map(r => {
+      const stats = predictSetup(r, stringConfig);
+      const tCtx = buildTensionContext(stringConfig, r);
+      const obs = computeCompositeScore(stats, tCtx);
+      return { racquet: r, stats, obs };
+    })
+    .sort((a, b) => b.obs - a.obs)
+    .slice(0, limit);
+}
+
+// Render main string content
+function _stringRenderMain(string) {
+  const main = document.getElementById('string-main');
+  if (!main) return;
+  
+  const pills = _stringGeneratePills(string);
+  const consoleHtml = [];
+  pills.bestFor.forEach(p => consoleHtml.push(`<span class="font-mono text-[13px] font-bold tracking-[0.05em] uppercase text-dc-void dark:text-dc-platinum">[+] ${p}</span>`));
+  pills.watchOut.forEach(p => consoleHtml.push(`<span class="font-mono text-[13px] font-bold tracking-[0.05em] uppercase text-dc-red">[-] ${p}</span>`));
+  
+  const batteryHtml = _stringRenderBatteryBars(string);
+  const similarStrings = _stringFindSimilarStrings(string.id);
+  const bestFrames = _stringFindBestFrames(string.id);
+  
+  // Similar strings grid
+  const similarHtml = similarStrings.map(s => {
+    const archetype = _stringGetArchetype(s);
+    return `<div class="bg-transparent border border-dc-border hover:border-dc-storm p-4 flex flex-col cursor-pointer transition-colors group" onclick="_stringSelectString('${s.id}')">
+      <div class="flex justify-between items-start mb-2">
+        <span class="font-mono text-[8px] text-dc-storm uppercase tracking-widest group-hover:text-dc-platinum transition-colors">${archetype}</span>
+        <span class="font-mono text-lg font-bold text-dc-void dark:text-dc-platinum">${s.twScore.spin || 0}<span class="text-[9px] text-dc-storm ml-1">SPIN</span></span>
+      </div>
+      <div class="text-sm font-semibold text-dc-void dark:text-dc-platinum mb-1">${s.name}</div>
+      <div class="font-mono text-[9px] text-dc-storm">${s.material} // ${s.shape}</div>
+    </div>`;
+  }).join('');
+  
+  // Best frames grid
+  const framesHtml = bestFrames.map(f => {
+    return `<div class="bg-transparent border border-dc-border hover:border-dc-storm p-4 flex flex-col cursor-pointer transition-colors group" onclick="_compSelectFrame('${f.racquet.id}'); _compSwitchTab('rackets');">
+      <div class="flex justify-between items-start mb-2">
+        <span class="font-mono text-[8px] text-dc-storm uppercase tracking-widest group-hover:text-dc-platinum transition-colors">${f.racquet.identity}</span>
+        <span class="font-mono text-lg font-bold text-dc-accent">${f.obs.toFixed(1)}</span>
+      </div>
+      <div class="text-sm font-semibold text-dc-void dark:text-dc-platinum mb-1">${f.racquet.name}</div>
+      <div class="font-mono text-[9px] text-dc-storm">${f.racquet.pattern} // ${f.racquet.strungWeight}g</div>
+    </div>`;
+  }).join('');
+  
+  // Calculate TWU composite score (similar to OBS for racquets)
+  const twScores = string.twScore || {};
+  const twuComposite = Math.round(
+    (twScores.control || 50) * 0.16 +
+    (twScores.spin || 50) * 0.13 +
+    (twScores.comfort || 50) * 0.13 +
+    (twScores.power || 50) * 0.11 +
+    (twScores.feel || 50) * 0.10 +
+    (twScores.durability || 50) * 0.07 +
+    (twScores.playabilityDuration || 50) * 0.06
+  );
+
+  main.innerHTML = `
+    <!-- String Hero Block -->
+    <div class="relative flex flex-col items-start mb-8">
+      
+      <div class="absolute top-6 right-6 md:top-8 md:right-8 flex flex-col items-end">
+        <span class="font-mono text-[9px] text-dc-storm tracking-[0.2em] mb-1">TWU SCORE</span>
+        <span class="font-mono text-5xl font-semibold leading-[0.85] text-dc-void dark:text-dc-platinum">
+          ${twuComposite}
+        </span>
+      </div>
+      
+      <h2 class="text-5xl md:text-[4rem] font-semibold tracking-tight text-dc-void dark:text-dc-platinum leading-none mb-0 pr-[120px] flex items-center gap-3 cursor-pointer group" onclick="_stringToggleHud()">
+        ${string.name}
+        <span class="text-2xl text-dc-red opacity-50 group-hover:opacity-100 transition-opacity">▼</span>
+      </h2>
+      
+      <div class="flex items-center gap-2 mt-4 font-mono text-[11px] flex-wrap">
+        <span class="text-dc-void dark:text-dc-platinum">${string.material.toUpperCase()}</span>
+        <span class="text-dc-accent opacity-60 text-[11px]">//</span>
+        <span class="text-dc-storm uppercase tracking-[0.15em]">${string.shape}</span>
+      </div>
+      
+      ${string.notes ? `<p class="max-w-[650px] mt-6 text-sm leading-relaxed text-dc-storm">${string.notes}</p>` : ''}
+      
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 w-full mt-12 pt-8 border-t border-dc-border">
+        <div class="flex flex-col-reverse gap-1.5">
+          <span class="font-mono text-xl font-bold text-dc-void dark:text-dc-platinum leading-none">${Math.round(string.stiffness)}</span>
+          <span class="font-mono text-[7px] text-dc-storm tracking-[0.3em] uppercase">STIFFNESS (lb/in)</span>
+        </div>
+        <div class="flex flex-col-reverse gap-1.5">
+          <span class="font-mono text-xl font-bold text-dc-void dark:text-dc-platinum leading-none">${string.spinPotential || '—'}</span>
+          <span class="font-mono text-[7px] text-dc-storm tracking-[0.3em] uppercase">SPIN POTENTIAL</span>
+        </div>
+        <div class="flex flex-col-reverse gap-1.5">
+          <span class="font-mono text-xl font-bold text-dc-void dark:text-dc-platinum leading-none">${string.tensionLoss || '—'}%</span>
+          <span class="font-mono text-[7px] text-dc-storm tracking-[0.3em] uppercase">TENSION LOSS</span>
+        </div>
+        <div class="flex flex-col-reverse gap-1.5">
+          <span class="font-mono text-xl font-bold text-dc-void dark:text-dc-platinum leading-none">${string.stiffness > 200 ? 'High' : string.stiffness > 180 ? 'Med' : 'Low'}</span>
+          <span class="font-mono text-[7px] text-dc-storm tracking-[0.3em] uppercase">SNAPBACK</span>
+        </div>
+      </div>
+
+      ${consoleHtml.length > 0 ? `<div class="flex flex-wrap gap-4 w-full mt-8 p-0">${consoleHtml.join('')}</div>` : ''}
+    </div>
+
+    <!-- String Telemetry -->
+    <div class="mb-12">
+      <h3 class="font-mono text-xs tracking-[0.15em] text-dc-void dark:text-dc-platinum uppercase mb-1">// STRING TELEMETRY</h3>
+      <p class="text-xs text-dc-storm mb-6 italic">Intrinsic characteristics from Tennis Warehouse testing</p>
+      ${batteryHtml}
+    </div>
+
+    <!-- String Modulator Panel (Frame Injection) -->
+    <div class="bg-transparent border border-dc-storm/30 p-5 md:p-6 mb-10 flex flex-col gap-5">
+      
+      <div class="flex justify-between items-center border-b border-dc-storm/30 pb-3 mb-1">
+        <span class="font-mono text-[11px] text-dc-accent uppercase tracking-[0.2em]">//FRAME INJECTION</span>
+        <div class="flex gap-4">
+          <button class="string-mod-mode-btn text-dc-accent border-dc-accent border-b-2 pb-1 font-mono text-[10px] uppercase tracking-widest hover:text-dc-platinum transition-colors" data-mode="fullbed" onclick="_stringSetModMode('fullbed')">Full Bed</button>
+          <button class="string-mod-mode-btn text-dc-storm border-transparent border-b-2 pb-1 font-mono text-[10px] uppercase tracking-widest hover:text-dc-platinum transition-colors" data-mode="hybrid" onclick="_stringSetModMode('hybrid')">Hybrid</button>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Frame Selector -->
+        <div class="flex flex-col gap-3">
+          <span class="font-mono text-[9px] text-dc-storm uppercase tracking-[0.2em]">// SELECT FRAME</span>
+          <select id="string-mod-frame" class="appearance-none bg-dc-white dark:bg-dc-void border-b border-dc-storm/50 text-dc-void dark:text-dc-platinum font-mono text-sm py-2 px-2 outline-none focus:border-dc-accent transition-colors cursor-pointer" onchange="_stringOnFrameChange(this.value)">
+            <option value="">Select Frame...</option>
+          </select>
+          <p class="text-[10px] text-dc-storm italic">Required: Choose a frame to inject this string into</p>
+        </div>
+        
+        <!-- OBS Preview -->
+        <div class="flex flex-col gap-3">
+          <span class="font-mono text-[9px] text-dc-storm uppercase tracking-[0.2em]">// PROJECTED OBS</span>
+          <div id="string-mod-obs" class="flex items-center">
+            <span class="font-mono text-4xl font-bold text-dc-storm">—</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- String Selectors Row -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Mains String -->
+        <div class="flex flex-col gap-3">
+          <span class="font-mono text-[9px] text-dc-storm uppercase tracking-[0.2em]">// MAINS STRING</span>
+          <div id="string-mod-mains-name" class="font-mono text-sm text-dc-void dark:text-dc-platinum py-2 border-b border-dc-storm/30">
+            Select a string first
+          </div>
+        </div>
+        
+        <!-- Crosses String (only visible in hybrid mode) -->
+        <div class="flex flex-col gap-3" id="string-mod-crosses-string-col" style="display:none;">
+          <span class="font-mono text-[9px] text-dc-storm uppercase tracking-[0.2em]">// CROSSES STRING</span>
+          <select id="string-mod-crosses-string" class="appearance-none bg-dc-white dark:bg-dc-void border-b border-dc-storm/50 text-dc-void dark:text-dc-platinum font-mono text-sm py-2 px-2 outline-none focus:border-dc-accent transition-colors cursor-pointer" onchange="_stringOnCrossesStringChange(this.value)">
+            <option value="">Same as mains</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- Gauge Selector (for mains, crosses uses default or mains gauge) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="flex flex-col gap-3">
+          <span class="font-mono text-[9px] text-dc-storm uppercase tracking-[0.2em]">// MAINS GAUGE</span>
+          <select id="string-mod-gauge" class="appearance-none bg-dc-white dark:bg-dc-void border-b border-dc-storm/50 text-dc-void dark:text-dc-platinum font-mono text-sm py-2 px-2 outline-none focus:border-dc-accent transition-colors cursor-pointer" onchange="_stringOnGaugeChange(this.value)">
+            <option value="">Default</option>
+          </select>
+        </div>
+        
+        <div class="flex flex-col gap-3" id="string-mod-crosses-gauge-col" style="display:none;">
+          <span class="font-mono text-[9px] text-dc-storm uppercase tracking-[0.2em]">// CROSSES GAUGE</span>
+          <select id="string-mod-crosses-gauge" class="appearance-none bg-dc-white dark:bg-dc-void border-b border-dc-storm/50 text-dc-void dark:text-dc-platinum font-mono text-sm py-2 px-2 outline-none focus:border-dc-accent transition-colors cursor-pointer" onchange="_stringOnCrossesGaugeChange(this.value)">
+            <option value="">Same as mains</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+        <!-- Mains Tension -->
+        <div class="flex flex-col gap-3" id="string-mod-mains-col">
+          <span class="font-mono text-[9px] text-dc-storm uppercase tracking-[0.2em]">// MAINS TENSION</span>
+          <input type="number" id="string-mod-mains-tension" class="bg-transparent border-b border-dc-storm/50 text-dc-void dark:text-dc-platinum font-mono text-sm py-2 outline-none focus:border-dc-accent transition-colors" value="52" min="30" max="70" step="1" oninput="_stringOnTensionChange('mains', this.value)">
+        </div>
+        
+        <!-- Crosses Tension (always visible, but label changes) -->
+        <div class="flex flex-col gap-3" id="string-mod-crosses-col">
+          <span class="font-mono text-[9px] text-dc-storm uppercase tracking-[0.2em]" id="string-mod-crosses-label">// CROSSES TENSION</span>
+          <input type="number" id="string-mod-crosses-tension" class="bg-transparent border-b border-dc-storm/50 text-dc-void dark:text-dc-platinum font-mono text-sm py-2 outline-none focus:border-dc-accent transition-colors" value="50" min="30" max="70" step="1" oninput="_stringOnTensionChange('crosses', this.value)">
+        </div>
+      </div>
+      
+      <!-- Live Preview Stats -->
+      <div class="border-t border-dc-storm/30 pt-4 mt-2">
+        <h4 class="font-mono text-[9px] text-dc-storm uppercase tracking-[0.2em] mb-4">// LIVE PREVIEW</h4>
+        <div class="flex flex-col gap-2.5">
+          ${['spin', 'power', 'control', 'feel', 'comfort'].map(stat => `
+            <div class="flex items-center gap-4 group" data-stat="${stat}">
+              <span class="font-mono text-[9px] text-dc-storm group-hover:text-dc-platinum transition-colors uppercase tracking-[0.15em] w-20">${stat}</span>
+              <div class="flex flex-1 gap-[2px] h-1.5 items-center" id="string-track-${stat}">
+                ${Array(25).fill(0).map((_, i) => `<div class="flex-1 h-full rounded-[1px] bg-black/10 dark:bg-white/10"></div>`).join('')}
+              </div>
+              <span class="font-mono text-[11px] font-bold text-dc-void dark:text-dc-platinum w-16 text-right" id="string-val-${stat}">—</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="flex gap-2 mt-2">
+        <button class="flex-1 font-mono text-[10px] uppercase tracking-widest px-4 py-2 border border-dc-accent text-dc-accent hover:bg-dc-accent hover:text-dc-void transition-colors disabled:opacity-30 disabled:cursor-not-allowed" id="string-mod-add" disabled onclick="_stringAddToLoadout()">Add to Loadout</button>
+        <button class="flex-1 font-mono text-[10px] uppercase tracking-widest px-4 py-2 border border-dc-platinum text-dc-void dark:text-dc-platinum hover:bg-dc-platinum hover:text-dc-void dark:hover:text-dc-void transition-colors disabled:opacity-30 disabled:cursor-not-allowed" id="string-mod-activate" disabled onclick="_stringSetActiveLoadout()">Set Active</button>
+        <button class="font-mono text-[10px] uppercase tracking-widest px-4 py-2 border border-dc-storm/50 text-dc-storm hover:bg-dc-storm/10 hover:text-dc-void dark:hover:text-dc-platinum hover:border-dc-storm transition-colors" onclick="_stringClearPreview()">Clear</button>
+      </div>
+    </div>
+
+    <!-- Best Paired With (Frames) -->
+    <div class="mb-12">
+      <h3 class="font-mono text-xs tracking-[0.15em] text-dc-void dark:text-dc-platinum uppercase mb-1">// BEST PAIRED WITH</h3>
+      <p class="text-xs text-dc-storm mb-6 italic">Top performing frames with this string (52 lbs)</p>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">${framesHtml}</div>
+    </div>
+
+    <!-- Similar Strings -->
+    <div class="mb-12">
+      <h3 class="font-mono text-xs tracking-[0.15em] text-dc-void dark:text-dc-platinum uppercase mb-1">// SIMILAR STRINGS</h3>
+      <p class="text-xs text-dc-storm mb-6 italic">Alternatives with similar performance profiles</p>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">${similarHtml}</div>
+    </div>
+  `;
+  
+  // Initialize string modulator after rendering
+  _stringInitModulator(string);
+}
+
+// ============================================
+// STRING MODULATOR (Frame Injection)
+// ============================================
+
+function _stringInitModulator(string) {
+  // Reset state with current string
+  _stringModState.stringId = string.id;
+  _stringModState.crossesId = string.id; // Default to same string
+  _stringModState.gauge = '';
+  _stringModState.crossesGauge = '';
+  _stringModState.frameId = null;
+  _stringModState.baseStats = null;
+  _stringModState.previewStats = null;
+  
+  // Get available gauges for this string
+  const gauges = getGaugeOptions(string);
+  const gaugeOptions = gauges.map(g => `<option value="${g}" ${Math.abs(g - string.gaugeNum) < 0.01 ? 'selected' : ''}>${GAUGE_LABELS[g] || g + 'mm'}</option>`).join('');
+  
+  // Populate frame selector
+  const frameSelect = document.getElementById('string-mod-frame');
+  if (frameSelect) {
+    frameSelect.innerHTML = '<option value="">Select Frame...</option>' +
+      RACQUETS.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+  }
+  
+  // Set mains string name display
+  const mainsNameEl = document.getElementById('string-mod-mains-name');
+  if (mainsNameEl) {
+    mainsNameEl.textContent = string.name;
+  }
+  
+  // Set default gauge selection for mains
+  const gaugeSelect = document.getElementById('string-mod-gauge');
+  if (gaugeSelect) {
+    gaugeSelect.innerHTML = '<option value="">Default</option>' + gaugeOptions;
+  }
+  
+  // Populate crosses string selector (all strings except current)
+  const crossesSelect = document.getElementById('string-mod-crosses-string');
+  if (crossesSelect) {
+    crossesSelect.innerHTML = '<option value="">Same as mains</option>' +
+      STRINGS.filter(s => s.id !== string.id).map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  }
+  
+  // Populate crosses gauge selector (same options)
+  const crossesGaugeSelect = document.getElementById('string-mod-crosses-gauge');
+  if (crossesGaugeSelect) {
+    crossesGaugeSelect.innerHTML = '<option value="">Same as mains</option>' + gaugeOptions;
+  }
+  
+  // Reset mode to fullbed
+  _stringSetModMode('fullbed');
+  
+  // Reset preview
+  _stringClearPreview();
+  
+  // Reset OBS display
+  const obsEl = document.getElementById('string-mod-obs');
+  if (obsEl) {
+    obsEl.innerHTML = '<span class="font-mono text-4xl font-bold text-dc-storm">—</span>';
+  }
+}
+
+function _stringSetModMode(mode) {
+  _stringModState.mode = mode;
+  
+  // Update button states
+  document.querySelectorAll('.string-mod-mode-btn').forEach(btn => {
+    const isActive = btn.dataset.mode === mode;
+    btn.classList.remove('text-dc-accent', 'border-dc-accent', 'text-dc-storm', 'border-transparent');
+    if (isActive) {
+      btn.classList.add('text-dc-accent', 'border-dc-accent');
+    } else {
+      btn.classList.add('text-dc-storm', 'border-transparent');
+    }
+  });
+  
+  // Show/hide crosses string selector in hybrid mode
+  const crossesStringCol = document.getElementById('string-mod-crosses-string-col');
+  const crossesGaugeCol = document.getElementById('string-mod-crosses-gauge-col');
+  if (crossesStringCol) {
+    crossesStringCol.style.display = mode === 'hybrid' ? 'block' : 'none';
+  }
+  if (crossesGaugeCol) {
+    crossesGaugeCol.style.display = mode === 'hybrid' ? 'block' : 'none';
+  }
+  
+  // Update crosses label
+  const crossesLabel = document.getElementById('string-mod-crosses-label');
+  if (crossesLabel) {
+    crossesLabel.textContent = mode === 'hybrid' ? '// CROSSES TENSION' : '// CROSSES TENSION';
+  }
+  
+  _stringUpdatePreview();
+}
+
+function _stringOnCrossesStringChange(crossesId) {
+  _stringModState.crossesId = crossesId || _stringModState.stringId;
+  _stringUpdatePreview();
+}
+
+function _stringOnCrossesGaugeChange(gauge) {
+  _stringModState.crossesGauge = gauge || _stringModState.gauge;
+  _stringUpdatePreview();
+}
+
+function _stringOnFrameChange(frameId) {
+  _stringModState.frameId = frameId;
+  
+  if (frameId) {
+    const racquet = RACQUETS.find(r => r.id === frameId);
+    if (racquet) {
+      // Set default tensions based on frame's tension range
+      const midTension = Math.round((racquet.tensionRange[0] + racquet.tensionRange[1]) / 2);
+      _stringModState.mainsTension = midTension;
+      _stringModState.crossesTension = midTension - 2;
+      
+      // Update tension inputs
+      const mainsInput = document.getElementById('string-mod-mains-tension');
+      const crossesInput = document.getElementById('string-mod-crosses-tension');
+      if (mainsInput) mainsInput.value = midTension;
+      if (crossesInput) crossesInput.value = midTension - 2;
+      
+      // Calculate base stats
+      _stringModState.baseStats = calcFrameBase(racquet);
+    }
+  } else {
+    _stringModState.baseStats = null;
+  }
+  
+  _stringUpdatePreview();
+}
+
+function _stringOnGaugeChange(gauge) {
+  _stringModState.gauge = gauge;
+  _stringUpdatePreview();
+}
+
+function _stringOnTensionChange(type, value) {
+  if (type === 'mains') {
+    _stringModState.mainsTension = parseInt(value) || 52;
+  } else {
+    _stringModState.crossesTension = parseInt(value) || 50;
+  }
+  _stringUpdatePreview();
+}
+
+function _stringUpdatePreview() {
+  const { stringId, crossesId, frameId, mode, gauge, crossesGauge, mainsTension, crossesTension, baseStats } = _stringModState;
+  
+  // Need both string and frame selected
+  if (!stringId || !frameId || !baseStats) {
+    _stringClearPreview();
+    return;
+  }
+  
+  const mainsString = STRINGS.find(s => s.id === stringId);
+  const racquet = RACQUETS.find(r => r.id === frameId);
+  if (!mainsString || !racquet) {
+    _stringClearPreview();
+    return;
+  }
+  
+  // Get crosses string (different in hybrid, same in fullbed)
+  const crossesString = (mode === 'hybrid' && crossesId && crossesId !== stringId) 
+    ? (STRINGS.find(s => s.id === crossesId) || mainsString)
+    : mainsString;
+  
+  // Apply gauge modifiers
+  const mainsWithGauge = gauge ? applyGaugeModifier(mainsString, parseFloat(gauge)) : mainsString;
+  const crossesWithGauge = (mode === 'hybrid' && crossesGauge) 
+    ? applyGaugeModifier(crossesString, parseFloat(crossesGauge))
+    : (crossesString === mainsString ? mainsWithGauge : crossesString);
+  
+  // Build config
+  const cfg = mode === 'hybrid' ? {
+    isHybrid: true,
+    mains: mainsWithGauge,
+    crosses: crossesWithGauge,
+    mainsTension,
+    crossesTension
+  } : {
+    isHybrid: false,
+    string: mainsWithGauge,
+    mainsTension,
+    crossesTension
+  };
+  
+  // Run prediction
+  const previewStats = predictSetup(racquet, cfg);
+  if (!previewStats) return;
+  
+  _stringModState.previewStats = previewStats;
+  
+  // Update battery bars with before/after
+  _stringRenderPreviewBars(baseStats, previewStats);
+  
+  // Enable buttons
+  const addBtn = document.getElementById('string-mod-add');
+  const activateBtn = document.getElementById('string-mod-activate');
+  if (addBtn) addBtn.disabled = false;
+  if (activateBtn) activateBtn.disabled = false;
+  
+  // Update OBS display
+  const tCtx = buildTensionContext(cfg, racquet);
+  const obs = computeCompositeScore(previewStats, tCtx);
+  const obsEl = document.getElementById('string-mod-obs');
+  if (obsEl) {
+    obsEl.innerHTML = `<span class="font-mono text-4xl font-bold text-dc-accent">${obs.toFixed(1)}</span>`;
+  }
+}
+
+function _stringRenderPreviewBars(baseStats, previewStats) {
+  const statKeys = ['spin', 'power', 'control', 'launch', 'feel', 'comfort', 'stability', 'forgiveness', 'maneuverability'];
+  const segments = 25;
+  
+  statKeys.forEach(k => {
+    const baseVal = baseStats[k] != null ? Math.round(baseStats[k]) : 50;
+    const previewVal = previewStats[k] != null ? Math.round(previewStats[k]) : 50;
+    const baseFilled = Math.round((baseVal / 100) * segments);
+    const previewFilled = Math.round((previewVal / 100) * segments);
+    
+    const track = document.getElementById(`string-track-${k}`);
+    const valEl = document.getElementById(`string-val-${k}`);
+    if (!track) return;
+    
+    // Rebuild segments with preview state
+    let segmentsHtml = '';
+    for (let i = 0; i < segments; i++) {
+      let bgClass = 'bg-black/10 dark:bg-white/10';
+      
+      if (i < baseFilled) {
+        bgClass = 'bg-dc-void dark:bg-dc-platinum';
+      }
+      if (i < previewFilled && previewVal > baseVal) {
+        bgClass = 'bg-dc-red';
+      } else if (i >= previewFilled && i < baseFilled && previewVal < baseVal) {
+        bgClass = 'bg-dc-red/40';
+      }
+      
+      segmentsHtml += `<div class="flex-1 h-full rounded-[1px] transition-colors duration-150 ${bgClass}"></div>`;
+    }
+    track.innerHTML = segmentsHtml;
+    
+    // Update value display
+    if (valEl) {
+      const diff = previewVal - baseVal;
+      let diffColor = 'text-dc-storm';
+      if (diff > 0) diffColor = 'text-dc-red';
+      if (diff < 0) diffColor = 'text-dc-accent';
+      
+      valEl.innerHTML = `
+        <span class="text-dc-storm">${baseVal}</span>
+        <span class="text-dc-storm mx-1">→</span>
+        <span class="${diffColor}">${previewVal}</span>
+      `;
+    }
+  });
+}
+
+function _stringClearPreview() {
+  const { baseStats } = _stringModState;
+  const segments = 25;
+  
+  const statKeys = ['spin', 'power', 'control', 'launch', 'feel', 'comfort', 'stability', 'forgiveness', 'maneuverability'];
+  
+  statKeys.forEach(k => {
+    const baseVal = baseStats && baseStats[k] != null ? Math.round(baseStats[k]) : 50;
+    const baseFilled = Math.round((baseVal / 100) * segments);
+    
+    const track = document.getElementById(`string-track-${k}`);
+    const valEl = document.getElementById(`string-val-${k}`);
+    if (!track) return;
+    
+    let segmentsHtml = '';
+    for (let i = 0; i < segments; i++) {
+      const bgClass = i < baseFilled ? 'bg-dc-void dark:bg-dc-platinum' : 'bg-black/10 dark:bg-white/10';
+      segmentsHtml += `<div class="flex-1 h-full rounded-[1px] transition-colors duration-150 ${bgClass}"></div>`;
+    }
+    track.innerHTML = segmentsHtml;
+    
+    if (valEl) {
+      valEl.innerHTML = `<span class="text-dc-void dark:text-dc-platinum">${baseVal}</span>`;
+    }
+  });
+  
+  // Disable add button
+  const addBtn = document.getElementById('string-mod-add');
+  if (addBtn) addBtn.disabled = true;
+  
+  // Clear OBS display
+  const obsEl = document.getElementById('string-mod-obs');
+  if (obsEl) obsEl.innerHTML = '<span class="font-mono text-4xl font-bold text-dc-storm">—</span>';
+}
+
+function _stringAddToLoadout() {
+  const { stringId, crossesId, frameId, mode, mainsTension, crossesTension } = _stringModState;
+  
+  if (!stringId || !frameId) {
+    alert('Please select both a string and a frame');
+    return;
+  }
+  
+  const mainsString = STRINGS.find(s => s.id === stringId);
+  const crossesString = (mode === 'hybrid' && crossesId) 
+    ? STRINGS.find(s => s.id === crossesId) 
+    : mainsString;
+  const racquet = RACQUETS.find(r => r.id === frameId);
+  if (!mainsString || !racquet) return;
+  
+  // Build loadout name
+  const isHybrid = mode === 'hybrid' && crossesId && crossesId !== stringId;
+  const loadoutName = isHybrid 
+    ? `${mainsString.name} / ${crossesString.name} @ ${mainsTension}/${crossesTension}lbs`
+    : `${mainsString.name} @ ${mainsTension}lbs`;
+  
+  // Build loadout
+  const loadout = {
+    id: 'lo_' + Date.now(),
+    name: loadoutName,
+    racquetId: frameId,
+    stringId: stringId,
+    isHybrid: isHybrid,
+    mainsId: stringId,
+    crossesId: isHybrid ? crossesId : stringId,
+    mainsTension: mainsTension,
+    crossesTension: crossesTension,
+    source: 'string-compendium'
+  };
+  
+  // Save (without activating)
+  saveLoadout(loadout);
+  
+  // Visual feedback
+  const addBtn = document.getElementById('string-mod-add');
+  if (addBtn) {
+    const originalText = addBtn.textContent;
+    addBtn.textContent = 'Saved ✓';
+    addBtn.disabled = true;
+    setTimeout(() => {
+      addBtn.textContent = originalText;
+      addBtn.disabled = false;
+    }, 1500);
+  }
+}
+
+function _stringSetActiveLoadout() {
+  const { stringId, crossesId, frameId, mode, mainsTension, crossesTension } = _stringModState;
+  
+  if (!stringId || !frameId) {
+    alert('Please select both a string and a frame');
+    return;
+  }
+  
+  const mainsString = STRINGS.find(s => s.id === stringId);
+  const crossesString = (mode === 'hybrid' && crossesId) 
+    ? STRINGS.find(s => s.id === crossesId) 
+    : mainsString;
+  const racquet = RACQUETS.find(r => r.id === frameId);
+  if (!mainsString || !racquet) return;
+  
+  // Build loadout name
+  const isHybrid = mode === 'hybrid' && crossesId && crossesId !== stringId;
+  const loadoutName = isHybrid 
+    ? `${mainsString.name} / ${crossesString.name} @ ${mainsTension}/${crossesTension}lbs`
+    : `${mainsString.name} @ ${mainsTension}lbs`;
+  
+  // Build loadout
+  const loadout = {
+    id: 'lo_' + Date.now(),
+    name: loadoutName,
+    racquetId: frameId,
+    stringId: stringId,
+    isHybrid: isHybrid,
+    mainsId: stringId,
+    crossesId: isHybrid ? crossesId : stringId,
+    mainsTension: mainsTension,
+    crossesTension: crossesTension,
+    source: 'string-compendium'
+  };
+  
+  // Save and activate
+  saveLoadout(loadout);
+  activateLoadout(loadout);
+  
+  // Visual feedback
+  const activateBtn = document.getElementById('string-mod-activate');
+  if (activateBtn) {
+    const originalText = activateBtn.textContent;
+    activateBtn.textContent = 'Active ✓';
+    activateBtn.disabled = true;
+    setTimeout(() => {
+      activateBtn.textContent = originalText;
+      activateBtn.disabled = false;
+    }, 1500);
   }
 }
 

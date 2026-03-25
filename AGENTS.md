@@ -56,25 +56,35 @@ tailwind.config = {
 | Component | Location | Notes |
 |-----------|----------|-------|
 | Build Cards | `app.js` `_compRenderBuildCard()` | Full Tailwind, compact scale |
-| Build Card Grid | `app.js` line ~8533 | `grid grid-cols-1 md:grid-cols-2 gap-6` |
-| Modulator Buttons | `app.js` line ~8512 | Tailwind with disabled states |
+| Build Card Grid | `app.js` `_compRenderMain()` | `grid grid-cols-1 md:grid-cols-2 gap-6` |
+| Hero Block | `app.js` `_compRenderMain()` | Full Tailwind with dark mode |
+| String Modulator | `app.js` `_compRenderMain()` | Full Tailwind, hybrid toggle |
+| Stat Groups | `app.js` `_compRenderMain()` | Battery bars with preview |
+| Sort Tabs | `app.js` `_compRenderMain()` | Tailwind with active states |
+| HUD Filters | `app.js` `_compRenderRoster()` | Full Tailwind overlay |
+| Console Output | `app.js` `_compRenderMain()` | Tailwind typography |
+| String Compendium | `app.js` `_stringRenderMain()` | Full Tailwind mirror of Racket Bible |
+| Frame Injection | `app.js` `_stringRenderMain()` | String-first modulator with hybrid |
 
 ### ⏳ Still in Vanilla CSS (`style.css`)
 | Component | CSS Classes | Migration Complexity |
 |-----------|-------------|---------------------|
-| Hero Block | `.comp-hero*`, `.comp-section*` | Medium |
-| String Modulator Panel | `.comp-modulator*`, `.comp-inject*` | High (complex grid) |
-| Stat Groups | `.comp-stat-group`, `.comp-stat-row` | Medium |
-| Sort Tabs | `.comp-sort-tab` | Low |
-| HUD Filters | `.comp-hud*` | Medium |
-| Console Output | `.comp-console*` | Low |
+| Overview Page | `.overview-*` | High (many components) |
+| Compare Page | `.compare-*` | High (complex interactions) |
+| Optimize Page | `.opt-*` | Medium |
+| Dock | `.dock-*` | Medium |
+| Landing Page | `.landing-*` | Low |
 
 ### ❌ Purged from CSS
 These legacy classes were removed from `style.css`:
-- `.comp-build-card`, `.comp-build-featured`, `.comp-build-grid`
-- `.comp-card-btn`, `.comp-card-top`, `.comp-card-archetype`
-- `.comp-card-obs`, `.comp-card-string`, `.comp-card-meta`
-- `.comp-card-actions`, `.comp-card-stats-inline`
+- `.comp-build-card*`, `.comp-build-featured`, `.comp-build-grid`
+- `.comp-card-*` (all card components)
+- `.comp-hero*` (hero block)
+- `.comp-modulator*` (modulator panel)
+- `.comp-stats*`, `.comp-stat-*` (stat groups)
+- `.comp-sort-*` (sort tabs)
+- `.comp-hud*` (HUD overlay)
+- `.comp-frame-*` (frame roster items)
 
 ---
 
@@ -157,6 +167,43 @@ const cardClasses = isFeatured
 
 ---
 
+## String Compendium
+
+The String Compendium mirrors the Racket Bible but with String-first exploration.
+
+### Workflow
+1. **Browse strings** via grid with material/shape filters
+2. **Select string** → Opens Hero block with Telemetry
+3. **Pick frame** (required) → Enables Frame Injection panel
+4. **Adjust gauge/tension** → Real-time preview updates
+5. **Hybrid mode** → Toggle between fullbed and hybrid with independent crosses string
+6. **Add to Loadout / Set Active** → Save configuration
+
+### Key Functions
+| Function | Purpose |
+|----------|---------|
+| `_stringRenderMain(string)` | Hero block + Telemetry bars |
+| `_stringRenderFrameInjector(string)` | Frame picker + modulator controls |
+| `_stringPreviewStats()` | Real-time before/after battery bars |
+| `_stringAddToLoadout()` | Save string+frame combo to loadout |
+| `_stringSetActive()` | Set as current active setup |
+
+### State Management
+```javascript
+let _stringSelectedId = null;
+let _stringInjectState = {
+  frameId: '', stringId: '', mode: 'fullbed' | 'hybrid',
+  mainsGauge: '', crossesGauge: '', 
+  mainsTension: 52, crossesTension: 50
+};
+```
+
+### Hybrid Mode UI
+- Fullbed: Single gauge dropdown, single tension input
+- Hybrid: Separate mains/crosses gauges, separate tensions, crosses string selector
+
+---
+
 ## Testing Checklist
 
 When modifying UI components:
@@ -165,3 +212,5 @@ When modifying UI components:
 - [ ] Check responsive breakpoints (mobile/desktop)
 - [ ] Ensure buttons have hover states
 - [ ] Verify featured cards span full width in grid
+- [ ] Test string hybrid mode toggle
+- [ ] Verify frame injection preview updates correctly

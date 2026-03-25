@@ -4,7 +4,7 @@
 
 Physics-based tennis equipment prediction tool. Calculates composite performance scores across 11 attributes by modeling frame physics, string properties, tension effects, and hybrid interactions.
 
-Zero dependencies. No build step. Three files: `index.html`, `app.js`, `style.css` + `data.js` (generated).
+Zero dependencies. No build step. Three files: `index.html`, `app.js`, `style.css` + `data.js` (generated). Tailwind CSS via CDN with custom Digicraft theme.
 
 ## Quick Start
 
@@ -23,6 +23,12 @@ Open `index.html` in any browser. That's it.
 
 Composite score (OBS) maps to a 10-tier ranking system.
 
+### Bible & Compendium Pages
+
+**Racket Bible** (`comp-tab-rackets`): Browse racquets with hero layout (weight anchor, spec strip, console output). String Modulator panel for injection preview with fullbed/hybrid toggle, gauge selection, and real-time battery bar preview. Top Builds grid with OBS-ranked string recommendations.
+
+**String Compendium** (`comp-tab-strings`): Mirror architecture to Racket Bible. Browse strings by material, shape, stiffness. Hero shows TWU composite score. String Telemetry displays intrinsic characteristics. **Frame Injection** modulator — select frame, configure gauge/tension, preview how string affects frame stats. Supports hybrid configurations with independent crosses string selection.
+
 ### Data Layer
 
 Equipment data lives in `pipeline/data/` as JSON files. The browser loads `data.js` which is generated from these files.
@@ -33,7 +39,12 @@ Equipment data lives in `pipeline/data/` as JSON files. The browser loads `data.
 
 ### Design System
 
-"Digicraft Brutalism" — monochrome base (#1A1A1A void, #DCDFE2 platinum, #5E666C storm) with #AF0000 artful red accent for data visualization. Inter + JetBrains Mono typography. Halftone grain textures. No drop shadows.
+"Digicraft Brutalism" — monochrome base (#1A1A1A void, #DCDFE2 platinum, #5E666C storm) with #FF4500 accent orange for data visualization. Inter + JetBrains Mono typography. Halftone grain textures. No drop shadows.
+
+**Tailwind CSS v3** (CDN) with custom config:
+- Dark mode: `[data-theme="dark"]` selector
+- Custom colors: `dc-void`, `dc-platinum`, `dc-storm`, `dc-accent`, `dc-red`
+- Typography: Elephant (hero: 4.5rem), Obs (2.5-3.5rem), Mouse (9px labels)
 
 ## Data Pipeline
 
@@ -94,8 +105,8 @@ npm run enrich:twu-strings -- --input pipeline/data/twu-strings-raw-YYYY-MM-DD.c
 
 ```
 ├── index.html              ← app shell
-├── app.js                  ← engine + UI (~9,000 lines)
-├── style.css               ← Digicraft design system
+├── app.js                  ← engine + UI (~9,800 lines)
+├── style.css               ← Digicraft design system (Tailwind + custom)
 ├── data.js                 ← generated from pipeline (never edit)
 ├── package.json
 │

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -910,13 +910,48 @@
           </div>
         </div>
 
-        <!-- Tab Content: Strings (Placeholder) -->
+        <!-- Tab Content: Strings -->
         <div class="comp-tab-panel hidden" id="comp-tab-strings">
-          <div class="comp-tab-placeholder">
-            <span class="comp-tab-placeholder-icon">🔧</span>
-            <h3>Coming Soon</h3>
-            <p>String compendium and playstyle leaderboard are in development.</p>
+          
+          <!-- String HUD Overlay (mirrors racket HUD) -->
+          <div class="fixed inset-0 z-[100] opacity-0 invisible pointer-events-none transition-all duration-300 flex flex-col p-8 md:p-16 bg-dc-white/95 dark:bg-dc-void/95 backdrop-blur-none [&.active]:opacity-100 [&.active]:visible [&.active]:pointer-events-auto [&.active]:backdrop-blur-xl" id="string-hud">
+            <button class="absolute top-6 right-6 bg-transparent border-none text-dc-storm hover:text-dc-void dark:text-dc-platinum-dim dark:hover:text-dc-platinum text-4xl cursor-pointer z-[110] transition-colors" onclick="_stringToggleHud()">×</button>
+            <input type="text" class="w-full bg-transparent border-0 border-b-2 border-dc-storm focus:border-dc-accent font-mono text-2xl md:text-4xl tracking-tight text-dc-void dark:text-dc-platinum pb-4 mb-8 outline-none transition-colors placeholder:text-dc-storm/50" id="string-search" placeholder="Search strings...">
+            <div class="flex gap-4 flex-wrap mb-8">
+              <select id="string-filter-material" class="bg-transparent border border-dc-storm dark:border-dc-platinum-dim text-dc-void dark:text-dc-platinum font-mono text-xs px-3 py-2 cursor-pointer hover:border-dc-void dark:hover:border-dc-platinum transition-colors focus:outline-none focus:border-dc-accent">
+                <option value="">All Materials</option>
+                <option value="Polyester">Polyester</option>
+                <option value="Nylon">Nylon/Multifilament</option>
+                <option value="Synthetic Gut">Synthetic Gut</option>
+                <option value="Natural Gut">Natural Gut</option>
+              </select>
+              <select id="string-filter-shape" class="bg-transparent border border-dc-storm dark:border-dc-platinum-dim text-dc-void dark:text-dc-platinum font-mono text-xs px-3 py-2 cursor-pointer hover:border-dc-void dark:hover:border-dc-platinum transition-colors focus:outline-none focus:border-dc-accent">
+                <option value="">All Shapes</option>
+                <option value="Round">Round</option>
+                <option value="Square">Square</option>
+                <option value="Pentagon">Pentagon</option>
+                <option value="Hexagonal">Hexagonal</option>
+                <option value="Octagonal">Octagonal</option>
+                <option value="Rough">Rough/Textured</option>
+              </select>
+              <select id="string-filter-stiffness" class="bg-transparent border border-dc-storm dark:border-dc-platinum-dim text-dc-void dark:text-dc-platinum font-mono text-xs px-3 py-2 cursor-pointer hover:border-dc-void dark:hover:border-dc-platinum transition-colors focus:outline-none focus:border-dc-accent">
+                <option value="">All Stiffness</option>
+                <option value="soft">Soft (&lt; 180)</option>
+                <option value="medium">Medium (180-210)</option>
+                <option value="stiff">Stiff (&gt; 210)</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 overflow-y-auto flex-1 pr-4" id="string-list"></div>
           </div>
+
+          <!-- String Main Content -->
+          <div id="string-main" class="min-h-[400px] p-8">
+            <div class="flex flex-col items-center justify-center h-64 text-dc-storm">
+              <span class="font-mono text-4xl mb-4">🔧</span>
+              <p class="font-mono text-sm">Loading string database...</p>
+            </div>
+          </div>
+          
         </div>
 
         <!-- Tab Content: Leaderboard (Placeholder) -->
@@ -1228,6 +1263,26 @@
           <div class="hiw-header">
             <h2 class="hiw-compact-title">Release notes</h2>
             <p class="release-notes-sub">Technical changelog — what changed, why, and how it affects your workflow.</p>
+          </div>
+
+          <div class="hiw-section">
+            <div class="hiw-section-num">v3.0</div>
+            <h2 class="hiw-section-title">String Compendium + Tailwind Migration</h2>
+            <div class="hiw-section-body">
+              <p>
+                <strong>String Compendium is live.</strong> Browse the complete string database with the same HUD overlay pattern as the Racket Bible. Each string page shows TWU scores, intrinsic characteristics (stiffness, spin potential, tension loss), and a <strong>Frame Injection modulator</strong> for real-time setup preview.
+              </p>
+              <p>
+                The Frame Injection panel supports both <strong>Full Bed</strong> and <strong>Hybrid</strong> configurations. Select any frame from the dropdown, choose gauge and tension, and see live battery-bar previews showing how the string affects frame stats. Crosses string selection appears in hybrid mode with independent gauge control. "Add to Loadout" saves without activating; "Set Active" saves and immediately switches to Overview with your new setup.
+              </p>
+              <p>
+                <strong>Complete Tailwind CSS migration.</strong> All components in the Racket Bible and String Compendium now use Tailwind utility classes with the Digicraft design system (dc-void, dc-platinum, dc-storm, dc-accent). Dark mode uses <code>[data-theme="dark"]</code> selector strategy. Legacy CSS purged (~800 lines removed). Elephant & Mouse typography hierarchy (hero/obs/mouse) applied consistently.
+              </p>
+              <div class="hiw-callout">
+                <div class="hiw-callout-icon">◆</div>
+                <p>The String Compendium mirrors the Racket Bible architecture: click the string name to open the HUD, select from the grid, and see detailed telemetry. The Frame Injection modulator is the inverse of the Racket Bible's String Modulator — start with string, pick frame, preview result.</p>
+              </div>
+            </div>
           </div>
 
           <div class="hiw-section">
