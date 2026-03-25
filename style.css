@@ -9780,3 +9780,31 @@ textarea:focus-visible {
   font-size: 0.7rem;
   color: var(--dc-storm);
 }
+
+
+/* ============================================
+   HEADER TYPOGRAPHY BOOST
+   ============================================ */
+
+.comp-hero-spec-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  opacity: 0.9;
+}
+
+.comp-modulator-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.comp-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.comp-modulator-header {
+  font-weight: 600;
+}
