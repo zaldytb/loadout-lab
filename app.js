@@ -3826,7 +3826,19 @@ function renderStatBars(stats) {
     group.keys.forEach(key => {
       const value = stats[key];
       const isHigh = value > 70;
-      const highClass = isHigh ? ' high' : '';
+      const segments = 20;
+      const filledSegments = Math.round((value / 100) * segments);
+      
+      // Generate battery-style segments
+      let segmentsHtml = '';
+      for (let i = 0; i < segments; i++) {
+        let segClass = 'empty';
+        if (i < filledSegments) {
+          segClass = isHigh ? 'high' : 'filled';
+        }
+        segmentsHtml += `<div class="stat-bar-segment ${segClass}" data-seg="${i}"></div>`;
+      }
+      
       const row = document.createElement('div');
       row.className = 'stat-row';
       row.innerHTML = `
@@ -3834,8 +3846,8 @@ function renderStatBars(stats) {
           <span class="stat-label">${keyToLabel[key]}</span>
           <span class="stat-value">${value}</span>
         </div>
-        <div class="stat-bar-track">
-          <div class="stat-bar-fill${highClass}" data-target="${value}"></div>
+        <div class="stat-bar-track" data-value="${value}">
+          ${segmentsHtml}
         </div>
       `;
       groupDiv.appendChild(row);
@@ -3845,13 +3857,21 @@ function renderStatBars(stats) {
     container.appendChild(groupDiv);
   });
 
-  // Animate bars
+  // Animate segments
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      container.querySelectorAll('.stat-bar-fill').forEach((bar, idx) => {
-        const val = parseFloat(bar.dataset.target);
-        bar.style.width = val + '%';
-        bar.style.transitionDelay = (idx * 40) + 'ms';
+      container.querySelectorAll('.stat-bar-track').forEach((track, idx) => {
+        const value = parseFloat(track.dataset.value);
+        const segments = track.querySelectorAll('.stat-bar-segment');
+        const filledCount = Math.round((value / 100) * segments.length);
+        
+        segments.forEach((seg, i) => {
+          setTimeout(() => {
+            if (i < filledCount) {
+              seg.classList.add('active');
+            }
+          }, idx * 40 + i * 15);
+        });
       });
     });
   });
@@ -8363,12 +8383,18 @@ function _compRenderMain(racquet) {
   const statsHtml = Object.entries(statGroups).map(([group, keys]) => {
     const rowsHtml = keys.map(k => {
       const val = frameBase[k] != null ? Math.round(frameBase[k]) : 50;
-      const pct = Math.max(0, Math.min(100, val));
+      const segments = 20; // 20 segments like OBS battery
+      const filledSegments = Math.round((val / 100) * segments);
+      // Generate segmented bar HTML
+      let segmentsHtml = '';
+      for (let i = 0; i < segments; i++) {
+        const segClass = i < filledSegments ? 'base' : 'empty';
+        segmentsHtml += `<div class="comp-stat-segment ${segClass}" data-seg="${i}"></div>`;
+      }
       return `<div class="comp-stat-row" data-stat="${k}">
         <span class="comp-stat-label">${frameStatLabels[k]}</span>
-        <div class="comp-stat-track" id="comp-track-${k}">
-          <div class="comp-stat-fill-base" id="comp-base-${k}" style="width:${pct}%"></div>
-          <div class="comp-stat-fill-preview" id="comp-preview-${k}" style="width:0%"></div>
+        <div class="comp-stat-track" id="comp-track-${k}" data-base="${val}">
+          ${segmentsHtml}
         </div>
         <span class="comp-stat-val" id="comp-val-${k}">
           <span class="comp-stat-val-base">${val}</span>
@@ -8699,27 +8725,36 @@ function _compPreviewStats() {
   if (applyBtn) applyBtn.disabled = false;
 }
 
-// Render preview bars showing before/after
+// Render preview bars showing before/after (segmented battery style)
 function _compRenderPreviewBars(baseStats, previewStats) {
   const statKeys = ['spin', 'power', 'control', 'launch', 'feel', 'comfort', 'stability', 'forgiveness', 'maneuverability'];
+  const segments = 20;
   
   statKeys.forEach(k => {
     const baseVal = baseStats[k] != null ? Math.round(baseStats[k]) : 50;
     const previewVal = previewStats[k] != null ? Math.round(previewStats[k]) : 50;
-    const basePct = Math.max(0, Math.min(100, baseVal));
-    const previewPct = Math.max(0, Math.min(100, previewVal));
+    const baseFilled = Math.round((baseVal / 100) * segments);
+    const previewFilled = Math.round((previewVal / 100) * segments);
     
-    // Update base fill (dimmed)
-    const baseFill = document.getElementById(`comp-base-${k}`);
-    if (baseFill) baseFill.style.width = basePct + '%';
-    
-    // Update preview fill
-    const previewFill = document.getElementById(`comp-preview-${k}`);
-    if (previewFill) previewFill.style.width = previewPct + '%';
-    
-    // Update track to show has-preview
     const track = document.getElementById(`comp-track-${k}`);
-    if (track) track.classList.add('has-preview');
+    if (!track) return;
+    
+    // Rebuild segments with preview state
+    let segmentsHtml = '';
+    for (let i = 0; i < segments; i++) {
+      let segClass = 'empty';
+      if (i < baseFilled) {
+        segClass = 'base'; // Black - base value
+      }
+      if (i < previewFilled && previewVal > baseVal) {
+        segClass = 'preview-up'; // Red - increased
+      } else if (i >= previewFilled && i < baseFilled && previewVal < baseVal) {
+        segClass = 'preview-down'; // Dark red - decreased
+      }
+      segmentsHtml += `<div class="comp-stat-segment ${segClass}" data-seg="${i}"></div>`;
+    }
+    track.innerHTML = segmentsHtml;
+    track.classList.add('has-preview');
     
     // Update value display
     const valEl = document.getElementById(`comp-val-${k}`);
@@ -8744,19 +8779,23 @@ function _compClearPreview() {
   if (!baseStats) return;
   
   const statKeys = ['spin', 'power', 'control', 'launch', 'feel', 'comfort', 'stability', 'forgiveness', 'maneuverability'];
+  const segments = 20;
   
   statKeys.forEach(k => {
     const baseVal = baseStats[k] != null ? Math.round(baseStats[k]) : 50;
-    const basePct = Math.max(0, Math.min(100, baseVal));
-    
-    const baseFill = document.getElementById(`comp-base-${k}`);
-    if (baseFill) baseFill.style.width = basePct + '%';
-    
-    const previewFill = document.getElementById(`comp-preview-${k}`);
-    if (previewFill) previewFill.style.width = '0%';
+    const baseFilled = Math.round((baseVal / 100) * segments);
     
     const track = document.getElementById(`comp-track-${k}`);
-    if (track) track.classList.remove('has-preview');
+    if (track) {
+      // Reset to base segments only
+      let segmentsHtml = '';
+      for (let i = 0; i < segments; i++) {
+        const segClass = i < baseFilled ? 'base' : 'empty';
+        segmentsHtml += `<div class="comp-stat-segment ${segClass}" data-seg="${i}"></div>`;
+      }
+      track.innerHTML = segmentsHtml;
+      track.classList.remove('has-preview');
+    }
     
     const valEl = document.getElementById(`comp-val-${k}`);
     if (valEl) valEl.innerHTML = `<span class="comp-stat-val-base">${baseVal}</span>`;

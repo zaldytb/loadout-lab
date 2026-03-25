@@ -5281,6 +5281,11 @@ body {
   overflow-y: auto;
   flex: 1;
   overscroll-behavior: contain;
+  background: var(--dc-void-deep, #141414);
+}
+
+[data-theme="light"] .searchable-select .ss-options {
+  background: var(--dc-void-lift, #FFFFFF);
 }
 
 .searchable-select .ss-group-label {
@@ -6791,10 +6796,17 @@ textarea:focus-visible {
 }
 
 .comp-string-select-container .ss-dropdown {
-  background: var(--dc-bg);
-  border: none;
+  background: var(--dc-void-deep, #141414);
+  border: 1px solid var(--dc-border);
   max-height: 300px;
   overflow-y: auto;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="light"] .comp-string-select-container .ss-dropdown {
+  background: var(--dc-void-lift, #FFFFFF);
+  border: 1px solid var(--dc-border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 /* String Injection Controls */
@@ -9807,4 +9819,196 @@ textarea:focus-visible {
 
 .comp-modulator-header {
   font-weight: 600;
+}
+
+
+/* ============================================
+   COMP-SECTION FONT SIZE BOOST (+2px)
+   ============================================ */
+
+.comp-section .comp-stat-label {
+  font-size: 10px;
+}
+
+.comp-section .comp-stat-val {
+  font-size: 14px;
+}
+
+.comp-section .comp-stat-group-title {
+  font-size: 12px;
+}
+
+.comp-section .comp-section-sub {
+  font-size: 14px;
+}
+
+/* ============================================
+   MODULATOR LABEL & SELECT SYNC
+   ============================================ */
+
+.comp-modulator-label,
+.comp-string-select-container .searchable-select .ss-trigger {
+  font-size: 10px;
+}
+
+
+/* ============================================
+   STAT TRACK DENSITY FIX
+   ============================================ */
+
+.comp-stat-row {
+  gap: 8px;
+}
+
+.comp-stat-label {
+  width: auto;
+  min-width: 90px;
+  flex-shrink: 0;
+}
+
+.comp-stat-track {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+.comp-stat-val {
+  width: 28px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+
+/* ============================================
+   STAT ROW ALIGNMENT - MANEUVERABILITY ANCHOR
+   ============================================ */
+
+.comp-stat-row {
+  display: grid;
+  grid-template-columns: 130px 1fr 28px;
+  gap: 12px;
+  align-items: center;
+}
+
+.comp-stat-label {
+  width: 130px;
+  min-width: 130px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.comp-stat-track {
+  width: 100%;
+  min-width: 0;
+}
+
+.comp-stat-val {
+  width: 28px;
+  text-align: right;
+}
+
+
+/* ============================================
+   SEGMENTED STAT BARS (OBS Battery Style)
+   ============================================ */
+
+.comp-stat-track {
+  display: flex;
+  gap: 2px;
+  height: 6px;
+  align-items: center;
+}
+
+.comp-stat-segment {
+  flex: 1;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 1px;
+  transition: background 0.2s ease;
+}
+
+/* Base (before) segments - black/platinum */
+.comp-stat-segment.base {
+  background: var(--dc-platinum);
+}
+
+/* Preview (after) segments - red for increase */
+.comp-stat-segment.preview-up {
+  background: var(--dc-red);
+}
+
+/* Preview (after) segments - darker for decrease */
+.comp-stat-segment.preview-down {
+  background: rgba(175, 0, 0, 0.4);
+}
+
+/* Empty segments */
+.comp-stat-segment.empty {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Light mode adjustments */
+[data-theme="light"] .comp-stat-segment.base {
+  background: #1A1A1A;
+}
+
+[data-theme="light"] .comp-stat-segment.preview-up {
+  background: #AF0000;
+}
+
+[data-theme="light"] .comp-stat-segment.empty {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+
+/* ============================================
+   BUILD DNA SEGMENTED STAT BARS (Battery Style)
+   ============================================ */
+
+.stat-bar-track {
+  display: flex;
+  gap: 2px;
+  height: 6px;
+  align-items: center;
+}
+
+.stat-bar-segment {
+  flex: 1;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 1px;
+  transition: background 0.15s ease;
+}
+
+/* Default filled segments */
+.stat-bar-segment.filled,
+.stat-bar-segment.active {
+  background: var(--dc-platinum);
+}
+
+/* High value segments (70+) */
+.stat-bar-segment.high,
+.stat-bar-segment.high.active {
+  background: var(--dc-red);
+}
+
+/* Empty segments */
+.stat-bar-segment.empty {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Light mode adjustments */
+[data-theme="light"] .stat-bar-segment.filled,
+[data-theme="light"] .stat-bar-segment.active {
+  background: #1A1A1A;
+}
+
+[data-theme="light"] .stat-bar-segment.high,
+[data-theme="light"] .stat-bar-segment.high.active {
+  background: #AF0000;
+}
+
+[data-theme="light"] .stat-bar-segment.empty {
+  background: rgba(0, 0, 0, 0.08);
 }
