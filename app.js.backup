@@ -1432,8 +1432,9 @@ function commitEditorToLoadout() {
 }
 
 function renderDockPanel() {
-  var emptyEl = document.getElementById('dock-lo-empty');
-  var activeEl = document.getElementById('dock-lo-active');
+  const emptyEl = document.getElementById('dock-lo-empty');
+  const activeEl = document.getElementById('dock-lo-active');
+
   if (!emptyEl || !activeEl) return;
 
   if (!activeLoadout) {
@@ -1443,10 +1444,10 @@ function renderDockPanel() {
     emptyEl.classList.add('hidden');
     activeEl.classList.remove('hidden');
 
-    // OBS value + color
-    var obsVal = document.getElementById('dock-lo-obs-val');
-    var obsRing = document.getElementById('dock-lo-obs-ring');
-    var newDockObs = activeLoadout.obs || 0;
+    // Update OBS ring
+    const obsVal = document.getElementById('dock-lo-obs-val');
+    const obsRing = document.getElementById('dock-lo-obs-ring');
+    const newDockObs = activeLoadout.obs || 0;
     if (obsVal) {
       if (newDockObs > 0 && _prevObsValues.dock != null && _prevObsValues.dock > 0) {
         animateOBS(obsVal, _prevObsValues.dock, newDockObs, 400);
@@ -1456,52 +1457,55 @@ function renderDockPanel() {
     }
     _prevObsValues.dock = newDockObs;
 
-    if (obsRing && obsVal) {
-      var color = getObsScoreColor(newDockObs);
+    if (obsRing) {
+      const obs = activeLoadout.obs || 0;
+      const color = getObsScoreColor(obs);
       obsRing.style.borderColor = color;
-      obsVal.style.color = color;
+      if (obsVal) obsVal.style.color = color;
     }
 
-    // Info text
-    var racquet = RACQUETS.find(function(r) { return r.id === activeLoadout.frameId; });
-    var stringData = activeLoadout.isHybrid ? null : STRINGS.find(function(s) { return s.id === activeLoadout.stringId; });
-    var nameEl = document.getElementById('dock-lo-name');
-    var identEl = document.getElementById('dock-lo-identity');
-    var detailsEl = document.getElementById('dock-lo-details');
-    var sourceEl = document.getElementById('dock-lo-source');
+    // Update info
+    const nameEl = document.getElementById('dock-lo-name');
+    const identEl = document.getElementById('dock-lo-identity');
+    const detailsEl = document.getElementById('dock-lo-details');
+    const sourceEl = document.getElementById('dock-lo-source');
+
+    const racquet = RACQUETS.find(r => r.id === activeLoadout.frameId);
+    const stringData = activeLoadout.isHybrid ? null : STRINGS.find(s => s.id === activeLoadout.stringId);
 
     if (nameEl) nameEl.textContent = activeLoadout.name || '\u2014';
     if (identEl) identEl.textContent = activeLoadout.identity || '';
     if (detailsEl) {
-      var frameName = racquet ? racquet.name.replace(/\s+\d+g$/, '') : '\u2014';
-      var strName = stringData ? stringData.name : (activeLoadout.isHybrid ? 'Hybrid' : '\u2014');
-      detailsEl.textContent = frameName + ' \u00B7 ' + strName + ' \u00B7 M' + activeLoadout.mainsTension + '/X' + activeLoadout.crossesTension;
+      const frameName = racquet ? racquet.name.replace(/\\s+\\d+g$/, '') : '\u2014';
+      const strName = stringData ? stringData.name : (activeLoadout.isHybrid ? 'Hybrid' : '\u2014');
+      const tension = 'M:' + activeLoadout.mainsTension + ' / X:' + activeLoadout.crossesTension;
+      detailsEl.textContent = frameName + ' \u00B7 ' + strName + ' \u00B7 ' + tension;
     }
     if (sourceEl) {
-      var labels = { quiz: 'Quiz', compendium: 'Racket Bible', manual: 'Manual', preset: 'Preset', optimize: 'Optimizer', shared: 'Shared' };
-      if (activeLoadout._dirty) {
+      const src = activeLoadout.source;
+      const labels = { quiz: 'Quiz', compendium: 'Racket Bible', manual: 'Manual', preset: 'Preset', optimize: 'Optimizer', shared: 'Shared' };
+      const isDirty = activeLoadout._dirty;
+      if (isDirty) {
         sourceEl.textContent = '\u270E Modified';
-        sourceEl.className = sourceEl.className.replace('hidden', '');
-        sourceEl.classList.remove('hidden');
-        sourceEl.style.color = 'var(--dc-warn)';
-      } else if (activeLoadout.source && labels[activeLoadout.source]) {
-        sourceEl.textContent = labels[activeLoadout.source];
-        sourceEl.classList.remove('hidden');
-        sourceEl.style.color = '';
+        sourceEl.style.display = '';
+        sourceEl.classList.add('dock-lo-dirty');
       } else {
-        sourceEl.classList.add('hidden');
+        sourceEl.textContent = labels[src] || '';
+        sourceEl.style.display = src ? '' : 'none';
+        sourceEl.classList.remove('dock-lo-dirty');
       }
     }
 
-    // Save button dirty tint
-    var saveBtnEl = document.querySelector('#dock-lo-active button[onclick="saveActiveLoadout()"]');
+    // Update save button label based on dirty state
+    const saveBtnEl = document.querySelector('#dock-lo-active .dock-lo-btn[onclick="saveActiveLoadout()"]');
     if (saveBtnEl) {
+      const svgIcon = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 13H3a1 1 0 01-1-1V2a1 1 0 011-1h5.5L12 4.5V12a1 1 0 01-1 1z"/><polyline points="8.5 1 8.5 5 12 5"/></svg>';
       if (activeLoadout._dirty) {
-        saveBtnEl.style.color = 'var(--dc-warn)';
-        saveBtnEl.title = 'Unsaved changes';
+        saveBtnEl.innerHTML = svgIcon + '\n                Save \u2022';
+        saveBtnEl.classList.add('dock-lo-btn-dirty');
       } else {
-        saveBtnEl.style.color = '';
-        saveBtnEl.title = 'Save to My Loadouts';
+        saveBtnEl.innerHTML = svgIcon + '\n                Save';
+        saveBtnEl.classList.remove('dock-lo-btn-dirty');
       }
     }
   }
@@ -1515,20 +1519,21 @@ function renderDockPanel() {
 }
 
 function renderMobileLoadoutPills() {
-  var container = document.getElementById('mobile-loadout-pills');
+  const container = document.getElementById('mobile-loadout-pills');
   if (!container) return;
-  if (window.innerWidth > 1024) { container.innerHTML = ''; return; }
-  if (!savedLoadouts || savedLoadouts.length === 0) { container.innerHTML = ''; return; }
-
-  container.innerHTML = savedLoadouts.map(function(lo) {
-    var isActive = activeLoadout && activeLoadout.id === lo.id;
-    var name = (lo.name || 'Loadout').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    var obs = lo.obs ? lo.obs.toFixed(1) : '\u2014';
-    var cls = isActive
-      ? 'bg-[var(--dc-platinum)] text-[var(--dc-void)] border-[var(--dc-platinum)]'
-      : 'bg-transparent text-[var(--dc-storm)] border-[var(--dc-border)] hover:text-[var(--dc-platinum)] hover:border-[var(--dc-storm)]';
-    return '<button class="shrink-0 flex items-center gap-2 px-3 py-1.5 border font-mono text-[10px] font-semibold transition-colors ' + cls + '" onclick="switchToLoadout(\'' + lo.id + '\')">' +
-      name + '<span class="opacity-60">' + obs + '</span></button>';
+  if (window.innerWidth > 1024) {
+    container.innerHTML = '';
+    return;
+  }
+  if (!savedLoadouts || savedLoadouts.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+  container.innerHTML = savedLoadouts.map(lo => {
+    const isActive = activeLoadout && activeLoadout.id === lo.id;
+    const name = (lo.name || 'Loadout').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const obs = lo.obs ? lo.obs.toFixed(1) : '\u2014';
+    return `<button class="mobile-lo-pill${isActive ? ' active' : ''}" onclick="switchToLoadout('${lo.id}')">${name}<span class="mobile-lo-pill-obs">${obs}</span></button>`;
   }).join('');
 }
 
@@ -1562,21 +1567,19 @@ function renderDockContextPanel() {
 function _dockContextActions(actions) {
   if (!actions || actions.length === 0) return '';
   return '<div class="dock-ctx-actions">' +
-    actions.map(function(a) {
-      return '<a class="dock-ctx-action" onclick="' + a.onclick + '">' + a.label + '</a>';
-    }).join('') +
-  '</div>';
+    actions.map(a =>
+      `<a class="dock-ctx-action" onclick="${a.onclick}">${a.label}</a>`
+    ).join('') +
+    '</div>';
 }
 
 // --- Guidance Message Helper ---
 function _dockGuidance(icon, title, body) {
-  return (
-    '<div class="border border-[var(--dc-border)] bg-[var(--dc-void-deep)] p-4 flex flex-col items-center text-center gap-2">' +
-      '<div class="text-2xl">' + icon + '</div>' +
-      '<div class="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--dc-platinum)]">' + title + '</div>' +
-      '<div class="font-sans text-[11px] text-[var(--dc-storm)] leading-relaxed">' + body + '</div>' +
-    '</div>'
-  );
+  return `<div class="dock-ctx-guidance">
+    <div class="dock-ctx-guidance-icon">${icon}</div>
+    <div class="dock-ctx-guidance-title">${title}</div>
+    <div class="dock-ctx-guidance-body">${body}</div>
+  </div>`;
 }
 
 // --- Editor Control Relocation ---
@@ -2296,20 +2299,21 @@ function _handleSharedBuildURL() {
 }
 
 function renderMyLoadouts() {
-  var listEl = document.getElementById('dock-myl-list');
-  var countEl = document.getElementById('dock-myl-count');
+  const listEl = document.getElementById('dock-myl-list');
+  const countEl = document.getElementById('dock-myl-count');
   if (!listEl) return;
 
   if (countEl) countEl.textContent = savedLoadouts.length;
 
   if (savedLoadouts.length === 0) {
-    listEl.innerHTML = '<div class="px-3 py-4 text-center font-mono text-[10px] text-dc-storm">No saved loadouts yet</div>';
+    listEl.innerHTML = '<div class="dock-myl-empty">No saved loadouts yet</div>';
     return;
   }
 
-  var sourceLabels = { quiz: 'Quiz', compendium: 'Bible', manual: '', preset: 'Preset', optimize: 'Opt', shared: 'Shared', import: 'Imp' };
+  var sourceLabels = { quiz: 'Quiz', compendium: 'Bible', manual: '', preset: 'Preset', optimize: 'Optimizer', shared: 'Shared', import: 'Import' };
 
   listEl.innerHTML = savedLoadouts.map(function(lo) {
+    // Fix F: ID match first, then content-match fallback (QA-015)
     var isActive = activeLoadout && activeLoadout.id === lo.id;
     if (!isActive && activeLoadout) {
       isActive = activeLoadout.frameId === lo.frameId &&
@@ -2320,73 +2324,58 @@ function renderMyLoadouts() {
           ? activeLoadout.mainsId === lo.mainsId && activeLoadout.crossesId === lo.crossesId
           : activeLoadout.stringId === lo.stringId);
     }
-
     var racquet = RACQUETS.find(function(r) { return r.id === lo.frameId; });
+
+    // Fix E: Source tag (QA-006)
+    var srcLabel = sourceLabels[lo.source] || '';
+    var sourceTag = srcLabel ? '<span class="dock-myl-source-tag dock-myl-src-' + lo.source + '">' + srcLabel + '</span>' : '';
+
+    // Fix 6: Two-line layout with full frame name and string name
     var frameName = racquet ? racquet.name : '\u2014';
     var stringName = '\u2014';
     if (lo.isHybrid) {
       var m = STRINGS.find(function(s) { return s.id === lo.mainsId; });
       var x = STRINGS.find(function(s) { return s.id === lo.crossesId; });
-      stringName = (m && x) ? (m.name + ' / ' + x.name) : '\u2014';
+      stringName = m && x ? m.name + ' / ' + x.name : '\u2014';
     } else {
       var str = STRINGS.find(function(s) { return s.id === lo.stringId; });
       stringName = str ? str.name : '\u2014';
     }
 
-    var srcLabel = sourceLabels[lo.source] || '';
-    var obsColor = getObsScoreColor(lo.obs || 0);
-    var activeBorderClass = isActive
-      ? 'border-l-2 border-l-[var(--dc-accent)] bg-[var(--dc-void-lift)]'
-      : 'border-l-2 border-l-transparent hover:bg-[var(--dc-void-lift)]';
-
-    return (
-      '<div class="group relative flex items-stretch border-b border-[var(--dc-border)] last:border-b-0 transition-colors ' + activeBorderClass + '" data-lo-id="' + lo.id + '">' +
-        // Clickable main area
-        '<div class="flex items-center gap-2.5 flex-1 min-w-0 px-3 py-2.5 cursor-pointer" onclick="switchToLoadout(\'' + lo.id + '\')">' +
-          // OBS box
-          '<div class="w-9 h-9 shrink-0 border border-[var(--dc-border)] flex items-center justify-center">' +
-            '<span class="font-mono text-[11px] font-bold" style="color:' + obsColor + '">' + (lo.obs ? lo.obs.toFixed(1) : '\u2014') + '</span>' +
-          '</div>' +
-          // Info
-          '<div class="flex-1 min-w-0">' +
-            '<div class="font-sans text-[11px] font-semibold text-[var(--dc-platinum)] leading-tight truncate flex items-center gap-1">' +
-              frameName +
-              (isActive ? '<span class="font-mono text-[7px] uppercase tracking-wider text-[var(--dc-accent)]">Active</span>' : '') +
-              (srcLabel ? '<span class="font-mono text-[7px] text-[var(--dc-storm)] border border-[var(--dc-border)] px-1">' + srcLabel + '</span>' : '') +
-            '</div>' +
-            '<div class="font-mono text-[9px] text-[var(--dc-storm)] truncate leading-tight mt-0.5">' + stringName + '</div>' +
-            '<div class="font-mono text-[8px] text-[var(--dc-storm)]/60 mt-0.5">M' + lo.mainsTension + '/X' + lo.crossesTension + ' lbs</div>' +
-          '</div>' +
+    return '<div class="dock-myl-item ' + (isActive ? 'dock-myl-active' : '') + '" data-lo-id="' + lo.id + '">' +
+      '<div class="dock-myl-item-main" onclick="switchToLoadout(\'' + lo.id + '\')">' +
+        '<div class="dock-myl-obs">' + (lo.obs ? lo.obs.toFixed(1) : '\u2014') + '</div>' +
+        '<div class="dock-myl-item-info">' +
+          '<div class="dock-myl-item-frame">' + frameName + (isActive ? ' <span class="dock-myl-active-badge">Active</span>' : '') + sourceTag + '</div>' +
+          '<div class="dock-myl-item-string">' + stringName + '</div>' +
+          '<div class="dock-myl-item-meta">M' + lo.mainsTension + ' / X' + lo.crossesTension + ' lbs</div>' +
         '</div>' +
-        // Ghost action buttons (hover reveal)
-        '<div class="flex items-stretch opacity-0 group-hover:opacity-100 transition-opacity border-l border-[var(--dc-border)]">' +
-          '<button class="w-8 flex items-center justify-center text-[var(--dc-storm)] hover:text-[var(--dc-platinum)] hover:bg-[var(--dc-void)] transition-colors" onclick="shareLoadout(\'' + lo.id + '\')" title="Share">' +
-            '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7.5L8 4.5M8 4.5V7M8 4.5H5.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="1" y="1" width="10" height="10" rx="2"/></svg>' +
-          '</button>' +
-          '<button class="w-8 flex items-center justify-center text-[var(--dc-storm)] hover:text-[var(--dc-platinum)] hover:bg-[var(--dc-void)] transition-colors border-l border-[var(--dc-border)]" onclick="addLoadoutToCompare(\'' + lo.id + '\')" title="Compare">' +
-            '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="4" height="10" rx="0.5"/><rect x="7" y="1" width="4" height="10" rx="0.5"/></svg>' +
-          '</button>' +
-          '<button class="w-8 flex items-center justify-center text-[var(--dc-storm)] hover:text-[var(--dc-red)] hover:bg-[var(--dc-void)] transition-colors border-l border-[var(--dc-border)]" onclick="confirmRemoveLoadout(\'' + lo.id + '\')" title="Remove">' +
-            '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg>' +
-          '</button>' +
-        '</div>' +
-      '</div>'
-    );
+      '</div>' +
+      '<div class="dock-myl-item-actions">' +
+        '<button class="dock-myl-btn" onclick="shareLoadout(\'' + lo.id + '\')" title="Share link">' +
+          '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7.5L8 4.5M8 4.5V7M8 4.5H5.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="1" y="1" width="10" height="10" rx="2"/></svg>' +
+        '</button>' +
+        '<button class="dock-myl-btn" onclick="addLoadoutToCompare(\'' + lo.id + '\')" title="Compare">' +
+          '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="4" height="10" rx="0.5"/><rect x="7" y="1" width="4" height="10" rx="0.5"/></svg>' +
+        '</button>' +
+        '<button class="dock-myl-btn dock-myl-btn-remove" onclick="confirmRemoveLoadout(\'' + lo.id + '\')" title="Remove">' +
+          '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg>' +
+        '</button>' +
+      '</div>' +
+    '</div>';
   }).join('');
 }
 
 // Fix J: Two-step remove confirmation (QA-028)
 function confirmRemoveLoadout(loadoutId) {
-  var item = document.querySelector('[data-lo-id="' + loadoutId + '"]');
+  var item = document.querySelector('.dock-myl-item[data-lo-id="' + loadoutId + '"]');
   if (!item) return;
-  var actionBar = item.querySelector('div.flex.items-stretch.opacity-0, div.flex.items-stretch');
-  if (!actionBar) return;
-  actionBar.style.opacity = '1';
-  actionBar.style.pointerEvents = 'auto';
-  actionBar.innerHTML =
-    '<span class="font-mono text-[8px] text-[var(--dc-storm)] px-2 flex items-center whitespace-nowrap">Delete?</span>' +
-    '<button class="px-2 font-mono text-[9px] font-bold text-[var(--dc-red)] hover:bg-[var(--dc-void)] border-l border-[var(--dc-border)] h-full transition-colors" onclick="removeLoadout(\'' + loadoutId + '\')">Yes</button>' +
-    '<button class="px-2 font-mono text-[9px] text-[var(--dc-storm)] hover:text-[var(--dc-platinum)] border-l border-[var(--dc-border)] h-full transition-colors" onclick="renderMyLoadouts()">No</button>';
+  var actions = item.querySelector('.dock-myl-item-actions');
+  if (!actions) return;
+  actions.innerHTML =
+    '<span class="dock-myl-confirm-text">Delete?</span>' +
+    '<button class="dock-myl-btn dock-myl-btn-confirm-yes" onclick="removeLoadout(\'' + loadoutId + '\')">Yes</button>' +
+    '<button class="dock-myl-btn" onclick="renderMyLoadouts()">No</button>';
 }
 
 // Dock action handlers
@@ -6092,27 +6081,17 @@ function _lbv2Compare(racquetId, stringId, tension, type, mainsId, crossesId, cr
 // ============================================
 
 function setHybridMode(isHybrid) {
-  var btnFull = document.getElementById('btn-full');
-  var btnHybrid = document.getElementById('btn-hybrid');
-  var fullConfig = document.getElementById('full-bed-config');
-  var hybridConfig = document.getElementById('hybrid-config');
-
-  if (btnFull) {
-    btnFull.classList.toggle('bg-dc-platinum', !isHybrid);
-    btnFull.classList.toggle('text-dc-void', !isHybrid);
-    btnFull.classList.toggle('bg-transparent', isHybrid);
-    btnFull.classList.toggle('text-dc-storm', isHybrid);
-    btnFull.classList.toggle('hover:text-dc-platinum', isHybrid);
+  if (isHybrid) {
+    $('#btn-full').classList.remove('active');
+    $('#btn-hybrid').classList.add('active');
+    $('#full-bed-config').classList.add('hidden');
+    $('#hybrid-config').classList.remove('hidden');
+  } else {
+    $('#btn-full').classList.add('active');
+    $('#btn-hybrid').classList.remove('active');
+    $('#full-bed-config').classList.remove('hidden');
+    $('#hybrid-config').classList.add('hidden');
   }
-  if (btnHybrid) {
-    btnHybrid.classList.toggle('bg-dc-platinum', isHybrid);
-    btnHybrid.classList.toggle('text-dc-void', isHybrid);
-    btnHybrid.classList.toggle('bg-transparent', !isHybrid);
-    btnHybrid.classList.toggle('text-dc-storm', !isHybrid);
-    btnHybrid.classList.toggle('hover:text-dc-platinum', !isHybrid);
-  }
-  if (fullConfig) fullConfig.classList.toggle('hidden', isHybrid);
-  if (hybridConfig) hybridConfig.classList.toggle('hidden', !isHybrid);
 }
 
 // Fix 3: Handle Full Bed <-> Hybrid toggle with confirmation and pre-populate
@@ -11738,18 +11717,23 @@ function renderDockCreateSection() {
   if (!container) return;
 
   if (!activeLoadout && !_cfCreatingNew) {
-    container.innerHTML = _renderCreateFormTailwind('Create Loadout', false);
+    // Mode A: No loadout — show creation form
+    container.innerHTML = _renderCreateForm('Create Loadout', false);
     _wireCreateForm(container);
     if (editorSection) editorSection.style.display = 'none';
   } else if (activeLoadout && !_cfCreatingNew) {
+    // Mode B: Has active loadout — show Create New button, show editor
     container.innerHTML =
-      '<button class="w-full flex items-center justify-center gap-2 py-2.5 border border-dashed border-[var(--dc-border)] font-mono text-[9px] uppercase tracking-[0.15em] text-[var(--dc-storm)] hover:text-[var(--dc-platinum)] hover:border-[var(--dc-border-hover)] transition-colors" onclick="_showNewLoadoutForm()">' +
-        '<svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/></svg>' +
-        'Create New Loadout' +
-      '</button>';
+      '<div class="dock-create-new-wrap">' +
+        '<button class="dock-create-new-btn" onclick="_showNewLoadoutForm()">' +
+          '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/></svg>' +
+          ' Create New Loadout' +
+        '</button>' +
+      '</div>';
     if (editorSection) editorSection.style.display = '';
   } else if (_cfCreatingNew) {
-    container.innerHTML = _renderCreateFormTailwind('New Loadout', true);
+    // Mode C: Creating new while active exists — show form with Cancel
+    container.innerHTML = _renderCreateForm('New Loadout', true);
     _wireCreateForm(container);
     if (editorSection) editorSection.style.display = 'none';
   }
@@ -11837,21 +11821,21 @@ function _renderCreateForm(title, showCancel) {
 }
 
 function _cfToggleMode(btn) {
-  var container = btn.closest('.dock-cf-body') ? btn.closest('.dock-cf-body').parentElement : btn.closest('[class*="border"]');
-  if (!container) return;
+  var form = btn.closest('.dock-cf-form');
+  if (!form) return;
   var isHybrid = btn.dataset.cfMode === 'hybrid';
-  var body = container.querySelector('.dock-cf-body');
+  var body = form.querySelector('.dock-cf-body');
   if (body) body.dataset.cfHybrid = isHybrid ? 'true' : 'false';
 
-  var fullSection = container.querySelector('.dock-cf-fullbed');
-  var hybridSection = container.querySelector('.dock-cf-hybrid');
+  // Toggle sections
+  var fullSection = form.querySelector('.dock-cf-fullbed');
+  var hybridSection = form.querySelector('.dock-cf-hybrid');
   if (fullSection) fullSection.classList.toggle('hidden', isHybrid);
   if (hybridSection) hybridSection.classList.toggle('hidden', !isHybrid);
 
-  container.querySelectorAll('.dock-cf-toggle-btn').forEach(function(b) {
-    var active = b === btn;
-    b.style.background = active ? 'var(--dc-platinum)' : 'transparent';
-    b.style.color = active ? 'var(--dc-void)' : 'var(--dc-storm)';
+  // Toggle active button
+  form.querySelectorAll('.dock-cf-toggle-btn').forEach(function(b) {
+    b.classList.toggle('active', b === btn);
   });
 }
 
@@ -12476,73 +12460,3 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
-
-
-function _renderCreateFormTailwind(title, showCancel) {
-  return (
-    '<div class="border border-[var(--dc-border)] bg-[var(--dc-void-deep)] p-4 flex flex-col gap-3">' +
-      '<div class="flex items-center justify-between border-b border-[var(--dc-border)] pb-3">' +
-        '<span class="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--dc-platinum)]">' + title + '</span>' +
-        (showCancel ? '<a class="font-mono text-[9px] uppercase tracking-widest text-[var(--dc-storm)] hover:text-[var(--dc-platinum)] cursor-pointer transition-colors" href="#" onclick="_hideNewLoadoutForm(); return false;">Cancel</a>' : '') +
-      '</div>' +
-      // Full/Hybrid toggle
-      '<div class="flex border border-[var(--dc-border)]">' +
-        '<button class="dock-cf-toggle-btn flex-1 py-2 font-mono text-[9px] font-bold uppercase tracking-[0.12em] bg-[var(--dc-platinum)] text-[var(--dc-void)] border-r border-[var(--dc-border)] transition-colors" data-cf-mode="full" onclick="_cfToggleMode(this)">Full Bed</button>' +
-        '<button class="dock-cf-toggle-btn flex-1 py-2 font-mono text-[9px] font-bold uppercase tracking-[0.12em] bg-transparent text-[var(--dc-storm)] hover:text-[var(--dc-platinum)] transition-colors" data-cf-mode="hybrid" onclick="_cfToggleMode(this)">Hybrid</button>' +
-      '</div>' +
-      // Body
-      '<div class="dock-cf-body flex flex-col gap-3" data-cf-hybrid="false">' +
-        // Full bed
-        '<div class="dock-cf-fullbed flex flex-col gap-2">' +
-          _cfFieldHtml('Frame', 'dock-cf-frame-search', 'dock-cf-frame', 'dock-cf-frame-dropdown', 'Search frames...') +
-          _cfFieldHtml('String', 'dock-cf-string-search', 'dock-cf-string', 'dock-cf-string-dropdown', 'Search strings...') +
-          '<div class="grid grid-cols-2 gap-2">' +
-            _cfTensionHtml('Mains lbs', 'dock-cf-tension-m', '55') +
-            _cfTensionHtml('Crosses lbs', 'dock-cf-tension-x', '53') +
-          '</div>' +
-        '</div>' +
-        // Hybrid
-        '<div class="dock-cf-hybrid hidden flex flex-col gap-2">' +
-          _cfFieldHtml('Frame', 'dock-cf-h-frame-search', 'dock-cf-h-frame', 'dock-cf-h-frame-dropdown', 'Search frames...') +
-          _cfFieldHtml('Mains String', 'dock-cf-mains-search', 'dock-cf-mains', 'dock-cf-mains-dropdown', 'Search mains...') +
-          '<div class="grid grid-cols-2 gap-2">' +
-            _cfTensionHtml('Mains lbs', 'dock-cf-mains-tension', '55') +
-            _cfTensionHtml('Crosses lbs', 'dock-cf-crosses-tension', '53') +
-          '</div>' +
-          _cfFieldHtml('Crosses String', 'dock-cf-crosses-search', 'dock-cf-crosses', 'dock-cf-crosses-dropdown', 'Search crosses...') +
-        '</div>' +
-      '</div>' +
-      // Actions
-      '<div class="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--dc-border)]">' +
-        '<button class="py-2.5 font-mono text-[9px] font-bold uppercase tracking-[0.12em] bg-[var(--dc-platinum)] text-[var(--dc-void)] hover:bg-[var(--dc-white)] transition-colors" onclick="_cfActivate()">Set Active</button>' +
-        '<button class="py-2.5 font-mono text-[9px] font-bold uppercase tracking-[0.12em] border border-[var(--dc-border)] text-[var(--dc-storm)] hover:text-[var(--dc-platinum)] hover:border-[var(--dc-border-hover)] bg-transparent transition-colors" onclick="_cfSave()">Save</button>' +
-      '</div>' +
-    '</div>'
-  );
-}
-
-function _cfFieldHtml(label, searchId, hiddenId, dropdownId, placeholder) {
-  return (
-    '<div class="flex flex-col gap-1">' +
-      '<span class="font-mono text-[9px] uppercase tracking-[0.2em] text-[var(--dc-storm)]">' + label + '</span>' +
-      '<div class="relative">' +
-        '<input type="text" class="w-full px-2 py-1.5 bg-[var(--dc-void)] border border-[var(--dc-border)] text-[var(--dc-platinum)] font-sans text-[12px] outline-none focus:border-[var(--dc-border-active)] transition-colors placeholder:text-[var(--dc-storm)]" id="' + searchId + '" placeholder="' + placeholder + '" autocomplete="off">' +
-        '<input type="hidden" id="' + hiddenId + '">' +
-        '<div class="absolute top-full left-0 right-0 z-50 bg-[var(--dc-void-deep)] border border-[var(--dc-border)] max-h-48 overflow-y-auto hidden" id="' + dropdownId + '"></div>' +
-      '</div>' +
-    '</div>'
-  );
-}
-
-function _cfTensionHtml(label, inputId, defaultVal) {
-  return (
-    '<div class="flex flex-col gap-1">' +
-      '<span class="font-mono text-[9px] uppercase tracking-[0.15em] text-[var(--dc-storm)]">' + label + '</span>' +
-      '<input type="number" class="px-2 py-1.5 bg-[var(--dc-void)] border border-[var(--dc-border)] text-[var(--dc-platinum)] font-mono text-[12px] outline-none focus:border-[var(--dc-border-active)] transition-colors" id="' + inputId + '" value="' + defaultVal + '" min="30" max="70">' +
-    '</div>'
-  );
-}
-
-// ─────────────────────────────────────────────
-// setHybridMode(isHybrid)
-// ─────────────────────────────────────────────
