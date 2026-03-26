@@ -909,16 +909,32 @@ let _optimizeInitialized = false;
 let _compendiumInitialized = false;
 
 // === LOADOUT SYSTEM ===
-// activeLoadout and savedLoadouts are local copies synced with src/state/loadout.js
+// activeLoadout and savedLoadouts are now backed by the centralized state store.
+// The local variables are kept as backward-compatible shims using getters/setters.
 
-// LEGACY: Local aliases to state store — these are kept for backward compat during migration
-// All new code should use getActiveLoadout() / getSavedLoadouts() from './src/state/store.js'
-const _getAl = () => getActiveLoadout();
-const _getSls = () => getSavedLoadouts();
+// Shim for activeLoadout — reads/writes go through the store
+delete window.activeLoadout;
+Object.defineProperty(window, 'activeLoadout', {
+  get: () => getActiveLoadout(),
+  set: (v) => setActiveLoadout(v),
+  configurable: true
+});
 
-// TODO: Remove these after full migration to store
-let activeLoadout = null;
-let savedLoadouts = [];
+// Shim for savedLoadouts — reads/writes go through the store
+delete window.savedLoadouts;
+Object.defineProperty(window, 'savedLoadouts', {
+  get: () => getSavedLoadouts(),
+  set: (v) => setSavedLoadouts(v),
+  configurable: true
+});
+
+// Local refs for modules that import from this file (deprecated, use store directly)
+let activeLoadout = null; // Synced with store via subscription below
+let savedLoadouts = [];   // Synced with store via subscription below
+
+// Sync local refs with store (for backward compat with code that reads local vars)
+subscribe('activeLoadout', () => { activeLoadout = getActiveLoadout(); });
+subscribe('savedLoadouts', () => { savedLoadouts = getSavedLoadouts(); });
 
 // loadSavedLoadouts and persistSavedLoadouts imported from src/state/loadout.js
 
@@ -2772,8 +2788,9 @@ function _getSetupFromEditorDOM() {
 // falls back to DOM editor for creation form / no-loadout state.
 // This is the ONLY function external code should call to get the current build.
 function getCurrentSetup() {
-  if (activeLoadout) {
-    return getSetupFromLoadout(activeLoadout);
+  const al = getActiveLoadout();
+  if (al) {
+    return getSetupFromLoadout(al);
   }
   return _getSetupFromEditorDOM();
 }
