@@ -6988,43 +6988,6 @@ textarea:focus-visible {
    COMPENDIUM V2 — RACKET SHOWROOM
    ============================================ */
 
-/* --- Pill Tab Bar --- */
-.comp-pill-bar {
-  display: flex;
-  gap: var(--space-2);
-  margin-bottom: var(--space-4);
-  padding: var(--space-3);
-  background: var(--dc-void-lift);
-  border: 1px solid var(--dc-border);
-  border-radius: var(--dc-radius-lg);
-}
-
-.comp-pill {
-  padding: 8px 20px;
-  background: transparent;
-  border: 1px solid var(--dc-border);
-  border-radius: var(--dc-radius-sm);
-  color: var(--dc-storm);
-  font-family: var(--dc-font-mono);
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  cursor: pointer;
-  transition: all var(--dur-fast);
-}
-
-.comp-pill:hover {
-  border-color: var(--dc-border-hover);
-  color: var(--dc-platinum);
-}
-
-.comp-pill.active {
-  background: var(--dc-white);
-  border-color: var(--dc-white);
-  color: var(--dc-void);
-}
-
 /* --- Tab Panels --- */
 .comp-tab-panel {
   height: 100%;
@@ -7111,14 +7074,6 @@ textarea:focus-visible {
     grid-template-columns: repeat(2, 1fr);
   }
   
-  .comp-pill-bar {
-    flex-wrap: wrap;
-  }
-  
-  .comp-pill {
-    flex: 1;
-    min-width: 80px;
-  }
 }
 
 /* ============================================

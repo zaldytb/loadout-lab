@@ -852,12 +852,13 @@
 
       <!-- ═══════════════ COMPENDIUM ═══════════════ -->
       <section class="workspace-mode hidden" id="mode-compendium" data-mode="compendium">
-        <!-- Pill Tab Bar -->
-        <div class="comp-pill-bar">
-          <button class="comp-pill active" data-comp-tab="rackets" onclick="_compSwitchTab('rackets')">Rackets</button>
-          <button class="comp-pill" data-comp-tab="strings" onclick="_compSwitchTab('strings')">Strings</button>
-          <button class="comp-pill" data-comp-tab="leaderboard" onclick="_compSwitchTab('leaderboard')">Rankings</button>
-        </div>
+<div class="w-full max-w-7xl mx-auto mb-10 mt-4">
+  <div class="grid grid-cols-3 border border-dc-border">
+    <button class="comp-tab-btn bg-dc-platinum text-dc-void font-bold py-4 md:py-5 font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] border-r border-dc-border transition-colors" data-comp-tab="rackets" onclick="_compSwitchTab('rackets')">Rackets</button>
+    <button class="comp-tab-btn bg-transparent text-dc-storm hover:bg-dc-border/50 hover:text-dc-platinum py-4 md:py-5 font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] border-r border-dc-border transition-colors" data-comp-tab="strings" onclick="_compSwitchTab('strings')">Strings</button>
+    <button class="comp-tab-btn bg-transparent text-dc-storm hover:bg-dc-border/50 hover:text-dc-platinum py-4 md:py-5 font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] transition-colors" data-comp-tab="leaderboard" onclick="_compSwitchTab('leaderboard')">Leaderboard</button>
+  </div>
+</div>
 
         <!-- Tab Content: Rackets -->
         <div class="comp-tab-panel" id="comp-tab-rackets">

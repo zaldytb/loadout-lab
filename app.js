@@ -5577,7 +5577,7 @@ function _renderLbv2Results(results) {
       : `${entry.tension} lbs`;
 
     const typeTag = entry.type === 'hybrid'
-      ? `<span class="font-mono text-[10px] font-bold px-1.5 py-0.5 border border-emerald-500/30 text-emerald-400 bg-emerald-400/5">H</span>`
+      ? `<span class="font-mono text-[10px] font-bold px-1.5 py-0.5 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-400/5">H</span>`
       : `<span class="font-mono text-[10px] font-bold px-1.5 py-0.5 border border-dc-storm/30 text-dc-storm">F</span>`;
 
     // Top 3 stats for this entry
@@ -5589,7 +5589,7 @@ function _renderLbv2Results(results) {
         const high = v >= 70;
         return `<span class="font-mono text-[10px] font-bold px-1.5 py-0.5 border ${
           high
-            ? 'border-emerald-500/25 text-emerald-400 bg-emerald-400/5'
+            ? 'border-emerald-500/25 text-emerald-600 dark:text-emerald-400 bg-emerald-400/5'
             : 'border-dc-storm/20 text-dc-storm'
         }">${k.slice(0,3).toUpperCase()} ${v}</span>`;
       }).join('');
@@ -5615,7 +5615,7 @@ function _renderLbv2Results(results) {
       }">
         <!-- Rank -->
         <td class="px-4 py-3 w-10 text-center">
-          <span class="font-mono text-[13px] font-bold ${isFeatured ? 'text-dc-accent' : 'text-dc-storm/60'}">${rank}</span>
+          <span class="font-mono text-[13px] font-bold ${isFeatured ? 'text-dc-accent' : 'text-dc-storm'}">${rank}</span>
         </td>
 
         <!-- Type -->
@@ -5623,31 +5623,31 @@ function _renderLbv2Results(results) {
 
         <!-- Frame + String -->
         <td class="px-3 py-3 min-w-[160px]">
-          <div class="font-sans text-[12px] font-semibold text-dc-platinum leading-tight" title="${entry.frameLabel}">${frameName}</div>
-          <div class="font-mono text-[13px] text-dc-storm mt-0.5" title="${entry.stringLabel}">${stringName}</div>
+          <div class="font-sans text-[12px] font-semibold text-dc-void dark:text-dc-platinum leading-tight" title="${entry.frameLabel}">${frameName}</div>
+          <div class="font-mono text-[13px] text-dc-void/70 dark:text-dc-storm mt-0.5" title="${entry.stringLabel}">${stringName}</div>
         </td>
 
         <!-- Tension -->
         <td class="px-3 py-3 w-24">
-          <span class="font-mono text-[12px] text-dc-storm/70">${tensionLabel}</span>
+          <span class="font-mono text-[12px] text-dc-void/60 dark:text-dc-storm/70">${tensionLabel}</span>
         </td>
 
         <!-- Primary stat (the ranked one) -->
         <td class="px-3 py-3 w-20 text-right">
-          <span class="font-mono text-[20px] font-bold leading-none ${isFeatured ? 'text-dc-accent' : 'text-dc-white'}">${rankValDisplay}</span>
-          <div class="font-mono text-[9px] uppercase tracking-[0.15em] text-dc-storm mt-0.5 text-right">${statLabel}</div>
+          <span class="font-mono text-[20px] font-bold leading-none ${isFeatured ? 'text-dc-accent' : 'text-dc-void dark:text-dc-white'}">${rankValDisplay}</span>
+          <div class="font-mono text-[9px] uppercase tracking-[0.15em] text-dc-void/60 dark:text-dc-storm mt-0.5 text-right">${statLabel}</div>
         </td>
 
         <!-- OBS (always shown) -->
         ${!isObs ? `
         <td class="px-3 py-3 w-16 text-right">
           <span class="font-mono text-[12px] font-semibold" style="color:${getObsScoreColor(entry.obs)}">${entry.obs}</span>
-          <div class="font-mono text-[9px] uppercase tracking-[0.15em] text-dc-storm mt-0.5 text-right">OBS</div>
+          <div class="font-mono text-[9px] uppercase tracking-[0.15em] text-dc-void/60 dark:text-dc-storm mt-0.5 text-right">OBS</div>
         </td>` : `<td class="w-4"></td>`}
 
         <!-- Archetype -->
         <td class="px-3 py-3 hidden md:table-cell">
-          <span class="font-mono text-[13px] text-dc-storm/70 leading-tight">${archetype}</span>
+          <span class="font-mono text-[13px] text-dc-void/60 dark:text-dc-storm/70 leading-tight">${archetype}</span>
         </td>
 
         <!-- Top stats -->
@@ -5659,11 +5659,11 @@ function _renderLbv2Results(results) {
         <td class="px-3 py-3 w-24">
           <div class="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
-              class="font-mono text-[10px] font-bold uppercase tracking-[0.1em] px-2.5 py-1.5 border border-dc-accent text-dc-accent hover:bg-dc-accent hover:text-dc-void transition-colors"
+              class="font-mono text-[10px] font-bold uppercase tracking-[0.1em] px-2.5 py-1.5 border border-dc-accent text-dc-accent hover:bg-dc-accent hover:text-white transition-colors"
               onclick="_lbv2View('${entry.racquet.id}','${stringId}',${entry.tension},'${entry.type}','${mainsId}','${crossesId}',${entry.crossesTension})"
             >View</button>
             <button
-              class="font-mono text-[10px] font-bold uppercase tracking-[0.1em] px-2.5 py-1.5 border border-dc-storm/40 text-dc-storm hover:border-dc-storm hover:text-dc-platinum transition-colors"
+              class="font-mono text-[10px] font-bold uppercase tracking-[0.1em] px-2.5 py-1.5 border border-dc-storm/40 text-dc-void/70 dark:text-dc-storm hover:border-dc-void/60 dark:hover:border-dc-storm hover:text-dc-void dark:hover:text-dc-platinum transition-colors"
               onclick="_lbv2Compare('${entry.racquet.id}','${stringId}',${entry.tension},'${entry.type}','${mainsId}','${crossesId}',${entry.crossesTension})"
             >Cmp</button>
           </div>
@@ -5676,14 +5676,14 @@ function _renderLbv2Results(results) {
       <table class="w-full border-collapse">
         <thead>
           <tr class="border-b border-dc-storm/20">
-            <th class="px-4 py-2.5 text-left font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-storm/60 w-10">#</th>
+            <th class="px-4 py-2.5 text-left font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-void/40 dark:text-dc-storm/60 w-10">#</th>
             <th class="px-2 py-2.5 w-8"></th>
-            <th class="px-3 py-2.5 text-left font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-storm/60">Frame / String</th>
-            <th class="px-3 py-2.5 text-left font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-storm/60">Tension</th>
+            <th class="px-3 py-2.5 text-left font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-void/40 dark:text-dc-storm/60">Frame / String</th>
+            <th class="px-3 py-2.5 text-left font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-void/40 dark:text-dc-storm/60">Tension</th>
             <th class="px-3 py-2.5 text-right font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-accent">${statLabel}</th>
-            ${!isObs ? `<th class="px-3 py-2.5 text-right font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-storm/60">OBS</th>` : `<th class="w-4"></th>`}
-            <th class="px-3 py-2.5 text-left font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-storm/60 hidden md:table-cell">Identity</th>
-            <th class="px-3 py-2.5 text-left font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-storm/60 hidden lg:table-cell">Stats</th>
+            ${!isObs ? `<th class="px-3 py-2.5 text-right font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-void/40 dark:text-dc-storm/60">OBS</th>` : `<th class="w-4"></th>`}
+            <th class="px-3 py-2.5 text-left font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-void/40 dark:text-dc-storm/60 hidden md:table-cell">Identity</th>
+            <th class="px-3 py-2.5 text-left font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-void/40 dark:text-dc-storm/60 hidden lg:table-cell">Stats</th>
             <th class="w-24"></th>
           </tr>
         </thead>
@@ -5691,8 +5691,8 @@ function _renderLbv2Results(results) {
       </table>
     </div>
     <div class="px-5 py-3 border-t border-dc-storm/10 flex justify-between items-center">
-      <span class="font-mono text-[13px] text-dc-storm/50">${results.length} builds scored · best setup per frame×string at optimal tension</span>
-      <span class="font-mono text-[13px] text-dc-storm/50">${statMeta.icon} ${statMeta.desc}</span>
+      <span class="font-mono text-[13px] text-dc-void/40 dark:text-dc-storm/50">${results.length} builds scored · best setup per frame×string at optimal tension</span>
+      <span class="font-mono text-[13px] text-dc-void/40 dark:text-dc-storm/50">${statMeta.icon} ${statMeta.desc}</span>
     </div>
   `;
 }
@@ -5787,7 +5787,7 @@ function _renderLbv2Frames(results) {
       const high = v >= 68;
       return `<span class="font-mono text-[10px] font-bold px-1.5 py-0.5 border ${
         high
-          ? 'border-emerald-500/25 text-emerald-400 bg-emerald-400/5'
+          ? 'border-emerald-500/25 text-emerald-600 dark:text-emerald-400 bg-emerald-400/5'
           : 'border-dc-storm/20 text-dc-storm'
       }">${k.slice(0,3).toUpperCase()} ${v}</span>`;
     }).join('');
@@ -5797,20 +5797,24 @@ function _renderLbv2Frames(results) {
       : entry.frameLabel;
 
     const r = entry.racquet;
+    const yearBadge = `<span class="font-mono text-[9px] font-bold px-1.5 py-0.5 border border-dc-accent/40 dark:border-[#CCFF00]/40 text-dc-accent dark:text-[#CCFF00] bg-dc-accent/10 dark:bg-[#CCFF00]/10">${r.year}</span>`;
     const specLine = `${r.strungWeight}g strung · SW ${r.swingweight} · ${r.stiffness} RA · ${r.pattern} · ${r.headSize} sq in`;
 
     return `
       <tr class="group border-b border-dc-storm/10 transition-colors hover:bg-dc-void-lift/50 ${isFeatured ? 'bg-dc-accent/[0.03]' : ''}">
         <td class="px-4 py-3 w-10 text-center">
-          <span class="font-mono text-[13px] font-bold ${isFeatured ? 'text-dc-accent' : 'text-dc-storm/60'}">${rank}</span>
+          <span class="font-mono text-[13px] font-bold ${isFeatured ? 'text-dc-accent' : 'text-dc-storm'}">${rank}</span>
         </td>
         <td class="px-3 py-3 min-w-[200px]">
-          <div class="font-sans text-[12px] font-semibold text-dc-platinum leading-tight">${frameName}</div>
-          <div class="font-mono text-[13px] text-dc-storm/60 mt-0.5">${specLine}</div>
+          <div class="flex items-center gap-2">
+            <span class="font-sans text-[12px] font-semibold text-dc-void dark:text-dc-platinum leading-tight">${frameName}</span>
+            ${yearBadge}
+          </div>
+          <div class="font-mono text-[13px] text-dc-void/60 dark:text-dc-storm/60 mt-0.5">${specLine}</div>
         </td>
         <td class="px-3 py-3 w-20 text-right">
-          <span class="font-mono text-[20px] font-bold leading-none ${isFeatured ? 'text-dc-accent' : 'text-dc-white'}">${entry.rankVal}</span>
-          <div class="font-mono text-[9px] uppercase tracking-[0.15em] text-dc-storm mt-0.5 text-right">${statLabel}</div>
+          <span class="font-mono text-[20px] font-bold leading-none ${isFeatured ? 'text-dc-accent' : 'text-dc-void dark:text-dc-white'}">${entry.rankVal}</span>
+          <div class="font-mono text-[9px] uppercase tracking-[0.15em] text-dc-void/60 dark:text-dc-storm mt-0.5 text-right">${statLabel}</div>
         </td>
         <td class="px-3 py-3 hidden md:table-cell">
           <div class="flex gap-1.5 flex-wrap">${specChips}</div>
@@ -5818,7 +5822,7 @@ function _renderLbv2Frames(results) {
         <td class="px-3 py-3 w-20">
           <div class="opacity-0 group-hover:opacity-100 transition-opacity">
             <button
-              class="font-mono text-[10px] font-bold uppercase tracking-[0.1em] px-2.5 py-1.5 border border-dc-accent text-dc-accent hover:bg-dc-accent hover:text-dc-void transition-colors"
+              class="font-mono text-[10px] font-bold uppercase tracking-[0.1em] px-2.5 py-1.5 border border-dc-accent text-dc-accent hover:bg-dc-accent hover:text-white transition-colors"
               onclick="_lbv2ViewFrame('${r.id}')"
             >View</button>
           </div>
@@ -5831,10 +5835,10 @@ function _renderLbv2Frames(results) {
       <table class="w-full border-collapse">
         <thead>
           <tr class="border-b border-dc-storm/20">
-            <th class="px-4 py-2.5 text-left font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-storm/60 w-10">#</th>
-            <th class="px-3 py-2.5 text-left font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-storm/60">Frame</th>
+            <th class="px-4 py-2.5 text-left font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-void/40 dark:text-dc-storm/60 w-10">#</th>
+            <th class="px-3 py-2.5 text-left font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-void/40 dark:text-dc-storm/60">Frame</th>
             <th class="px-3 py-2.5 text-right font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-accent">${statLabel}</th>
-            <th class="px-3 py-2.5 text-left font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-storm/60 hidden md:table-cell">Stats</th>
+            <th class="px-3 py-2.5 text-left font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-void/40 dark:text-dc-storm/60 hidden md:table-cell">Stats</th>
             <th class="w-20"></th>
           </tr>
         </thead>
@@ -5928,9 +5932,9 @@ function _renderLbv2Strings(results) {
 
     const matTag = (function() {
       const m = (s.material || '').toLowerCase();
-      if (m.includes('natural gut')) return `<span class="font-mono text-[10px] font-bold px-1.5 py-0.5 border border-amber-500/30 text-amber-400 bg-amber-400/5">GUT</span>`;
-      if (m.includes('multifilament')) return `<span class="font-mono text-[10px] font-bold px-1.5 py-0.5 border border-sky-500/30 text-sky-400 bg-sky-400/5">MULTI</span>`;
-      if (m.includes('co-polyester')) return `<span class="font-mono text-[10px] font-bold px-1.5 py-0.5 border border-purple-500/25 text-purple-400 bg-purple-400/5">CO-POLY</span>`;
+      if (m.includes('natural gut')) return `<span class="font-mono text-[10px] font-bold px-1.5 py-0.5 border border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-400/5">GUT</span>`;
+      if (m.includes('multifilament')) return `<span class="font-mono text-[10px] font-bold px-1.5 py-0.5 border border-sky-500/30 text-sky-600 dark:text-sky-400 bg-sky-400/5">MULTI</span>`;
+      if (m.includes('co-polyester')) return `<span class="font-mono text-[10px] font-bold px-1.5 py-0.5 border border-purple-500/25 text-purple-600 dark:text-purple-400 bg-purple-400/5">CO-POLY</span>`;
       if (m.includes('synthetic')) return `<span class="font-mono text-[10px] font-bold px-1.5 py-0.5 border border-dc-storm/30 text-dc-storm">SYN GUT</span>`;
       return `<span class="font-mono text-[10px] font-bold px-1.5 py-0.5 border border-dc-storm/30 text-dc-storm">POLY</span>`;
     })();
@@ -5940,7 +5944,7 @@ function _renderLbv2Strings(results) {
       const high = v >= 68;
       return `<span class="font-mono text-[10px] font-bold px-1.5 py-0.5 border ${
         high
-          ? 'border-emerald-500/25 text-emerald-400 bg-emerald-400/5'
+          ? 'border-emerald-500/25 text-emerald-600 dark:text-emerald-400 bg-emerald-400/5'
           : 'border-dc-storm/20 text-dc-storm'
       }">${k.slice(0,3).toUpperCase()} ${v}</span>`;
     }).join('');
@@ -5950,18 +5954,18 @@ function _renderLbv2Strings(results) {
     return `
       <tr class="group border-b border-dc-storm/10 transition-colors hover:bg-dc-void-lift/50 ${isFeatured ? 'bg-dc-accent/[0.03]' : ''}">
         <td class="px-4 py-3 w-10 text-center">
-          <span class="font-mono text-[13px] font-bold ${isFeatured ? 'text-dc-accent' : 'text-dc-storm/60'}">${rank}</span>
+          <span class="font-mono text-[13px] font-bold ${isFeatured ? 'text-dc-accent' : 'text-dc-storm'}">${rank}</span>
         </td>
         <td class="px-3 py-3 min-w-[180px]">
           <div class="flex items-center gap-2">
-            <span class="font-sans text-[12px] font-semibold text-dc-platinum leading-tight">${s.name}</span>
+            <span class="font-sans text-[12px] font-semibold text-dc-void dark:text-dc-platinum leading-tight">${s.name}</span>
             ${matTag}
           </div>
-          <div class="font-mono text-[13px] text-dc-storm/60 mt-0.5">${specLine}</div>
+          <div class="font-mono text-[13px] text-dc-void/60 dark:text-dc-storm/60 mt-0.5">${specLine}</div>
         </td>
         <td class="px-3 py-3 w-20 text-right">
-          <span class="font-mono text-[20px] font-bold leading-none ${isFeatured ? 'text-dc-accent' : 'text-dc-white'}">${entry.rankVal}</span>
-          <div class="font-mono text-[9px] uppercase tracking-[0.15em] text-dc-storm mt-0.5 text-right">${statLabel}</div>
+          <span class="font-mono text-[20px] font-bold leading-none ${isFeatured ? 'text-dc-accent' : 'text-dc-void dark:text-dc-white'}">${entry.rankVal}</span>
+          <div class="font-mono text-[9px] uppercase tracking-[0.15em] text-dc-void/60 dark:text-dc-storm mt-0.5 text-right">${statLabel}</div>
         </td>
         <td class="px-3 py-3 hidden md:table-cell">
           <div class="flex gap-1.5 flex-wrap">${statChips}</div>
@@ -5969,7 +5973,7 @@ function _renderLbv2Strings(results) {
         <td class="px-3 py-3 w-20">
           <div class="opacity-0 group-hover:opacity-100 transition-opacity">
             <button
-              class="font-mono text-[10px] font-bold uppercase tracking-[0.1em] px-2.5 py-1.5 border border-dc-accent text-dc-accent hover:bg-dc-accent hover:text-dc-void transition-colors"
+              class="font-mono text-[10px] font-bold uppercase tracking-[0.1em] px-2.5 py-1.5 border border-dc-accent text-dc-accent hover:bg-dc-accent hover:text-white transition-colors"
               onclick="_lbv2ViewString('${s.id}')"
             >View</button>
           </div>
@@ -5982,10 +5986,10 @@ function _renderLbv2Strings(results) {
       <table class="w-full border-collapse">
         <thead>
           <tr class="border-b border-dc-storm/20">
-            <th class="px-4 py-2.5 text-left font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-storm/60 w-10">#</th>
-            <th class="px-3 py-2.5 text-left font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-storm/60">String</th>
+            <th class="px-4 py-2.5 text-left font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-void/40 dark:text-dc-storm/60 w-10">#</th>
+            <th class="px-3 py-2.5 text-left font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-void/40 dark:text-dc-storm/60">String</th>
             <th class="px-3 py-2.5 text-right font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-accent">${statLabel}</th>
-            <th class="px-3 py-2.5 text-left font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-storm/60 hidden md:table-cell">Stats</th>
+            <th class="px-3 py-2.5 text-left font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-dc-void/40 dark:text-dc-storm/60 hidden md:table-cell">Stats</th>
             <th class="w-20"></th>
           </tr>
         </thead>
@@ -5993,8 +5997,8 @@ function _renderLbv2Strings(results) {
       </table>
     </div>
     <div class="px-5 py-3 border-t border-dc-storm/10 flex justify-between items-center">
-      <span class="font-mono text-[13px] text-dc-storm/50">${results.length} strings · intrinsic profile, no frame interaction</span>
-      <span class="font-mono text-[13px] text-dc-storm/50">${statMeta.icon} ${statMeta.desc}</span>
+      <span class="font-mono text-[13px] text-dc-void/40 dark:text-dc-storm/50">${results.length} strings · intrinsic profile, no frame interaction</span>
+      <span class="font-mono text-[13px] text-dc-void/40 dark:text-dc-storm/50">${statMeta.icon} ${statMeta.desc}</span>
     </div>
   `;
 }
@@ -9328,25 +9332,34 @@ let _stringModState = {
 
 // Tab switching for pill bar
 function _compSwitchTab(tab) {
-  // Update pill buttons
-  document.querySelectorAll('.comp-pill').forEach(pill => {
-    pill.classList.toggle('active', pill.dataset.compTab === tab);
+  // Update Master Nav UI
+  document.querySelectorAll('.comp-tab-btn').forEach(btn => {
+    if (btn.dataset.compTab === tab) {
+      // Active State
+      btn.classList.add('bg-dc-platinum', 'text-dc-void', 'font-bold');
+      btn.classList.remove('bg-transparent', 'text-dc-storm', 'hover:bg-dc-border/50', 'hover:text-dc-platinum');
+    } else {
+      // Inactive State
+      btn.classList.remove('bg-dc-platinum', 'text-dc-void', 'font-bold');
+      btn.classList.add('bg-transparent', 'text-dc-storm', 'hover:bg-dc-border/50', 'hover:text-dc-platinum');
+    }
   });
-  
-  // Update tab panels
+
+  // Hide all panels
   document.querySelectorAll('.comp-tab-panel').forEach(panel => {
     panel.classList.add('hidden');
   });
-  
+
+  // Show target panel
   const activePanel = document.getElementById('comp-tab-' + tab);
   if (activePanel) {
     activePanel.classList.remove('hidden');
   }
-  
+
   // Initialize string compendium on first visit
   if (tab === 'strings' && !_stringsInitialized) {
     _stringsInitialized = true;
-    
+
     // Delay slightly to ensure DOM is ready
     setTimeout(() => {
       try {
