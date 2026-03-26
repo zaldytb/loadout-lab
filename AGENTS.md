@@ -214,3 +214,46 @@ When modifying UI components:
 - [ ] Verify featured cards span full width in grid
 - [ ] Test string hybrid mode toggle
 - [ ] Verify frame injection preview updates correctly
+
+---
+
+## Setup Syncing Across App
+
+The app maintains consistency between the active loadout and all pages through `getCurrentSetup()` which returns the active racquet + string configuration.
+
+### Sync Flow
+
+```
+Active Loadout (source of truth)
+    ↓ getCurrentSetup()
+├── Overview Page — renders active build dashboard
+├── Tune Page — initializes with current racquet + strings  
+├── Compare Page — uses active loadout as baseline
+├── Optimize Page — suggests improvements from current setup
+└── Racket Bible — syncs on entry via _compSyncWithActiveLoadout()
+```
+
+### Key Functions
+
+| Function | Purpose |
+|----------|---------|
+| `getCurrentSetup()` | Returns `{racquet, stringConfig}` from active loadout or editor DOM |
+| `activateLoadout(lo)` | Sets new active loadout, triggers re-render across pages |
+| `_compSyncWithActiveLoadout()` | Switches Racket Bible to active racket frame + re-inits string injector |
+| `_compInitStringInjector()` | Initializes modulator with active loadout strings or fresh state |
+| `_stringSyncWithActiveLoadout()` | Syncs String Compendium with active loadout state |
+
+### Consistency Rules
+
+1. **Same racket as active** → Show active strings in modulator, allow modification
+2. **Different racket** → Fresh start (empty strings), user builds new setup
+3. **No active loadout** → Fresh start, Apply creates new loadout and activates it
+4. **Mode switch** → `switchMode('compendium')` calls `_compSyncWithActiveLoadout()`
+
+### Roundtrip Survival
+
+User journey that maintains consistency:
+1. Go to Racket Bible → auto-selects active racket frame
+2. Switch to Tune/Compare/Optimize → uses active racquet + strings
+3. Modify in Tune → updates active loadout
+4. Return to Racket Bible → syncs to show updated active racket + strings

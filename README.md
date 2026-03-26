@@ -145,3 +145,44 @@ npm run enrich:twu-strings -- --input pipeline/data/twu-strings-raw-YYYY-MM-DD.c
 - `app.js` contains only engine + UI — no equipment data
 - The engine is deterministic — same inputs always produce same outputs
 - Canary tests guard against regression on every export
+- Setup syncing ensures consistency across all pages (see below)
+
+## Setup Syncing
+
+The app maintains a single source of truth: the **active loadout** (frame + strings + tensions). All pages sync to this state:
+
+### Automatic Sync Points
+
+| Page | Sync Behavior |
+|------|---------------|
+| **Overview** | Always shows active loadout stats |
+| **Tune** | Initializes with active racquet + strings, modifications update active loadout |
+| **Compare** | Uses active loadout as first slot, survives roundtrips |
+| **Optimize** | Searches from current active setup as baseline |
+| **Racket Bible** | On entry: auto-selects active racket frame, syncs strings to modulator |
+| **String Compendium** | On entry: auto-selects active strings, syncs frame to injector |
+
+### User Workflows
+
+**Browsing different rackets** (no loadout → new setup):
+```
+Racket Bible → Select Frame A → Apply → Creates loadout + activates
+→ Browse Frame B → Fresh modulator → Apply → Overwrites with Frame B setup
+```
+
+**Modifying active setup** (existing loadout → update):
+```
+Overview → Tune → Change tension → Save → Active loadout updated
+→ Racket Bible → Shows same frame + strings → Modify → Apply → Updates active
+```
+
+**Hybrid mode consistency**:
+```
+Racket Bible → Hybrid mode → Select mains + crosses → Apply
+→ Any page → Shows hybrid setup
+→ Back to Racket Bible → Hybrid mode preserved, strings populated
+```
+
+### Implementation
+
+Sync is handled by `getCurrentSetup()` which returns the active configuration. Mode switching triggers re-sync via `switchMode()`. The Racket Bible uses `_compSyncWithActiveLoadout()` to ensure the displayed frame matches the active loadout on every entry.
