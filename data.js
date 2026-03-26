@@ -7231,7 +7231,7 @@ const RACQUETS = [
   },
   {
     "id": "head-squared-2026",
-    "name": "HEAD Squared 2026",
+    "name": "Head Squared 312g",
     "year": 2026,
     "headSize": 100,
     "length": 27,
