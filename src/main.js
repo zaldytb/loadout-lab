@@ -20,7 +20,7 @@ Object.entries(App).forEach(([key, val]) => {
 
 // Bridge leaderboard exports to window (needed for inline HTML handlers)
 Object.entries(Leaderboard).forEach(([key, val]) => {
-  if (typeof val === 'function') {
+  if (typeof val === 'function' || key === '_lbv2State') {
     window[key] = val;
   }
 });

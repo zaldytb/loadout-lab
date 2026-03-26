@@ -1123,6 +1123,7 @@ function _lbv2Compare(racquetId, stringId, tension, type, mainsId, crossesId, cr
 // ES Module exports
 export {
   initLeaderboard,
+  _lbv2State,
   _lbv2SetStat,
   _lbv2SetFilter,
   _lbv2SetView,

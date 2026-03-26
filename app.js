@@ -7555,7 +7555,8 @@ function _compSwitchTab(tab) {
   }
 
   // Initialize leaderboard on first visit
-  if (tab === 'leaderboard' && !_lbv2State.initialized) {
+  // Note: _lbv2State is defined in leaderboard.js module
+  if (tab === 'leaderboard' && typeof _lbv2State !== 'undefined' && !_lbv2State.initialized) {
     // Note: _lbv2State.initialized is set inside initLeaderboard()
     // Small race window if user clicks twice rapidly (<50ms) - acceptable
     setTimeout(function() { initLeaderboard(); }, 50);
