@@ -911,9 +911,13 @@ let _compendiumInitialized = false;
 // === LOADOUT SYSTEM ===
 // activeLoadout and savedLoadouts are local copies synced with src/state/loadout.js
 
-let activeLoadout = null;
-// Shape: { id, name, frameId, stringId, isHybrid, mainsId, crossesId, mainsTension, crossesTension, stats, obs, identity, source }
+// LEGACY: Local aliases to state store — these are kept for backward compat during migration
+// All new code should use getActiveLoadout() / getSavedLoadouts() from './src/state/store.js'
+const _getAl = () => getActiveLoadout();
+const _getSls = () => getSavedLoadouts();
 
+// TODO: Remove these after full migration to store
+let activeLoadout = null;
 let savedLoadouts = [];
 
 // loadSavedLoadouts and persistSavedLoadouts imported from src/state/loadout.js
@@ -984,13 +988,14 @@ function activateLoadout(loadout) {
   if (!loadout) return;
 
   // Fix A: Auto-save dirty loadout before overwriting (QA-007, QA-012)
-  if (activeLoadout && activeLoadout._dirty) {
+  const currentAl = getActiveLoadout();
+  if (currentAl && currentAl._dirty) {
     saveActiveLoadout();
   }
 
-  activeLoadout = loadout;
+  setActiveLoadout(loadout);
   
-  // Sync with state module
+  // Also sync with legacy state module (for backward compat)
   _stateSetActiveLoadout(loadout);
   
   // Persist active loadout ID to localStorage
@@ -1199,7 +1204,8 @@ function renderDockPanel() {
   var activeEl = document.getElementById('dock-lo-active');
   if (!emptyEl || !activeEl) return;
 
-  if (!activeLoadout) {
+  const al = getActiveLoadout();
+  if (!al) {
     emptyEl.classList.remove('hidden');
     activeEl.classList.add('hidden');
   } else {
@@ -1209,7 +1215,7 @@ function renderDockPanel() {
     // OBS value + color
     var obsVal = document.getElementById('dock-lo-obs-val');
     var obsRing = document.getElementById('dock-lo-obs-ring');
-    var newDockObs = activeLoadout.obs || 0;
+    var newDockObs = al.obs || 0;
     if (obsVal) {
       if (newDockObs > 0 && _prevObsValues.dock != null && _prevObsValues.dock > 0) {
         animateOBS(obsVal, _prevObsValues.dock, newDockObs, 400);
@@ -1226,29 +1232,29 @@ function renderDockPanel() {
     }
 
     // Info text
-    var racquet = RACQUETS.find(function(r) { return r.id === activeLoadout.frameId; });
-    var stringData = activeLoadout.isHybrid ? null : STRINGS.find(function(s) { return s.id === activeLoadout.stringId; });
+    var racquet = RACQUETS.find(function(r) { return r.id === al.frameId; });
+    var stringData = al.isHybrid ? null : STRINGS.find(function(s) { return s.id === al.stringId; });
     var nameEl = document.getElementById('dock-lo-name');
     var identEl = document.getElementById('dock-lo-identity');
     var detailsEl = document.getElementById('dock-lo-details');
     var sourceEl = document.getElementById('dock-lo-source');
 
-    if (nameEl) nameEl.textContent = activeLoadout.name || '\u2014';
-    if (identEl) identEl.textContent = activeLoadout.identity || '';
+    if (nameEl) nameEl.textContent = al.name || '\u2014';
+    if (identEl) identEl.textContent = al.identity || '';
     if (detailsEl) {
       var frameName = racquet ? racquet.name.replace(/\s+\d+g$/, '') : '\u2014';
-      var strName = stringData ? stringData.name : (activeLoadout.isHybrid ? 'Hybrid' : '\u2014');
-      detailsEl.textContent = frameName + ' \u00B7 ' + strName + ' \u00B7 M' + activeLoadout.mainsTension + '/X' + activeLoadout.crossesTension;
+      var strName = stringData ? stringData.name : (al.isHybrid ? 'Hybrid' : '\u2014');
+      detailsEl.textContent = frameName + ' \u00B7 ' + strName + ' \u00B7 M' + al.mainsTension + '/X' + al.crossesTension;
     }
     if (sourceEl) {
       var labels = { quiz: 'Quiz', compendium: 'Racket Bible', manual: 'Manual', preset: 'Preset', optimize: 'Optimizer', shared: 'Shared' };
-      if (activeLoadout._dirty) {
+      if (al._dirty) {
         sourceEl.textContent = '\u270E Modified';
         sourceEl.className = sourceEl.className.replace('hidden', '');
         sourceEl.classList.remove('hidden');
         sourceEl.style.color = 'var(--dc-warn)';
-      } else if (activeLoadout.source && labels[activeLoadout.source]) {
-        sourceEl.textContent = labels[activeLoadout.source];
+      } else if (al.source && labels[al.source]) {
+        sourceEl.textContent = labels[al.source];
         sourceEl.classList.remove('hidden');
         sourceEl.style.color = '';
       } else {
@@ -1256,7 +1262,7 @@ function renderDockPanel() {
       }
     }
 
-    // Save button dirty tint
+    // Save button dirty tint (using local al)
     var saveBtnEl = document.querySelector('#dock-lo-active button[onclick="saveActiveLoadout()"]');
     if (saveBtnEl) {
       if (activeLoadout._dirty) {
@@ -1406,7 +1412,8 @@ function _renderDockPanelBible(container) {
   const editorSection = document.getElementById('dock-editor-section');
   if (editorSection) editorSection.style.display = 'none';
 
-  if (!activeLoadout) {
+  const al = getActiveLoadout();
+  if (!al) {
     // No loadout — onboarding guidance
     container.innerHTML = _dockGuidance(
       _dockIcons.racket,
@@ -1415,25 +1422,25 @@ function _renderDockPanelBible(container) {
     );
   } else {
     // Has loadout — show current build summary + action links
-    const racquet = RACQUETS.find(r => r.id === activeLoadout.frameId);
+    const racquet = RACQUETS.find(r => r.id === al.frameId);
     const frameName = racquet ? racquet.name.replace(/\\s+\\d+g$/, '') : '—';
-    const obs = activeLoadout.obs ? activeLoadout.obs.toFixed(1) : '—';
+    const obs = al.obs ? al.obs.toFixed(1) : '—';
 
     let stringName = '—';
-    if (activeLoadout.isHybrid) {
-      const m = STRINGS.find(s => s.id === activeLoadout.mainsId);
-      const x = STRINGS.find(s => s.id === activeLoadout.crossesId);
+    if (al.isHybrid) {
+      const m = STRINGS.find(s => s.id === al.mainsId);
+      const x = STRINGS.find(s => s.id === al.crossesId);
       stringName = m && x ? m.name + ' / ' + x.name : '—';
     } else {
-      const str = STRINGS.find(s => s.id === activeLoadout.stringId);
+      const str = STRINGS.find(s => s.id === al.stringId);
       stringName = str ? str.name : '—';
     }
 
     container.innerHTML = `
       <div class="dock-ctx-current">
         <div class="dock-ctx-label">Current build</div>
-        <div class="dock-ctx-current-name">${activeLoadout.name || frameName}</div>
-        <div class="dock-ctx-current-detail">${stringName} · M${activeLoadout.mainsTension}/X${activeLoadout.crossesTension}</div>
+        <div class="dock-ctx-current-name">${al.name || frameName}</div>
+        <div class="dock-ctx-current-detail">${stringName} · M${al.mainsTension}/X${al.crossesTension}</div>
         <div class="dock-ctx-current-obs">OBS ${obs}</div>
       </div>
     ` + _dockContextActions([
@@ -1479,7 +1486,8 @@ function _renderDockPanelOverview(container) {
 }
 
 function _renderDockPanelTune(container) {
-  if (!activeLoadout) {
+  const al = getActiveLoadout();
+  if (!al) {
     _dockReturnEditorHome();
     const editorSection = document.getElementById('dock-editor-section');
     if (editorSection) editorSection.style.display = 'none';
@@ -1491,7 +1499,7 @@ function _renderDockPanelTune(container) {
   // Add tune-mode class for CSS overrides (hides frame section + tension rows)
   container.classList.add('dock-tune-mode');
 
-  const racquet = RACQUETS.find(r => r.id === activeLoadout.frameId);
+  const racquet = RACQUETS.find(r => r.id === al.frameId);
   const frameName = racquet ? racquet.name : '—';
 
   // Check if editor is already relocated here
@@ -1640,7 +1648,8 @@ function _renderDockPanelCompare(container) {
   }
 
   // Empty state
-  if (comparisonSlots.length === 0 && savedLoadouts.length === 0 && !activeLoadout) {
+  const al = getActiveLoadout();
+  if (comparisonSlots.length === 0 && getSavedLoadouts().length === 0 && !al) {
     html = _dockGuidance(_dockIcons.compare, 'Nothing to compare yet',
       'Set a build active from the Racket Bible, then come back here.');
   }
@@ -1706,7 +1715,8 @@ function _renderDockPanelOptimize(container) {
   const editorSection = document.getElementById('dock-editor-section');
   if (editorSection) editorSection.style.display = 'none';
 
-  if (!activeLoadout) {
+  const al = getActiveLoadout();
+  if (!al) {
     container.innerHTML = _dockGuidance(
       _dockIcons.optimize,
       'No build to optimize from',
@@ -1718,21 +1728,21 @@ function _renderDockPanelOptimize(container) {
     return;
   }
 
-  const racquet = RACQUETS.find(r => r.id === activeLoadout.frameId);
-  const obs = activeLoadout.obs ? activeLoadout.obs.toFixed(1) : '—';
+  const racquet = RACQUETS.find(r => r.id === al.frameId);
+  const obs = al.obs ? al.obs.toFixed(1) : '—';
 
   // Current string info
   let stringName = '—';
-  if (activeLoadout.isHybrid) {
-    const m = STRINGS.find(s => s.id === activeLoadout.mainsId);
-    const x = STRINGS.find(s => s.id === activeLoadout.crossesId);
+  if (al.isHybrid) {
+    const m = STRINGS.find(s => s.id === al.mainsId);
+    const x = STRINGS.find(s => s.id === al.crossesId);
     stringName = m && x ? m.name + ' / ' + x.name : '—';
   } else {
-    const str = STRINGS.find(s => s.id === activeLoadout.stringId);
+    const str = STRINGS.find(s => s.id === al.stringId);
     stringName = str ? str.name : '—';
   }
 
-  const tensionLabel = `M${activeLoadout.mainsTension} / X${activeLoadout.crossesTension}`;
+  const tensionLabel = `M${al.mainsTension} / X${al.crossesTension}`;
 
   container.innerHTML = `
     <div class="dock-ctx-current">
@@ -1753,8 +1763,9 @@ function _renderDockPanelReference(container) {
   const editorSection = document.getElementById('dock-editor-section');
   if (editorSection) editorSection.style.display = 'none';
 
+  const al = getActiveLoadout();
   const actions = [];
-  if (activeLoadout) {
+  if (al) {
     actions.push({ label: '→ Back to your build', onclick: "switchMode('overview')" });
     actions.push({ label: '→ Tune tension curves', onclick: "switchMode('tune')" });
   } else {
@@ -1775,15 +1786,16 @@ function _syncMobileDockBar() {
   var labelEl = document.getElementById('dock-mob-label');
   if (!obsEl || !labelEl) return;
   
-  if (activeLoadout) {
-    var newMobObs = activeLoadout.obs || 0;
+  const al = getActiveLoadout();
+  if (al) {
+    var newMobObs = al.obs || 0;
     if (newMobObs > 0 && _prevObsValues.mobile != null && _prevObsValues.mobile > 0) {
       animateOBS(obsEl, _prevObsValues.mobile, newMobObs, 400);
     } else {
       obsEl.textContent = newMobObs > 0 ? newMobObs.toFixed(1) : '';
     }
     _prevObsValues.mobile = newMobObs;
-    labelEl.textContent = activeLoadout.name || 'Active loadout';
+    labelEl.textContent = al.name || 'Active loadout';
   } else {
     obsEl.textContent = '';
     labelEl.textContent = 'No active loadout';
