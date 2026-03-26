@@ -3,8 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tennis Loadout Lab — Frame × String × Tension Prediction Engine</title>
-<meta name="description" content="Premium tennis racquet and string prediction engine. Frame × String × Tension analysis.">
+<title>16X19 — Frame × String × Tension Prediction Engine</title>
+<meta name="description" content="High-spec tennis telemetry. 16X19 is a parametric prediction engine for frame, string, and tension optimization.">
+
+<meta property="og:title" content="16X19 // Prediction Engine">
+<meta property="og:description" content="Diagnostic-grade tennis equipment analysis. Optimize your loadout with the 16X19 telemetry suite.">
+<meta property="og:image" content="/og-preview.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -66,15 +70,15 @@
       <!-- Header -->
       <div class="flex justify-between items-start">
         <div class="flex flex-col">
-          <span class="font-mono text-[9px] text-dc-accent uppercase tracking-[0.2em] animate-pulse">// SYSTEM_BOOT</span>
-          <h1 class="text-4xl md:text-5xl font-semibold text-dc-platinum tracking-tighter leading-none mt-2">LOADOUT</h1>
+          <span class="font-mono text-[9px] text-dc-accent uppercase tracking-[0.2em] animate-pulse">// KERNEL_INIT</span>
+          <h1 class="text-4xl md:text-5xl font-mono font-bold text-dc-platinum tracking-tighter leading-none mt-2">16<span class="text-dc-accent">X</span>19</h1>
         </div>
         <span class="font-mono text-[9px] text-dc-storm tracking-[0.2em]">v2.4.0</span>
       </div>
       <!-- Progress battery -->
       <div class="flex flex-col gap-2.5">
         <div class="flex justify-between items-end font-mono text-[9px] tracking-widest uppercase">
-          <span class="text-dc-storm">Engine Initialization</span>
+          <span class="text-dc-storm">Synchronizing Grid</span>
           <span class="text-dc-platinum font-bold text-xs" id="dc-boot-pct">0%</span>
         </div>
         <div class="flex gap-[2px] h-1.5 w-full" id="dc-boot-battery"></div>
@@ -89,13 +93,21 @@
     <!-- Header — spans full shell width -->
     <header class="site-header">
       <div class="header-dock-region">
-        <div class="logo-group">
-          <svg class="logo-svg" width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Tennis Loadout Lab Logo">
-            <path d="M7 15L10 12L7 9M13 15H17M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <div class="logo-text">
-            <h1 class="site-title">TENNIS LOADOUT LAB</h1>
-            <p class="site-subtitle">Frame × String × Tension Prediction Engine</p>
+        <div class="flex items-center gap-4 group cursor-pointer" onclick="window.location.reload()">
+          <div class="grid grid-cols-4 gap-1 w-10 h-10 border border-dc-border p-1 group-hover:border-dc-accent transition-colors">
+            <div class="bg-dc-storm/20 w-full h-full"></div><div class="bg-dc-storm/20 w-full h-full"></div>
+            <div class="bg-dc-storm/20 w-full h-full"></div><div class="bg-dc-storm/20 w-full h-full"></div>
+            <div class="bg-dc-storm/20 w-full h-full"></div><div class="bg-dc-storm/20 w-full h-full"></div>
+            <div class="bg-dc-storm/20 w-full h-full"></div><div class="bg-dc-storm/20 w-full h-full"></div>
+            <div class="bg-dc-storm/20 w-full h-full"></div><div class="bg-dc-storm/20 w-full h-full"></div>
+            <div class="bg-dc-storm/20 w-full h-full"></div><div class="bg-dc-accent animate-pulse w-full h-full"></div>
+            <div class="bg-dc-storm/20 w-full h-full"></div><div class="bg-dc-storm/20 w-full h-full"></div>
+            <div class="bg-dc-storm/20 w-full h-full"></div><div class="bg-dc-storm/20 w-full h-full"></div>
+          </div>
+
+          <div class="flex flex-col">
+            <h1 class="font-mono text-2xl font-bold tracking-[-0.05em] text-dc-platinum leading-none">16<span class="text-dc-accent">X</span>19</h1>
+            <p class="font-mono text-[9px] text-dc-storm uppercase tracking-[0.3em] mt-1">Prediction Engine // v2.4.0</p>
           </div>
         </div>
         <div class="mobile-header-actions">

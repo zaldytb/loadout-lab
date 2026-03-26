@@ -10457,6 +10457,21 @@ function _compareQuickAdd() {
   if (prompt) prompt.remove();
 }
 
+function _init16x19Favicon() {
+  const favicon = document.querySelector('link[rel="icon"]');
+  if (!favicon) return;
+  
+  // Create SVG data URIs for blinking favicon
+  const idleSvg = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="1" y="1" width="14" height="14" fill="none" stroke="%23FF4500" stroke-width="1.5"/><text x="8" y="11" font-family="monospace" font-size="7" fill="%23DCDFE2" text-anchor="middle">16</text></svg>`;
+  const activeSvg = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect x="1" y="1" width="14" height="14" fill="none" stroke="%23FF4500" stroke-width="1.5"/><text x="8" y="11" font-family="monospace" font-size="7" fill="%23FF4500" text-anchor="middle">X</text></svg>`;
+  
+  let isTick = true;
+  setInterval(() => {
+    favicon.href = isTick ? activeSvg : idleSvg;
+    isTick = !isTick;
+  }, 1000);
+}
+
 function _runDigicraftBootSequence() {
   const loader = document.getElementById('dc-boot-loader');
   const batteryTrack = document.getElementById('dc-boot-battery');
@@ -10475,10 +10490,10 @@ function _runDigicraftBootSequence() {
   }
 
   const logs = [
-    "> Waking prediction engine...",
-    "> Fetching frame telemetry...",
-    "> Calibrating tension modifiers...",
-    "> Matrix sync complete."
+    "> Loading 16x19.core.js...",
+    "> Fetching global frame database...",
+    "> Booting String Modulator V2...",
+    "> System ready. Diagnostics active."
   ];
 
   let currentLog = 0;
@@ -10522,6 +10537,7 @@ function _runDigicraftBootSequence() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  _init16x19Favicon();
   _runDigicraftBootSequence();
   init();
   handleResponsiveHeader();
