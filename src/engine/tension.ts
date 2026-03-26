@@ -1,5 +1,7 @@
-// src/engine/tension.js
+// src/engine/tension.ts
 // Tension calculation functions
+
+import type { TensionMod, TensionContext } from './types';
 
 /**
  * PREDICTION LAYER 2 — Tension overlay.
@@ -8,13 +10,18 @@
  * mains-tighter differentials for spin/snapback, while dense beds (≥20 crosses)
  * prefer near-equal tension — reversing this degrades the score.
  * Every 2 lbs above frame midpoint: ~+2 control, ~−2 power (absolute level effect).
- * @param {number} mainsTension
- * @param {number} crossesTension
- * @param {number[]} tensionRange — [min, max] from racquet spec (used to find midpoint)
- * @param {string} pattern — e.g. "16x19"
- * @returns {Object} per-attribute modifier deltas
+ * @param mainsTension
+ * @param crossesTension
+ * @param tensionRange — [min, max] from racquet spec (used to find midpoint)
+ * @param pattern — e.g. "16x19"
+ * @returns per-attribute modifier deltas
  */
-export function calcTensionModifier(mainsTension, crossesTension, tensionRange, pattern) {
+export function calcTensionModifier(
+  mainsTension: number,
+  crossesTension: number,
+  tensionRange: [number, number],
+  pattern: string
+): TensionMod {
   const avgTension = (mainsTension + crossesTension) / 2;
   const mid = (tensionRange[0] + tensionRange[1]) / 2;
   const diff = avgTension - mid;
@@ -42,7 +49,7 @@ export function calcTensionModifier(mainsTension, crossesTension, tensionRange, 
     // ===== DENSE 20-CROSS PATTERNS =====
     // Short, numerous crosses are already effectively stiff.
     // "Mains tighter" can over-constrain the bed, killing snapback.
-    // "Crosses equal or slightly tighter" can yield a more uniform, 
+    // "Crosses equal or slightly tighter" can yield a more uniform,
     // linear, predictable response — good for flat drives.
 
     if (absDiff <= 2) {
@@ -140,7 +147,10 @@ export function calcTensionModifier(mainsTension, crossesTension, tensionRange, 
 }
 
 // Build tension context for OBS sanity penalty
-export function buildTensionContext(stringConfig, racquet) {
+export function buildTensionContext(
+  stringConfig: { mainsTension: number; crossesTension: number } | null | undefined,
+  racquet: { pattern: string; tensionRange: [number, number] } | null | undefined
+): TensionContext | null {
   if (!stringConfig || !racquet) return null;
   const avgTension = (stringConfig.mainsTension + stringConfig.crossesTension) / 2;
   const differential = stringConfig.mainsTension - stringConfig.crossesTension;

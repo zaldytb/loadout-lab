@@ -1,5 +1,16 @@
-// src/engine/constants.js
+// src/engine/constants.ts
 // Pure configuration constants — no dependencies on other app code
+
+import type {
+  GaugeOptions,
+  GaugeLabels,
+  ObsTier,
+  IdentityFamily,
+  StatGroup,
+  LbStat,
+  DefaultPreset,
+  SetupAttributes,
+} from './types';
 
 // ============================================
 // GAUGE SYSTEM
@@ -9,7 +20,7 @@
 // When a different gauge is selected, applyGaugeModifier creates a virtual
 // string object with adjusted properties.
 
-export const GAUGE_OPTIONS = {
+export const GAUGE_OPTIONS: GaugeOptions = {
   // Polyester / Co-Polyester: wide range available
   'Polyester':             [1.15, 1.20, 1.25, 1.30, 1.35],
   'Co-Polyester (elastic)':[1.15, 1.20, 1.25, 1.30, 1.35],
@@ -20,7 +31,7 @@ export const GAUGE_OPTIONS = {
   'Synthetic Gut':         [1.25, 1.30, 1.35],
 };
 
-export const GAUGE_LABELS = {
+export const GAUGE_LABELS: GaugeLabels = {
   1.15: '18 (1.15mm)',
   1.20: '17 (1.20mm)',
   1.25: '16L (1.25mm)',
@@ -33,12 +44,12 @@ export const GAUGE_LABELS = {
 // STAT DEFINITIONS
 // ============================================
 
-export const STAT_KEYS = ['spin', 'power', 'control', 'launch', 'feel', 'comfort', 'stability', 'forgiveness', 'maneuverability', 'durability', 'playability'];
-export const STAT_LABELS = ['Spin', 'Power', 'Control', 'Launch', 'Feel', 'Comfort', 'Stability', 'Forgiveness', 'Maneuverability', 'Durability', 'Playability'];
-export const STAT_LABELS_FULL = ['Spin', 'Power', 'Control', 'Launch', 'Feel', 'Comfort', 'Stability', 'Forgiveness', 'Maneuverability', 'Durability', 'Playability Duration'];
-export const STAT_CSS_CLASSES = ['spin', 'power', 'control', 'launch', 'feel', 'comfort', 'stability', 'forgiveness', 'maneuverability', 'durability', 'playability'];
+export const STAT_KEYS: string[] = ['spin', 'power', 'control', 'launch', 'feel', 'comfort', 'stability', 'forgiveness', 'maneuverability', 'durability', 'playability'];
+export const STAT_LABELS: string[] = ['Spin', 'Power', 'Control', 'Launch', 'Feel', 'Comfort', 'Stability', 'Forgiveness', 'Maneuverability', 'Durability', 'Playability'];
+export const STAT_LABELS_FULL: string[] = ['Spin', 'Power', 'Control', 'Launch', 'Feel', 'Comfort', 'Stability', 'Forgiveness', 'Maneuverability', 'Durability', 'Playability Duration'];
+export const STAT_CSS_CLASSES: string[] = ['spin', 'power', 'control', 'launch', 'feel', 'comfort', 'stability', 'forgiveness', 'maneuverability', 'durability', 'playability'];
 
-export const STAT_GROUPS = [
+export const STAT_GROUPS: StatGroup[] = [
   { label: 'Attack', keys: ['spin', 'power', 'launch'] },
   { label: 'Defense', keys: ['control', 'stability', 'forgiveness'] },
   { label: 'Touch', keys: ['feel', 'comfort', 'maneuverability'] },
@@ -49,7 +60,7 @@ export const STAT_GROUPS = [
 // OBS (Overall Build Score) SYSTEM
 // ============================================
 
-export const OBS_TIERS = [
+export const OBS_TIERS: ObsTier[] = [
   { min: 0,  max: 10,  label: 'Delete This' },
   { min: 10, max: 20,  label: 'Hospital Build' },
   { min: 20, max: 30,  label: 'Bruh' },
@@ -66,29 +77,29 @@ export const OBS_TIERS = [
 // IDENTITY / CLASSIFICATION SYSTEM
 // ============================================
 
-export const WTTN_ATTRS = ['spin','power','control','launch','feel','comfort','stability','forgiveness','durability','playability'];
+export const WTTN_ATTRS: Array<keyof SetupAttributes> = ['spin','power','control','launch','feel','comfort','stability','forgiveness','durability','playability'];
 
-export const WTTN_ATTR_LABELS = { 
-  spin:'Spin', 
-  power:'Power', 
-  control:'Control', 
-  launch:'Launch', 
-  feel:'Feel', 
-  comfort:'Comfort', 
-  stability:'Stability', 
-  forgiveness:'Forgiveness', 
-  durability:'Durability', 
-  playability:'Playability' 
+export const WTTN_ATTR_LABELS: Record<string, string> = {
+  spin:'Spin',
+  power:'Power',
+  control:'Control',
+  launch:'Launch',
+  feel:'Feel',
+  comfort:'Comfort',
+  stability:'Stability',
+  forgiveness:'Forgiveness',
+  durability:'Durability',
+  playability:'Playability'
 };
 
-export const IDENTITY_FAMILIES = [
-  { family: 'spin-control',   test: s => s.spin >= 75 && s.control >= 70 },
-  { family: 'control-first',  test: s => s.control >= 72 && s.spin < 75 && s.power < 65 },
-  { family: 'power-spin',     test: s => s.spin >= 72 && s.power >= 65 },
-  { family: 'power-first',    test: s => s.power >= 70 && s.spin < 72 },
-  { family: 'comfort-balanced',test: s => s.comfort >= 68 && s.power >= 55 && s.control >= 55 },
-  { family: 'feel-control',   test: s => s.feel >= 70 && s.control >= 65 },
-  { family: 'endurance',      test: s => s.playability >= 82 && s.durability >= 78 },
+export const IDENTITY_FAMILIES: IdentityFamily[] = [
+  { family: 'spin-control',   test: (s: SetupAttributes) => s.spin >= 75 && s.control >= 70 },
+  { family: 'control-first',  test: (s: SetupAttributes) => s.control >= 72 && s.spin < 75 && s.power < 65 },
+  { family: 'power-spin',     test: (s: SetupAttributes) => s.spin >= 72 && s.power >= 65 },
+  { family: 'power-first',    test: (s: SetupAttributes) => s.power >= 70 && s.spin < 72 },
+  { family: 'comfort-balanced',test: (s: SetupAttributes) => s.comfort >= 68 && s.power >= 55 && s.control >= 55 },
+  { family: 'feel-control',   test: (s: SetupAttributes) => s.feel >= 70 && s.control >= 65 },
+  { family: 'endurance',      test: (s: SetupAttributes) => s.playability >= 82 && s.durability >= 78 },
   { family: 'balanced',       test: () => true },
 ];
 
@@ -96,7 +107,7 @@ export const IDENTITY_FAMILIES = [
 // LEADERBOARD STATS
 // ============================================
 
-export const LB_STATS = [
+export const LB_STATS: LbStat[] = [
   { key: 'obs',            label: 'Best Overall',  icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>', desc: 'Highest total build score' },
   { key: 'spin',           label: 'Most Spin',     icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9 2.9"/></svg>', desc: 'Maximum topspin potential' },
   { key: 'power',          label: 'Most Power',    icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>', desc: 'Hardest hitting setups'    },
@@ -113,7 +124,7 @@ export const LB_STATS = [
 // ============================================
 // Default stringing presets for the loadout creator
 
-export const DEFAULT_PRESETS = [
+export const DEFAULT_PRESETS: DefaultPreset[] = [
   { name: 'Poly-based control',    mode: 'fullbed', material: 'Polyester',            tension: 52, label: 'Competition' },
   { name: 'Maximum spin',          mode: 'fullbed', material: 'Polyester',            tension: 50, label: 'Aggressive' },
   { name: 'Comfort + power',       mode: 'fullbed', material: 'Multifilament',        tension: 55, label: 'Arm-friendly' },

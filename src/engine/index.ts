@@ -1,4 +1,4 @@
-// src/engine/index.js
+// src/engine/index.ts
 // Public API for the prediction engine — re-exports all engine functions
 
 // Constants
@@ -31,7 +31,6 @@ export {
   calcFrameBase,
   normalizeRawSpecs
 } from './frame-physics.js';
-export { buildTensionContext } from './tension.js';
 
 // String profile
 export {

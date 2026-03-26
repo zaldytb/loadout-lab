@@ -5,6 +5,7 @@
   "main": "app.js",
   "scripts": {
     "dev": "vite",
+    "typecheck": "tsc --noEmit",
     "build": "vite build",
     "preview": "vite preview",
     "extract": "node pipeline/scripts/extract.js",
@@ -35,6 +36,7 @@
     "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
+    "typescript": "^6.0.2",
     "vite": "^8.0.3"
   }
 }

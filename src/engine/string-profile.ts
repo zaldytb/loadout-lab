@@ -1,15 +1,16 @@
-// src/engine/string-profile.js
+// src/engine/string-profile.ts
 // String profile calculations — base profiles, gauge modifiers, frame interaction
 
 import { GAUGE_OPTIONS, GAUGE_LABELS } from './constants.js';
 import { lerp, clamp } from './frame-physics.js';
+import type { StringData, StringProfileScores, StringFrameMod } from './types';
 
 /**
  * Soft linear compression for TWU-derived raw scores.
  * Pulls extremes toward the midpoint (65): raw ~38–98 → compressed ~32–88.
  * spread < 1 compresses (narrows range), spread > 1 expands.
  */
-function compressScore(raw, floor = 30, ceiling = 95) {
+function compressScore(raw: number, floor: number = 30, ceiling: number = 95): number {
   // Compress twScore (raw 0-100) into a more realistic range.
   // twScore ~38-98 → compressed ~32-88.
   // Formula: soft sigmoid-like compression that pulls extremes toward center.
@@ -27,10 +28,10 @@ function compressScore(raw, floor = 30, ceiling = 95) {
  *   tensionLoss — % of initial tension lost after break-in (10% best → 50% worst)
  *   spinPotential — TWU friction-based scale (4.5 low → 9.4 high)
  * No frame or tension interaction yet — those are applied in later layers.
- * @param {Object} stringData — entry from the STRINGS array
- * @returns {Object} attribute scores (power, spin, control, comfort, feel, durability, playability)
+ * @param stringData — entry from the STRINGS array
+ * @returns attribute scores (power, spin, control, comfort, feel, durability, playability)
  */
-export function calcBaseStringProfile(stringData) {
+export function calcBaseStringProfile(stringData: StringData): StringProfileScores {
   const tw = stringData.twScore;
   const stiff = stringData.stiffness; // lb/in: 115 (Truffle X elastic) to 234 (RPM Blast 17)
   const tLoss = stringData.tensionLoss; // %: 10 (gut/Truffle X) to 48.3 (Hawk Power)
@@ -97,7 +98,7 @@ export function calcBaseStringProfile(stringData) {
 
   // --- Final clamp: nothing below 25, nothing above 86 for base string ---
   const capLow = 25, capHigh = 86;
-  const profile = {
+  const profile: StringProfileScores = {
     power: Math.round(Math.max(capLow, Math.min(capHigh, power))),
     spin: Math.round(Math.max(capLow, Math.min(capHigh, spin))),
     control: Math.round(Math.max(capLow, Math.min(capHigh, control))),
@@ -106,6 +107,10 @@ export function calcBaseStringProfile(stringData) {
     durability: Math.round(Math.max(capLow, Math.min(capHigh, durability))),
     playability: Math.round(Math.max(capLow, Math.min(capHigh, playability)))
   };
+
+  // Suppress unused variable warning from TypeScript — spinNorm is computed for
+  // documentation/future use but not currently applied to a stat.
+  void spinNorm;
 
   return profile;
 }
@@ -117,7 +122,7 @@ export function calcBaseStringProfile(stringData) {
  * spin/power/control/comfort/feel/launch; the string profile handles
  * durability and playability directly.
  */
-export function calcStringFrameMod(stringData) {
+export function calcStringFrameMod(stringData: StringData): StringFrameMod {
   const stiff = stringData.stiffness;
   // Clamped normalization: 0 = stiffest (234), 1 = softest (115)
   const stiffNorm = Math.max(0, Math.min(1, lerp(stiff, 115, 234, 1, 0)));
@@ -137,7 +142,7 @@ export function calcStringFrameMod(stringData) {
 // Returns a modified copy of stringData with gauge-adjusted properties.
 // The base string data is the "reference" measurement (at its own gaugeNum).
 // Moving to a different gauge shifts stiffness, spin, durability, etc.
-export function applyGaugeModifier(stringData, selectedGauge) {
+export function applyGaugeModifier(stringData: StringData, selectedGauge: number): StringData {
   if (!selectedGauge || selectedGauge === stringData.gaugeNum) {
     return stringData; // No change needed — using reference gauge
   }
@@ -172,7 +177,7 @@ export function applyGaugeModifier(stringData, selectedGauge) {
   return {
     ...stringData,
     gaugeNum: selectedGauge,
-    gauge: GAUGE_LABELS[selectedGauge] || `${selectedGauge.toFixed(2)}mm`,
+    gauge: (GAUGE_LABELS as Record<number, string>)[selectedGauge] || `${selectedGauge.toFixed(2)}mm`,
     stiffness: Math.max(80, newStiffness),
     tensionLoss: Math.max(5, Math.min(60, newTensionLoss)),
     spinPotential: Math.max(3, Math.min(10, newSpinPot)),
@@ -184,8 +189,8 @@ export function applyGaugeModifier(stringData, selectedGauge) {
 
 // Get available gauge options for a string.
 // Always includes the string's reference gauge plus the standard gauge grid for its material.
-export function getGaugeOptions(stringData) {
-  const standard = GAUGE_OPTIONS[stringData.material] || [1.25, 1.30];
+export function getGaugeOptions(stringData: StringData): number[] {
+  const standard: number[] = (GAUGE_OPTIONS as Record<string, number[]>)[stringData.material] || [1.25, 1.30];
   const ref = stringData.gaugeNum;
   // If ref gauge isn't in the standard list, add it and sort
   if (!standard.some(g => Math.abs(g - ref) < 0.005)) {

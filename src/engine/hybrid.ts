@@ -1,15 +1,17 @@
-// src/engine/hybrid.js
+// src/engine/hybrid.ts
 // Hybrid string interaction calculations
+
+import type { StringData, HybridMod } from './types';
 
 /**
  * PREDICTION LAYER 3 — Hybrid interaction analysis.
  * Evaluates how mains and crosses work together in a hybrid setup.
  * Different material pairings have different optimal characteristics.
- * @param {Object} mainsData — string data for mains
- * @param {Object} crossesData — string data for crosses
- * @returns {Object} modifier deltas for hybrid pairing
+ * @param mainsData — string data for mains
+ * @param crossesData — string data for crosses
+ * @returns modifier deltas for hybrid pairing
  */
-export function calcHybridInteraction(mainsData, crossesData) {
+export function calcHybridInteraction(mainsData: StringData, crossesData: StringData): HybridMod {
   const mainsMat = mainsData.material;
   const crossMat = crossesData.material;
   const isGutMains = mainsMat === 'Natural Gut';
@@ -35,7 +37,7 @@ export function calcHybridInteraction(mainsData, crossesData) {
   const mainsIsShaped = mainsShape.includes('pentagon') || mainsShape.includes('hex') || mainsShape.includes('square') || mainsShape.includes('star') || mainsShape.includes('octagon') || mainsShape.includes('heptagonal') || mainsShape.includes('textured');
 
   // Result object: modifiers applied AFTER the base hybrid blend
-  const mods = {
+  const mods: HybridMod = {
     powerMod: 0,
     spinMod: 0,
     controlMod: 0,

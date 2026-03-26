@@ -1,4 +1,4 @@
-// src/engine/composite.js
+// src/engine/composite.ts
 // Composite scoring, identity generation, and OBS calculations
 
 import { clamp, calcFrameBase } from './frame-physics.js';
@@ -6,19 +6,32 @@ import { calcBaseStringProfile, calcStringFrameMod } from './string-profile.js';
 import { calcTensionModifier, buildTensionContext } from './tension.js';
 import { calcHybridInteraction } from './hybrid.js';
 import { OBS_TIERS, IDENTITY_FAMILIES, WTTN_ATTRS } from './constants.js';
+import type {
+  Racquet,
+  StringConfig,
+  SetupStats,
+  SetupAttributes,
+  StringFrameMod,
+  StringProfileScores,
+  ObsTier,
+  TensionContext,
+  IdentityResult,
+  ClassifyResult,
+} from './types';
 
 /**
  * PREDICTION LAYER 4 — Full setup prediction.
  * Orchestrates frame base + string profile + tension modifier + hybrid interaction.
- * @param {Object} racquet — racquet data
- * @param {Object} stringConfig — { isHybrid, mains, crosses, string, mainsTension, crossesTension }
- * @returns {Object} final attribute scores + debug info
+ * @param racquet — racquet data
+ * @param stringConfig — { isHybrid, mains, crosses, string, mainsTension, crossesTension }
+ * @returns final attribute scores + debug info
  */
-export function predictSetup(racquet, stringConfig) {
+export function predictSetup(racquet: Racquet, stringConfig: StringConfig): SetupStats {
   const frameBase = calcFrameBase(racquet);
 
-  let stringMod, stringProfile;
-  let avgTension;
+  let stringMod: StringFrameMod;
+  let stringProfile: StringProfileScores;
+  let avgTension: number;
 
   if (stringConfig.isHybrid) {
     const mainsMod = calcStringFrameMod(stringConfig.mains);
@@ -55,12 +68,12 @@ export function predictSetup(racquet, stringConfig) {
     avgTension = (stringConfig.mainsTension + stringConfig.crossesTension) / 2;
   }
 
-  const tensionMod = calcTensionModifier(stringConfig.mainsTension, stringConfig.crossesTension, racquet.tensionRange, racquet.pattern);
+  const tensionMod = calcTensionModifier(stringConfig.mainsTension, stringConfig.crossesTension, racquet.tensionRange as [number, number], racquet.pattern as string);
 
   const FW = 0.72; // frame weight
   const SW = 0.28; // string profile weight
 
-  const stats = {
+  const stats: SetupStats = {
     spin: clamp(frameBase.spin * FW + stringProfile.spin * SW + stringMod.spinMod + tensionMod.spinMod),
     power: clamp(frameBase.power * FW + stringProfile.power * SW + stringMod.powerMod + tensionMod.powerMod),
     control: clamp(frameBase.control * FW + stringProfile.control * SW + stringMod.controlMod + tensionMod.controlMod),
@@ -74,11 +87,11 @@ export function predictSetup(racquet, stringConfig) {
     playability: clamp(stringProfile.playability + tensionMod.playabilityMod)
   };
 
-  stats._debug = { 
-    frameBase, 
-    stringProfile, 
-    stringMod, 
-    tensionMod, 
+  stats._debug = {
+    frameBase,
+    stringProfile,
+    stringMod,
+    tensionMod,
     _frameDebug: frameBase._frameDebug,
     hybridInteraction: stringConfig.isHybrid ? calcHybridInteraction(stringConfig.mains, stringConfig.crosses) : null
   };
@@ -87,28 +100,28 @@ export function predictSetup(racquet, stringConfig) {
 }
 
 // Novelty/Anomaly Bonus System — rewards rare high-performing combos
-function computeNoveltyBonus(stats) {
+function computeNoveltyBonus(stats: SetupAttributes): number {
   const pwr = stats.power;
   const spn = stats.spin;
   const ctl = stats.control;
   const triad = (pwr + spn + ctl) / 3;
 
   const highCount = [pwr >= 55, spn >= 68, ctl >= 70].filter(Boolean).length;
-  
+
   if (highCount >= 2 && triad >= 64) {
     const triadExcess = Math.max(0, triad - 64);
     let bonus = Math.min(triadExcess * 0.6, 5);
-    
+
     if (highCount === 3) {
       bonus = Math.min(bonus * 1.4, 6);
     }
-    
+
     if (stats.forgiveness >= 65) {
       bonus *= 0.5;
     } else if (stats.forgiveness >= 60) {
       bonus *= 0.75;
     }
-    
+
     return bonus;
   }
 
@@ -122,11 +135,11 @@ function computeNoveltyBonus(stats) {
 
 /**
  * Compute overall build score (OBS) from stats and tension context.
- * @param {Object} stats — attribute scores
- * @param {Object} tensionContext — { avgTension, tensionRange, differential, patternCrosses }
- * @returns {number} OBS score 0-100
+ * @param stats — attribute scores
+ * @param tensionContext — { avgTension, tensionRange, differential, patternCrosses }
+ * @returns OBS score 0-100
  */
-export function computeCompositeScore(stats, tensionContext) {
+export function computeCompositeScore(stats: SetupAttributes, tensionContext: TensionContext | null): number {
   const raw = stats.control * 0.16
             + stats.spin * 0.13
             + stats.comfort * 0.13
@@ -149,7 +162,7 @@ export function computeCompositeScore(stats, tensionContext) {
     const low = tensionRange[0];
     const high = tensionRange[1];
     const margin = 8;
-    
+
     if (avgTension < low - margin) {
       const deficit = (low - margin) - avgTension;
       const penalty = Math.min(deficit * 3, 90);
@@ -158,7 +171,7 @@ export function computeCompositeScore(stats, tensionContext) {
       const deficit = low - avgTension;
       scaled -= deficit * 1.5;
     }
-    
+
     if (avgTension > high + margin) {
       const excess = avgTension - (high + margin);
       const penalty = Math.min(excess * 2.5, 80);
@@ -198,10 +211,10 @@ export function computeCompositeScore(stats, tensionContext) {
 
 /**
  * Get OBS tier label for a score.
- * @param {number} score — OBS score
- * @returns {Object} tier with min, max, label
+ * @param score — OBS score
+ * @returns tier with min, max, label
  */
-export function getObsTier(score) {
+export function getObsTier(score: number): ObsTier {
   for (let i = OBS_TIERS.length - 1; i >= 0; i--) {
     if (score >= OBS_TIERS[i].min) return OBS_TIERS[i];
   }
@@ -210,21 +223,21 @@ export function getObsTier(score) {
 
 /**
  * Get color for OBS score display.
- * @param {number} score — OBS score
- * @returns {string} CSS color value
+ * @param score — OBS score
+ * @returns CSS color value
  */
-export function getObsScoreColor(score) {
+export function getObsScoreColor(score: number): string {
   return 'var(--dc-white)';
 }
 
 /**
  * Generate identity archetype and description from stats.
- * @param {Object} stats — attribute scores
- * @param {Object} racquet — racquet data
- * @param {Object} stringConfig — string configuration
- * @returns {Object} { archetype, description, tags }
+ * @param stats — attribute scores
+ * @param racquet — racquet data
+ * @param stringConfig — string configuration
+ * @returns { archetype, description, tags }
  */
-export function generateIdentity(stats, racquet, stringConfig) {
+export function generateIdentity(stats: SetupAttributes, racquet: Racquet, stringConfig: StringConfig): IdentityResult {
   const candidates = [
     { name: 'Precision Topspin Blade', score: (stats.spin >= 80 ? 20 : 0) + (stats.control >= 85 ? 20 : 0) + (stats.power < 55 ? 10 : 0), req: stats.spin >= 78 && stats.control >= 82 && stats.power < 60 },
     { name: 'Surgical Topspin Machine', score: (stats.spin - 70) * 2 + (stats.control - 65) * 1.5, req: stats.spin >= 75 && stats.control >= 65 && stats.control < 82 },
@@ -248,7 +261,7 @@ export function generateIdentity(stats, racquet, stringConfig) {
   const valid = candidates.filter(c => c.req).sort((a, b) => b.score - a.score);
   const archetype = valid.length > 0 ? valid[0].name : 'Balanced Setup';
 
-  const descriptions = {
+  const descriptions: Record<string, string> = {
     'Precision Topspin Blade': `Elite spin combined with surgical control and low power assist — you generate all the pace, the setup generates all the placement. A scalpel for topspin artists who shape every ball.`,
     'Surgical Topspin Machine': `High spin potential meets solid control. Excels at constructing points with heavy topspin from the baseline, allowing you to hit with margin and still redirect at will.`,
     'Topspin Howitzer': `Massive topspin wrapped in a power platform. The ball launches with heavy rotation AND depth — opponents get pushed behind the baseline by a ball that kicks up and keeps coming.`,
@@ -269,7 +282,7 @@ export function generateIdentity(stats, racquet, stringConfig) {
     'Balanced Setup': `Well-rounded profile with no glaring weaknesses. A versatile setup that adapts to different game styles and court conditions.`
   };
 
-  const tags = [];
+  const tags: string[] = [];
   if (stats.spin >= 75) tags.push('High Spin');
   if (stats.power >= 70) tags.push('Power');
   if (stats.control >= 75) tags.push('Precision');
@@ -289,7 +302,7 @@ export function generateIdentity(stats, racquet, stringConfig) {
 }
 
 // Helper for identity classification (used by some UI components)
-export function classifySetup(stats) {
+export function classifySetup(stats: SetupAttributes): ClassifyResult {
   const sorted = WTTN_ATTRS.map(a => ({ attr: a, val: stats[a] })).sort((a, b) => b.val - a.val);
   const strongest = sorted.slice(0, 3);
   const weakest = sorted.slice(-3).reverse();
