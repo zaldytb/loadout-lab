@@ -3828,7 +3828,7 @@ function renderOCFoundation(racquet, stringConfig, stats) {
   el.innerHTML = `
     <div class="oc-foundation-group">
       <span class="oc-foundation-group-title">[FRAME]</span>
-      <span class="oc-foundation-group-values">WGHT ${racquet.strungWeight - 13}g unstrung ${sep} SW ${racquet.swingweight} ${sep} RA ${racquet.stiffness} ${sep} PAT ${racquet.pattern}</span>
+      <span class="oc-foundation-group-values">WGHT ${racquet.strungWeight}g strung ${sep} SW ${racquet.swingweight} ${sep} RA ${racquet.stiffness} ${sep} PAT ${racquet.pattern}</span>
     </div>
     <div class="oc-foundation-group">
       <span class="oc-foundation-group-title">[STRNG]</span>
@@ -5796,8 +5796,7 @@ function _renderLbv2Frames(results) {
       : entry.frameLabel;
 
     const r = entry.racquet;
-    const unstrungWeight = r.strungWeight - 13;
-    const specLine = `${unstrungWeight}g unstrung · SW ${r.swingweight} · ${r.stiffness} RA · ${r.pattern} · ${r.headSize} sq in`;
+    const specLine = `${r.strungWeight}g strung · SW ${r.swingweight} · ${r.stiffness} RA · ${r.pattern} · ${r.headSize} sq in`;
 
     return `
       <tr class="group border-b border-dc-storm/10 transition-colors hover:bg-dc-void-lift/50 ${isFeatured ? 'bg-dc-accent/[0.03]' : ''}">
@@ -9660,6 +9659,10 @@ function _stringRenderMain(string) {
   const main = document.getElementById('string-main');
   if (!main) return;
   
+  // Clear searchable select instances since DOM will be recreated
+  delete ssInstances['string-mod-frame'];
+  delete ssInstances['string-mod-crosses-string'];
+  
   const pills = _stringGeneratePills(string);
   const consoleHtml = [];
   pills.bestFor.forEach(p => consoleHtml.push(`<span class="font-mono text-[13px] font-bold tracking-[0.05em] uppercase text-dc-void dark:text-dc-platinum">[+] ${p}</span>`));
@@ -9690,7 +9693,7 @@ function _stringRenderMain(string) {
         <span class="font-mono text-lg font-bold text-dc-accent">${f.obs.toFixed(1)}</span>
       </div>
       <div class="text-sm font-semibold text-dc-void dark:text-dc-platinum mb-1">${f.racquet.name.replace(/\\s+\\d+g$/, '')}</div>
-      <div class="font-mono text-[13px] text-dc-storm">${f.racquet.pattern} // ${f.racquet.strungWeight - 13}g unstrung</div>
+      <div class="font-mono text-[13px] text-dc-storm">${f.racquet.pattern} // ${f.racquet.strungWeight}g strung</div>
     </div>`;
   }).join('');
   
@@ -10407,7 +10410,7 @@ function _compRenderRoster() {
 
   list.innerHTML = racquets.map(r => {
     const isActive = r.id === _compSelectedRacquetId;
-    const specs = `${r.strungWeight - 13}g unstrung · ${r.stiffness} RA · ${r.pattern}`;
+    const specs = `${r.strungWeight}g strung · ${r.stiffness} RA · ${r.pattern}`;
     const baseClasses = "bg-transparent border text-left flex flex-col justify-between gap-6 transition-all duration-200 cursor-pointer p-5";
     const borderClasses = isActive 
       ? "border-dc-accent" 
