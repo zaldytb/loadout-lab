@@ -2567,6 +2567,9 @@ function switchMode(mode) {
     if (!_compendiumInitialized) {
       initCompendium();
       _compendiumInitialized = true;
+    } else {
+      // Re-sync with active loadout to ensure consistency
+      _compSyncWithActiveLoadout();
     }
   }
   // howitworks mode needs no special init — it's static content
@@ -10520,6 +10523,22 @@ function _compSelectFrame(racquetId) {
     }, 150);
   } else {
     _compRenderMain(racquet);
+  }
+}
+
+// Sync racket bible with active loadout (called when switching back to compendium mode)
+function _compSyncWithActiveLoadout() {
+  const setup = getCurrentSetup();
+  if (!setup || !setup.racquet) return;
+  
+  const activeRacquetId = setup.racquet.id;
+  
+  // If already showing the active racket, just re-init the string injector
+  if (_compSelectedRacquetId === activeRacquetId) {
+    _compInitStringInjector(setup.racquet);
+  } else {
+    // Switch to the active racket
+    _compSelectFrame(activeRacquetId);
   }
 }
 
