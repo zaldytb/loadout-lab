@@ -3,16 +3,40 @@
 // Self-contained UI component for racquet/string selection with filtering
 
 import { RACQUETS, STRINGS } from '../../data/loader.js';
+import type { Racquet, StringData } from '../../engine/types.js';
 import { GAUGE_LABELS } from '../../engine/constants.js';
 import { getGaugeOptions } from '../../engine/string-profile.js';
 
+type SelectType = 'racquet' | 'string' | 'custom';
+
+interface CustomOption {
+  value: string;
+  label: string;
+}
+
+interface SearchableSelectOptions {
+  type?: SelectType;
+  placeholder?: string;
+  value?: string;
+  onChange?: (value: string) => void;
+  id?: string;
+  options?: CustomOption[] | null;
+}
+
+interface SearchableSelectInstance {
+  getValue: () => string;
+  setValue: (val: string) => void;
+  setOptions: (newOptions: CustomOption[]) => void;
+  _cleanup: () => void;
+}
+
 // Parse brand from racquet name (first word)
-function parseRacquetBrand(name) {
+function parseRacquetBrand(name: string): string {
   return name.split(' ')[0];
 }
 
 // Parse family from racquet name (second word or group like "Pure Aero")
-function parseRacquetFamily(name) {
+function parseRacquetFamily(name: string): string {
   const parts = name.split(' ');
   if (parts.length < 2) return '';
   // Known two-word families
@@ -25,8 +49,8 @@ function parseRacquetFamily(name) {
 }
 
 // Sort racquets: brand → family → model → year desc
-function getSortedRacquets() {
-  return [...RACQUETS].sort((a, b) => {
+function getSortedRacquets(): Racquet[] {
+  return [...(RACQUETS as unknown as Racquet[])].sort((a, b) => {
     const brandA = parseRacquetBrand(a.name);
     const brandB = parseRacquetBrand(b.name);
     if (brandA !== brandB) return brandA.localeCompare(brandB);
@@ -34,13 +58,13 @@ function getSortedRacquets() {
     const famB = parseRacquetFamily(b.name);
     if (famA !== famB) return famA.localeCompare(famB);
     if (a.name !== b.name) return a.name.localeCompare(b.name);
-    return (b.year || 0) - (a.year || 0);
+    return ((b as unknown as { year?: number }).year || 0) - ((a as unknown as { year?: number }).year || 0);
   });
 }
 
 // Sort strings: brand → name → gauge
-function getSortedStrings() {
-  return [...STRINGS].sort((a, b) => {
+function getSortedStrings(): StringData[] {
+  return [...(STRINGS as unknown as StringData[])].sort((a, b) => {
     const brandA = a.name.split(' ')[0];
     const brandB = b.name.split(' ')[0];
     if (brandA !== brandB) return brandA.localeCompare(brandB);
@@ -49,7 +73,7 @@ function getSortedStrings() {
   });
 }
 
-function getStringMaterialBadge(material) {
+function getStringMaterialBadge(material: string | undefined): string {
   if (!material) return '';
   const m = material.toLowerCase();
   if (m.includes('multifilament') || m.includes('multi')) return '<span class="ss-opt-badge badge-multi">MULTI</span>';
@@ -61,26 +85,30 @@ function getStringMaterialBadge(material) {
 }
 
 // Registry of all searchable selects for cleanup
-const _ssRegistry = new Map();
+const _ssRegistry = new Map<HTMLElement, SearchableSelectInstance>();
 
-export function createSearchableSelect(container, {
-  type = 'racquet', // 'racquet', 'string', or 'custom'
-  placeholder = 'Select...',
-  value = '',
-  onChange = () => {},
-  id = '',
-  options = null // For 'custom' type: array of {value, label} objects
-}) {
+export function createSearchableSelect(
+  container: HTMLElement,
+  {
+    type = 'racquet',
+    placeholder = 'Select...',
+    value = '',
+    onChange = () => {},
+    id = '',
+    options = null
+  }: SearchableSelectOptions
+): SearchableSelectInstance {
   // Clean up previous instance if exists
   if (_ssRegistry.has(container)) {
-    const old = _ssRegistry.get(container);
+    const old = _ssRegistry.get(container)!;
     if (old._cleanup) old._cleanup();
   }
 
   container.innerHTML = '';
   container.classList.add('searchable-select');
 
-  let items;
+  let items: (Racquet | StringData | CustomOption)[];
+  let customOptions: CustomOption[] | null = options;
   if (type === 'custom' && options) {
     items = options;
   } else {
@@ -122,12 +150,12 @@ export function createSearchableSelect(container, {
 
   let selectedValue = value;
   let highlightIndex = -1;
-  let flatOptions = []; // all visible option elements for keyboard nav
+  let flatOptions: HTMLDivElement[] = []; // all visible option elements for keyboard nav
 
-  function getDisplayText(val) {
+  function getDisplayText(val: string): string {
     if (!val) return '';
     if (type === 'custom') {
-      const opt = options.find(x => x.value === val);
+      const opt = customOptions?.find(x => x.value === val);
       return opt ? opt.label : '';
     }
     if (type === 'racquet') {
@@ -139,7 +167,7 @@ export function createSearchableSelect(container, {
     }
   }
 
-  function updateTrigger() {
+  function updateTrigger(): void {
     const text = getDisplayText(selectedValue);
     if (text) {
       trigger.textContent = text;
@@ -150,7 +178,7 @@ export function createSearchableSelect(container, {
     }
   }
 
-  function renderOptions(filter = '') {
+  function renderOptions(filter = ''): void {
     optionsContainer.innerHTML = '';
     flatOptions = [];
     highlightIndex = -1;
@@ -161,34 +189,37 @@ export function createSearchableSelect(container, {
 
     items.forEach(item => {
       // Build search text
-      let searchText, groupKey, primaryText, secondaryText, badgeHTML;
-      let itemId, itemLabel;
+      let searchText: string, groupKey: string, primaryText: string, secondaryText: string, badgeHTML: string;
+      let itemId: string, itemLabel: string;
 
       if (type === 'custom') {
-        itemId = item.value;
-        itemLabel = item.label;
-        searchText = item.label.toLowerCase();
+        const customItem = item as CustomOption;
+        itemId = customItem.value;
+        itemLabel = customItem.label;
+        searchText = customItem.label.toLowerCase();
         groupKey = '';
-        primaryText = item.label;
+        primaryText = customItem.label;
         secondaryText = '';
         badgeHTML = '';
       } else if (type === 'racquet') {
-        itemId = item.id;
-        searchText = `${item.name} ${item.year || ''} ${item.pattern || ''}`.toLowerCase();
-        groupKey = parseRacquetBrand(item.name);
+        const racquetItem = item as Racquet;
+        itemId = racquetItem.id;
+        searchText = `${racquetItem.name} ${racquetItem.year || ''} ${racquetItem.pattern || ''}`.toLowerCase();
+        groupKey = parseRacquetBrand(racquetItem.name);
         // Split name: everything before weight suffix becomes primary, weight goes to secondary
-        const wtMatch = item.name.match(/^(.+?)\s+(\d+g)$/);
-        primaryText = wtMatch ? wtMatch[1] : item.name;
+        const wtMatch = racquetItem.name.match(/^(.+?)\s+(\d+g)$/);
+        primaryText = wtMatch ? wtMatch[1] : racquetItem.name;
         const wtBadge = wtMatch ? `<span class="ss-opt-badge badge-weight">${wtMatch[2]}</span>` : '';
-        secondaryText = `${item.year || ''}`;
+        secondaryText = `${racquetItem.year || ''}`;
         badgeHTML = wtBadge;
       } else {
-        itemId = item.id;
-        searchText = `${item.name} ${item.gauge} ${item.material || ''} ${item.gaugeNum || ''} ${item.shape || ''}`.toLowerCase();
-        groupKey = item.name.split(' ')[0];
-        primaryText = item.name;
-        secondaryText = `${item.shape || item.material || ''}`;
-        badgeHTML = getStringMaterialBadge(item.material);
+        const stringItem = item as StringData;
+        itemId = stringItem.id;
+        searchText = `${stringItem.name} ${stringItem.gauge} ${stringItem.material || ''} ${stringItem.gaugeNum || ''} ${stringItem.shape || ''}`.toLowerCase();
+        groupKey = stringItem.name.split(' ')[0];
+        primaryText = stringItem.name;
+        secondaryText = `${stringItem.shape || stringItem.material || ''}`;
+        badgeHTML = getStringMaterialBadge(stringItem.material);
       }
 
       // Filter
@@ -257,14 +288,14 @@ export function createSearchableSelect(container, {
     }
   }
 
-  function selectOption(val) {
+  function selectOption(val: string): void {
     selectedValue = val;
     updateTrigger();
     closeDropdown();
     onChange(val);
   }
 
-  function openDropdown() {
+  function openDropdown(): void {
     container.classList.add('ss-open');
     searchInput.value = '';
     renderOptions();
@@ -277,13 +308,13 @@ export function createSearchableSelect(container, {
     });
   }
 
-  function closeDropdown() {
+  function closeDropdown(): void {
     container.classList.remove('ss-open');
     searchInput.value = '';
     highlightIndex = -1;
   }
 
-  function isOpen() {
+  function isOpen(): boolean {
     return container.classList.contains('ss-open');
   }
 
@@ -322,7 +353,7 @@ export function createSearchableSelect(container, {
       e.preventDefault();
       if (highlightIndex >= 0 && flatOptions[highlightIndex]) {
         const val = flatOptions[highlightIndex].dataset.value;
-        selectOption(val);
+        if (val) selectOption(val);
       }
     } else if (e.key === 'Escape') {
       closeDropdown();
@@ -331,8 +362,8 @@ export function createSearchableSelect(container, {
   });
 
   // Close on outside click
-  function onDocClick(e) {
-    if (!container.contains(e.target)) {
+  function onDocClick(e: MouseEvent): void {
+    if (!container.contains(e.target as Node)) {
       closeDropdown();
     }
   }
@@ -341,15 +372,15 @@ export function createSearchableSelect(container, {
   // Init
   updateTrigger();
 
-  const instance = {
+  const instance: SearchableSelectInstance = {
     getValue: () => selectedValue,
-    setValue: (val) => {
+    setValue: (val: string) => {
       selectedValue = val;
       updateTrigger();
     },
-    setOptions: (newOptions) => {
+    setOptions: (newOptions: CustomOption[]) => {
       if (type === 'custom') {
-        options = newOptions;
+        customOptions = newOptions;
         items = newOptions;
         renderOptions();
       }
@@ -364,45 +395,61 @@ export function createSearchableSelect(container, {
 }
 
 // Store references to searchable select instances
-export const ssInstances = {};
+export const ssInstances: Record<string, SearchableSelectInstance> = {};
 
 // Simple searchable dropdown for create form (dock-qa pattern)
-export function _initQaSearchable(searchId, hiddenId, dropdownId, items) {
-  const searchEl = document.getElementById(searchId);
-  const hiddenEl = document.getElementById(hiddenId);
-  const dropdownEl = document.getElementById(dropdownId);
+interface QaItem {
+  id: string;
+  label: string;
+}
+
+export function _initQaSearchable(
+  searchId: string,
+  hiddenId: string,
+  dropdownId: string,
+  items: QaItem[]
+): void {
+  const searchEl = document.getElementById(searchId) as HTMLInputElement | null;
+  const hiddenEl = document.getElementById(hiddenId) as HTMLInputElement | null;
+  const dropdownEl = document.getElementById(dropdownId) as HTMLDivElement | null;
   if (!searchEl || !hiddenEl || !dropdownEl) return;
 
-  function renderDropdown(filter) {
-    const filtered = filter ? items.filter(function(item) {
+  // Store references that are guaranteed non-null for use in nested functions
+  const searchInput = searchEl;
+  const hiddenInput = hiddenEl;
+  const dropdown = dropdownEl;
+
+  function renderDropdown(filter: string): void {
+    const filtered = filter ? items.filter(item => {
       return item.label.toLowerCase().indexOf(filter.toLowerCase()) >= 0;
     }) : items;
 
     if (filtered.length === 0) {
-      dropdownEl.innerHTML = '<div class="dock-qa-dd-empty">No results</div>';
+      dropdown.innerHTML = '<div class="dock-qa-dd-empty">No results</div>';
     } else {
-      dropdownEl.innerHTML = filtered.slice(0, 20).map(function(item) {
+      dropdown.innerHTML = filtered.slice(0, 20).map(item => {
         return '<div class="dock-qa-dd-item" data-id="' + item.id + '">' + item.label + '</div>';
       }).join('');
     }
-    dropdownEl.classList.remove('hidden');
+    dropdown.classList.remove('hidden');
 
-    dropdownEl.querySelectorAll('.dock-qa-dd-item').forEach(function(el) {
-      el.addEventListener('mousedown', function(e) {
+    dropdown.querySelectorAll('.dock-qa-dd-item').forEach(el => {
+      el.addEventListener('mousedown', (e) => {
         e.preventDefault();
-        hiddenEl.value = el.dataset.id;
-        searchEl.value = el.textContent;
-        dropdownEl.classList.add('hidden');
+        const target = e.currentTarget as HTMLDivElement;
+        hiddenInput.value = target.dataset.id || '';
+        searchInput.value = target.textContent || '';
+        dropdown.classList.add('hidden');
       });
     });
   }
 
-  searchEl.addEventListener('focus', function() { renderDropdown(searchEl.value); });
-  searchEl.addEventListener('input', function() {
-    hiddenEl.value = '';
-    renderDropdown(searchEl.value);
+  searchInput.addEventListener('focus', () => { renderDropdown(searchInput.value); });
+  searchInput.addEventListener('input', () => {
+    hiddenInput.value = '';
+    renderDropdown(searchInput.value);
   });
-  searchEl.addEventListener('blur', function() {
-    setTimeout(function() { dropdownEl.classList.add('hidden'); }, 150);
+  searchInput.addEventListener('blur', () => {
+    setTimeout(() => { dropdown.classList.add('hidden'); }, 150);
   });
 }
