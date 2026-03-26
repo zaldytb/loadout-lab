@@ -161,6 +161,31 @@ export interface SetupStats extends SetupAttributes {
 }
 
 // ============================================
+// LOADOUT TYPE (single source of truth)
+// ============================================
+
+/** Loadout object — the primary user-saved build representation */
+export interface Loadout {
+  id: string;
+  name: string;
+  frameId: string;
+  stringId: string | null;
+  isHybrid: boolean;
+  mainsId: string | null;
+  crossesId: string | null;
+  mainsTension: number;
+  crossesTension: number;
+  gauge?: string | null;
+  mainsGauge?: string | null;
+  crossesGauge?: string | null;
+  stats?: SetupStats;
+  obs: number;
+  identity?: string;
+  source?: string;
+  _dirty?: boolean;
+}
+
+// ============================================
 // INPUT TYPES
 // ============================================
 
@@ -251,6 +276,8 @@ export interface DefaultPreset {
 /** Result of generateIdentity */
 export interface IdentityResult {
   archetype: string;
+  /** @deprecated Use archetype instead. Name kept for backward compatibility. */
+  name?: string;
   description: string;
   tags: string[];
 }
