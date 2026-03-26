@@ -7,8 +7,8 @@ import '../style.css';
 // Import all app functionality
 import * as App from '../app.js';
 
-// Import leaderboard section (registers itself)
-import '../app-leaderboard-section.js';
+// Import leaderboard section
+import * as Leaderboard from './ui/pages/leaderboard.js';
 
 // Bridge: expose all exports to window for inline HTML handlers
 // This maintains backward compatibility with onclick="funcName()" patterns
@@ -17,6 +17,18 @@ Object.entries(App).forEach(([key, val]) => {
     window[key] = val;
   }
 });
+
+// Bridge leaderboard exports to window (needed for inline HTML handlers)
+Object.entries(Leaderboard).forEach(([key, val]) => {
+  if (typeof val === 'function') {
+    window[key] = val;
+  }
+});
+
+// Initialize leaderboard with app dependencies
+if (Leaderboard.initLeaderboardApp) {
+  Leaderboard.initLeaderboardApp(App);
+}
 
 // Debug: confirm bridge worked (only in development)
 if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {

@@ -9,20 +9,50 @@
 //             buildTensionContext, generateIdentity, getObsScoreColor,
 //             createLoadout, activateLoadout, switchMode
 
+import { RACQUETS, STRINGS } from '../../data/loader.js';
 import {
-  RACQUETS,
-  STRINGS,
   predictSetup,
   computeCompositeScore,
   buildTensionContext,
   generateIdentity,
   getObsScoreColor,
-  createLoadout,
-  activateLoadout,
-  switchMode,
   calcFrameBase,
   calcBaseStringProfile,
-} from './app.js';
+} from '../../engine/composite.js';
+
+// App-level functions - will be set by init
+let _createLoadout = null;
+let _activateLoadout = null;
+let _switchMode = null;
+let _initCompendium = null;
+let _compSelectFrame = null;
+let _compSwitchTab = null;
+let _stringSelectString = null;
+let _comparisonSlots = null;
+let _renderComparisonSlots = null;
+let _renderCompareSummaries = null;
+let _renderCompareVerdict = null;
+let _renderCompareMatrix = null;
+let _updateComparisonRadar = null;
+
+/**
+ * Initialize leaderboard with app-level dependencies
+ */
+export function initLeaderboardApp(appExports) {
+  _createLoadout = appExports.createLoadout;
+  _activateLoadout = appExports.activateLoadout;
+  _switchMode = appExports.switchMode;
+  _initCompendium = appExports.initCompendium;
+  _compSelectFrame = appExports._compSelectFrame;
+  _compSwitchTab = appExports._compSwitchTab;
+  _stringSelectString = appExports._stringSelectString;
+  _comparisonSlots = appExports.comparisonSlots;
+  _renderComparisonSlots = appExports.renderComparisonSlots;
+  _renderCompareSummaries = appExports.renderCompareSummaries;
+  _renderCompareVerdict = appExports.renderCompareVerdict;
+  _renderCompareMatrix = appExports.renderCompareMatrix;
+  _updateComparisonRadar = appExports.updateComparisonRadar;
+}
 
 // Local state for compendium tracking (avoids circular import issues)
 let _lbv2CompendiumInitialized = false;
@@ -1030,29 +1060,27 @@ function _lbv2View(racquetId, stringId, tension, type, mainsId, crossesId, cross
     opts.crossesId = crossesId;
     opts.crossesTension = crossesTension;
   }
-  const lo = createLoadout(racquetId, type === 'hybrid' ? mainsId : stringId, tension, opts);
-  if (lo) { activateLoadout(lo); switchMode('overview'); }
+  const lo = _createLoadout(racquetId, type === 'hybrid' ? mainsId : stringId, tension, opts);
+  if (lo) { _activateLoadout(lo); _switchMode('overview'); }
 }
 
 function _lbv2ViewFrame(racquetId) {
   // Navigate to Racket Bible and select the frame
   if (!_lbv2CompendiumInitialized) {
-    initCompendium();
+    _initCompendium();
     _lbv2CompendiumInitialized = true;
   }
-  // Access these from window since they're attached for backward compatibility
-  if (window._compSelectFrame) window._compSelectFrame(racquetId);
-  if (window._compSwitchTab) window._compSwitchTab('rackets');
+  if (_compSelectFrame) _compSelectFrame(racquetId);
+  if (_compSwitchTab) _compSwitchTab('rackets');
 }
 
 function _lbv2ViewString(stringId) {
-  // Navigate to String Compendium and select the string
-  _compSwitchTab('strings');
-  setTimeout(function() { _stringSelectString(stringId); }, 120);
+  if (_compSwitchTab) _compSwitchTab('strings');
+  setTimeout(function() { if (_stringSelectString) _stringSelectString(stringId); }, 120);
 }
 
 function _lbv2Compare(racquetId, stringId, tension, type, mainsId, crossesId, crossesTension) {
-  if (comparisonSlots.length >= 3) comparisonSlots.pop();
+  if (_comparisonSlots && _comparisonSlots.length >= 3) _comparisonSlots.pop();
   const racquet = RACQUETS.find(r => r.id === racquetId);
   if (!racquet) return;
 
@@ -1070,7 +1098,7 @@ function _lbv2Compare(racquetId, stringId, tension, type, mainsId, crossesId, cr
   const stats    = predictSetup(racquet, cfg);
   const identity = stats ? generateIdentity(stats, racquet, cfg) : null;
 
-  comparisonSlots.push({
+  if (_comparisonSlots) _comparisonSlots.push({
     id: Date.now() + Math.random(),
     racquetId,
     stringId:       isHybrid ? '' : stringId,
@@ -1083,12 +1111,12 @@ function _lbv2Compare(racquetId, stringId, tension, type, mainsId, crossesId, cr
     identity,
   });
 
-  switchMode('compare');
-  renderComparisonSlots();
-  renderCompareSummaries();
-  renderCompareVerdict();
-  renderCompareMatrix();
-  try { updateComparisonRadar(); } catch(e) {}
+  if (_switchMode) _switchMode('compare');
+  if (_renderComparisonSlots) _renderComparisonSlots();
+  if (_renderCompareSummaries) _renderCompareSummaries();
+  if (_renderCompareVerdict) _renderCompareVerdict();
+  if (_renderCompareMatrix) _renderCompareMatrix();
+  try { if (_updateComparisonRadar) _updateComparisonRadar(); } catch(e) {}
 }
 
 
