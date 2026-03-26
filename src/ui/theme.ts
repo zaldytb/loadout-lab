@@ -1,20 +1,28 @@
-// src/ui/theme.js
+// src/ui/theme.ts
 // Theme toggle and dark mode management
+
+type Theme = 'dark' | 'light';
+
+interface ThemeCallbacks {
+  refreshSlotColors?: () => void;
+  refreshRadarChart?: () => void;
+  refreshComparison?: () => void;
+  refreshSweepChart?: () => void;
+}
+
+interface ThemeState {
+  currentMode?: string;
+  hasSweepChart?: boolean;
+}
 
 /**
  * Toggle between light and dark themes.
- * @param {Object} callbacks - Object containing callback functions for theme-dependent updates
- * @param {Function} callbacks.refreshSlotColors - Function to refresh slot colors
- * @param {Function} callbacks.refreshRadarChart - Function to refresh radar chart
- * @param {Function} callbacks.refreshComparison - Function to refresh comparison view
- * @param {Function} callbacks.refreshSweepChart - Function to refresh sweep chart
- * @param {Object} state - Object containing current state
- * @param {string} state.currentMode - Current app mode
- * @param {boolean} state.hasSweepChart - Whether sweep chart exists
+ * @param callbacks - Object containing callback functions for theme-dependent updates
+ * @param state - Object containing current state
  */
-export function toggleTheme(callbacks = {}, state = {}) {
+export function toggleTheme(callbacks: ThemeCallbacks = {}, state: ThemeState = {}): void {
   const html = document.documentElement;
-  const current = html.dataset.theme;
+  const current = html.dataset.theme as Theme | undefined;
 
   // Wave 2: Smooth color crossfade
   html.classList.add('theme-transitioning');
@@ -43,24 +51,24 @@ export function toggleTheme(callbacks = {}, state = {}) {
 
 /**
  * Get current theme
- * @returns {string} 'dark' or 'light'
+ * @returns 'dark' or 'light'
  */
-export function getTheme() {
-  return document.documentElement.dataset.theme || 'dark';
+export function getTheme(): Theme {
+  return (document.documentElement.dataset.theme as Theme) || 'dark';
 }
 
 /**
  * Set theme explicitly
- * @param {string} theme - 'dark' or 'light'
+ * @param theme - 'dark' or 'light'
  */
-export function setTheme(theme) {
+export function setTheme(theme: Theme): void {
   document.documentElement.dataset.theme = theme;
 }
 
 /**
  * Initialize theme based on user preference or system preference
  */
-export function initTheme() {
+export function initTheme(): void {
   const html = document.documentElement;
   // Default to dark if not set
   if (!html.dataset.theme) {
