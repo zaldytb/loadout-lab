@@ -3603,7 +3603,7 @@ function renderOverviewHero(racquet, stringConfig, stats, identity) {
       <div class="mt-2 pt-6 border-t border-dc-storm/20">
         <div class="flex gap-3">
           <button 
-            class="flex-1 bg-transparent border border-dc-storm/40 text-dc-platinum font-mono text-[12px] font-bold uppercase tracking-widest py-3 px-4 hover:border-dc-platinum hover:bg-dc-platinum/5 transition-colors flex items-center justify-center gap-2"
+            class="flex-1 bg-transparent border border-dc-storm/40 dark:border-dc-storm/40 text-dc-void dark:text-dc-platinum font-mono text-[12px] font-bold uppercase tracking-widest py-3 px-4 hover:border-dc-void dark:hover:border-dc-platinum hover:bg-dc-void/5 dark:hover:bg-dc-platinum/5 transition-colors flex items-center justify-center gap-2"
             onclick="switchMode('compendium')"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
@@ -5127,11 +5127,11 @@ function _buildShellHTML() {
   const sel = (id, val, opts, placeholder) =>
     `<select
       id="${id}"
-      class="bg-dc-void-deep border border-dc-storm/40 text-dc-platinum font-mono text-[13px] px-2 py-1.5 cursor-pointer hover:border-dc-storm focus:border-dc-accent transition-colors outline-none"
+      class="bg-white dark:bg-dc-void-deep border border-dc-storm/40 text-dc-void dark:text-dc-platinum font-mono text-[13px] px-2 py-1.5 cursor-pointer hover:border-dc-storm focus:border-dc-accent transition-colors outline-none"
       onchange="_lbv2SetFrameFilter('${id.replace('lb2-ff-','')}')"
     >
-      <option value="" class="bg-dc-void-deep text-dc-platinum">${placeholder}</option>
-      ${opts.map(o => `<option value="${o.v}" ${val === o.v ? 'selected' : ''} class="bg-dc-void-deep text-dc-platinum">${o.l}</option>`).join('')}
+      <option value="" class="bg-white dark:bg-dc-void-deep text-dc-void dark:text-dc-platinum">${placeholder}</option>
+      ${opts.map(o => `<option value="${o.v}" ${val === o.v ? 'selected' : ''} class="bg-white dark:bg-dc-void-deep text-dc-void dark:text-dc-platinum">${o.l}</option>`).join('')}
     </select>`;
 
   const frameFilterRow = showFrameFilters ? `
@@ -5189,11 +5189,11 @@ function _buildShellHTML() {
   const ssel = (id, val, opts, placeholder) =>
     `<select
       id="${id}"
-      class="bg-dc-void-deep border border-dc-storm/40 text-dc-platinum font-mono text-[13px] px-2 py-1.5 cursor-pointer hover:border-dc-storm focus:border-dc-accent transition-colors outline-none"
+      class="bg-white dark:bg-dc-void-deep border border-dc-storm/40 text-dc-void dark:text-dc-platinum font-mono text-[13px] px-2 py-1.5 cursor-pointer hover:border-dc-storm focus:border-dc-accent transition-colors outline-none"
       onchange="_lbv2SetStringFilter('${id.replace('lb2-sf-','')}')"
     >
-      <option value="" class="bg-dc-void-deep text-dc-platinum">${placeholder}</option>
-      ${opts.map(o => `<option value="${o.v}" ${val === o.v ? 'selected' : ''} class="bg-dc-void-deep text-dc-platinum">${o.l}</option>`).join('')}
+      <option value="" class="bg-white dark:bg-dc-void-deep text-dc-void dark:text-dc-platinum">${placeholder}</option>
+      ${opts.map(o => `<option value="${o.v}" ${val === o.v ? 'selected' : ''} class="bg-white dark:bg-dc-void-deep text-dc-void dark:text-dc-platinum">${o.l}</option>`).join('')}
     </select>`;
 
   const stringFilterRow = showStringFilters ? `
@@ -5241,7 +5241,7 @@ function _buildShellHTML() {
       </div>
 
       <!-- Sticky controls -->
-      <div class="sticky top-0 z-10 bg-dc-void-deep border-b border-dc-storm/20 px-5 py-4 flex flex-col gap-3">
+      <div class="sticky top-0 z-10 bg-white dark:bg-dc-void-deep border-b border-dc-storm/20 px-5 py-4 flex flex-col gap-3">
 
         <!-- Primary question -->
         <div class="flex items-baseline gap-3">
