@@ -7,6 +7,7 @@ const ROOT        = path.resolve(__dirname, '../..');
 const DATA_DIR    = path.join(ROOT, 'pipeline', 'data');
 const OUT_FILE    = path.join(ROOT, 'data.js');
 const CANARY_SCRIPT = path.join(ROOT, 'pipeline', 'scripts', 'canary-test.js');
+const TSX_BIN     = path.join(ROOT, 'node_modules', '.bin', 'tsx' + (process.platform === 'win32' ? '.cmd' : ''));
 
 const PIPELINE_FIELDS = ['_provenance', '_meta', 'brand', '_staging'];
 
@@ -54,7 +55,7 @@ function main() {
 
   if (isVerify) {
     console.log('\nRunning canary verification...');
-    const result = spawnSync('node', [CANARY_SCRIPT], { stdio: 'inherit' });
+    const result = spawnSync(TSX_BIN, [CANARY_SCRIPT], { stdio: 'inherit', shell: true });
     if (result.status !== 0) {
       console.error('\n✗ Canary verification failed');
       process.exit(1);

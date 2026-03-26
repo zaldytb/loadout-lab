@@ -1,9 +1,13 @@
 'use strict';
-const fs   = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { predictSetup, computeCompositeScore, buildTensionContext, generateIdentity } from '../../src/engine/index.ts';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const ROOT        = path.resolve(__dirname, '../..');
-const ENGINE      = path.join(ROOT, 'pipeline', 'engine', 'core.js');
 const FRAMES_FILE = path.join(ROOT, 'pipeline', 'data', 'frames.json');
 const STRINGS_FILE= path.join(ROOT, 'pipeline', 'data', 'strings.json');
 const CANARY_FILE = path.join(ROOT, 'pipeline', 'data', 'canaries.json');
@@ -13,7 +17,7 @@ const OBS_TOLERANCE = 3;
 function main() {
   const isBaseline = process.argv.includes('--baseline');
 
-  const engine  = require(ENGINE);
+  // Engine functions imported from src/engine/index.ts
   const frames  = JSON.parse(fs.readFileSync(FRAMES_FILE,  'utf8'));
   const strings = JSON.parse(fs.readFileSync(STRINGS_FILE, 'utf8'));
   const canaries = JSON.parse(fs.readFileSync(CANARY_FILE, 'utf8'));
@@ -50,10 +54,10 @@ function main() {
       config = { isHybrid: false, string, mainsTension: canary.mainsTension, crossesTension: canary.crossesTension };
     }
 
-    const stats    = engine.predictSetup(racquet, config, frameMeta);
-    const tensCtx  = engine.buildTensionContext(config, racquet);
-    const obs      = engine.computeCompositeScore(stats, tensCtx);
-    const identity = engine.generateIdentity(stats, racquet, config);
+    const stats    = predictSetup(racquet, config, frameMeta);
+    const tensCtx  = buildTensionContext(config, racquet);
+    const obs      = computeCompositeScore(stats, tensCtx);
+    const identity = generateIdentity(stats, racquet, config);
     const archetype = identity.archetype;
 
     if (isBaseline) {

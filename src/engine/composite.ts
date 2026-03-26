@@ -8,6 +8,7 @@ import { calcHybridInteraction } from './hybrid.js';
 import { OBS_TIERS, IDENTITY_FAMILIES, WTTN_ATTRS } from './constants.js';
 import type {
   Racquet,
+  FrameMeta,
   StringConfig,
   SetupStats,
   SetupAttributes,
@@ -26,8 +27,8 @@ import type {
  * @param stringConfig — { isHybrid, mains, crosses, string, mainsTension, crossesTension }
  * @returns final attribute scores + debug info
  */
-export function predictSetup(racquet: Racquet, stringConfig: StringConfig): SetupStats {
-  const frameBase = calcFrameBase(racquet);
+export function predictSetup(racquet: Racquet, stringConfig: StringConfig, frameMeta?: Record<string, FrameMeta>): SetupStats {
+  const frameBase = calcFrameBase(racquet, frameMeta);
 
   let stringMod: StringFrameMod;
   let stringProfile: StringProfileScores;

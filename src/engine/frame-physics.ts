@@ -52,14 +52,15 @@ export function isVariableBeam(beamWidth: number[]): boolean {
  * @param racquet — entry from the RACQUETS array
  * @returns raw attribute scores (power, spin, control, …, maneuverability)
  */
-export function calcFrameBase(racquet: Racquet): FrameBaseScores {
+export function calcFrameBase(racquet: Racquet, frameMeta?: Record<string, FrameMeta>): FrameBaseScores {
   const { stiffness, beamWidth, swingweight, pattern, headSize, strungWeight, balance, id } = racquet;
   const avgBeam = getAvgBeam(beamWidth);
   const maxBeam = getMaxBeam(beamWidth);
   const minBeam = getMinBeam(beamWidth);
   const [mains, crosses] = pattern.split('x').map(Number);
   const patternDensity = mains * crosses;
-  const meta: FrameMeta = FRAME_META[id as string] || { aeroBonus: 0, comfortTech: 0, spinTech: 0, genBonus: 0 };
+  const metaSource = frameMeta || FRAME_META;
+  const meta: FrameMeta = metaSource[id as string] || { aeroBonus: 0, comfortTech: 0, spinTech: 0, genBonus: 0 };
 
   // Balance in pts HL: 34.29cm = 0 pts, each 0.3175cm toward handle = +1 pt
   const balancePtsHL = (34.29 - (balance as number)) / 0.3175;
@@ -185,40 +186,58 @@ export function calcFrameBase(racquet: Racquet): FrameBaseScores {
   playability += meta.comfortTech * 2;
   playability += meta.genBonus * 0.5;
 
-  // ---- Soft ceiling enforcement (power vs control, maneuverability vs stability) ----
-  const powerControlSum = (power + control) / 2;
-  if (powerControlSum > 75) {
-    const excess = powerControlSum - 75;
-    power -= excess * 0.35;
-    control -= excess * 0.35;
+  // ===== TRADEOFF ENFORCEMENT =====
+  if (power + control > 145) {
+    const excess = (power + control - 145) * 0.4;
+    if (power > control) power -= excess;
+    else control -= excess;
+  }
+  if (power + comfort > 140) {
+    const excess = (power + comfort - 140) * 0.3;
+    if (raNorm > 0.5) comfort -= excess;
+    else power -= excess;
+  }
+  // Maneuverability ↔ Stability: naturally opposed, soft enforce ceiling
+  if (maneuverability + stability > 140) {
+    const excess = (maneuverability + stability - 140) * 0.3;
+    if (maneuverability > stability) maneuverability -= excess;
+    else stability -= excess;
   }
 
-  const manStabSum = maneuverability + stability;
-  if (manStabSum > 145) {
-    const excess = (manStabSum - 145) / 2;
-    maneuverability -= excess * 0.4;
-    stability -= excess * 0.4;
-  }
-
-  // ---- Sigmoid-like compression to target range ----
-  function squash(x: number, targetMin: number, targetMax: number): number {
-    const t = Math.max(0, Math.min(1, (x - 45) / 35));
-    const eased = t * t * (3 - 2 * t);
-    return targetMin + eased * (targetMax - targetMin);
-  }
+  // ===== SCORE COMPRESSION =====
+  // Target: 50-60 avg, 60-75 strong, 75-85 excellent, 85+ rare
+  const compress = (val: number, spread?: number): number => {
+    const mid = 62;
+    const s = spread || 0.85;
+    return Math.max(30, Math.min(90, mid + (val - mid) * s));
+  };
 
   return {
-    power: clamp(squash(power, 50, 82)),
-    spin: clamp(squash(spin, 52, 85)),
-    control: clamp(squash(control, 52, 80)),
-    launch: clamp(squash(launch, 50, 78)),
-    comfort: clamp(squash(comfort, 48, 82)),
-    stability: clamp(squash(stability, 48, 82)),
-    forgiveness: clamp(squash(forgiveness, 50, 84)),
-    feel: clamp(squash(feel, 50, 82)),
-    maneuverability: clamp(squash(maneuverability, 48, 84)),
-    durability: clamp(squash(durability, 45, 80)),
-    playability: clamp(squash(playability, 48, 78))
+    power: clamp(compress(power)),
+    spin: clamp(compress(spin)),
+    control: clamp(compress(control)),
+    launch: clamp(compress(launch)),
+    comfort: clamp(compress(comfort)),
+    stability: clamp(compress(stability)),
+    forgiveness: clamp(compress(forgiveness, 0.92)),  // wider spread for narrower natural range
+    feel: clamp(compress(feel)),
+    maneuverability: clamp(compress(maneuverability)),
+    durability: clamp(compress(durability)),
+    playability: clamp(compress(playability)),
+    _frameDebug: {
+      raNorm: +raNorm.toFixed(3),
+      swNorm: +swNorm.toFixed(3),
+      wtNorm: +wtNorm.toFixed(3),
+      hsNorm: +hsNorm.toFixed(3),
+      avgBeamNorm: +avgBeamNorm.toFixed(3),
+      maxBeamNorm: +maxBeamNorm.toFixed(3),
+      hlNorm: +hlNorm.toFixed(3),
+      densityNorm: +densityNorm.toFixed(3),
+      beamVarNorm: +beamVarNorm.toFixed(3),
+      openness: +openness.toFixed(3),
+      variable: isVariableBeam(beamWidth),
+      meta: id as string
+    }
   };
 }
 

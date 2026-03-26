@@ -10,12 +10,12 @@
     "preview": "vite preview",
     "extract": "node pipeline/scripts/extract.js",
     "validate": "node pipeline/scripts/validate.js",
-    "export": "node pipeline/scripts/export-to-app.js",
-    "export:verify": "node pipeline/scripts/export-to-app.js --verify",
-    "canary": "node pipeline/scripts/canary-test.js",
-    "canary:baseline": "node pipeline/scripts/canary-test.js --baseline",
-    "estimate": "node pipeline/scripts/estimate.js",
-    "calibrate": "node pipeline/scripts/calibrate.js",
+    "export": "tsx pipeline/scripts/export-to-app.js",
+    "export:verify": "tsx pipeline/scripts/export-to-app.js --verify",
+    "canary": "tsx pipeline/scripts/canary-test.js",
+    "canary:baseline": "tsx pipeline/scripts/canary-test.js --baseline",
+    "estimate": "tsx pipeline/scripts/estimate.js",
+    "calibrate": "tsx pipeline/scripts/calibrate.js",
     "ingest:frame": "node pipeline/scripts/ingest.js --type frame",
     "ingest:string": "node pipeline/scripts/ingest.js --type string",
     "pipeline": "npm run validate && npm run export:verify",
@@ -36,6 +36,7 @@
     "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
+    "tsx": "^4.21.0",
     "typescript": "^6.0.2",
     "vite": "^8.0.3"
   }
