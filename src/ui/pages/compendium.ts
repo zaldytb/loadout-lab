@@ -51,7 +51,6 @@ type BuildWithArchetype = Build & { archetype?: string };
 let _compSelectedRacquetId: string | null = null;
 let _compSortKey: SortKey = 'score';
 let _compCurrentBuilds: BuildWithArchetype[] = [];
-let _stringsInitialized = false;
 let _compendiumInitWired = false;
 const _compendiumBuildCache: Record<string, BuildWithArchetype[]> = {};
 
@@ -108,33 +107,8 @@ export function _compSwitchTab(tab: string): void {
   const activePanel = document.getElementById('comp-tab-' + tab);
   if (activePanel) activePanel.classList.remove('hidden');
 
-  if (tab === 'strings' && !_stringsInitialized) {
-    _stringsInitialized = true;
-    window.setTimeout(() => {
-      try {
-        getWindowFn('_stringRenderRoster')?.();
-        if (STRINGS.length > 0) {
-          getWindowFn<(stringId: string) => void>('_stringSelectString')?.(STRINGS[0].id);
-        } else {
-          const main = document.getElementById('string-main');
-          if (main) {
-            main.innerHTML =
-              '<div class="flex flex-col items-center justify-center h-64 text-dc-red"><p class="font-mono text-sm">Error: String database not loaded</p></div>';
-          }
-        }
-
-        const renderRoster = getWindowFn('_stringRenderRoster');
-        document.getElementById('string-search')?.addEventListener('input', () => renderRoster?.());
-        document.getElementById('string-filter-material')?.addEventListener('change', () => renderRoster?.());
-        document.getElementById('string-filter-shape')?.addEventListener('change', () => renderRoster?.());
-        document.getElementById('string-filter-stiffness')?.addEventListener('change', () => renderRoster?.());
-      } catch (err) {
-        console.error('String compendium init error:', err);
-      }
-    }, 100);
-  }
-
-  if (tab === 'strings' && _stringsInitialized) {
+  if (tab === 'strings') {
+    getWindowFn('_stringEnsureInitialized')?.();
     getWindowFn('_stringSyncWithActiveLoadout')?.();
   }
 

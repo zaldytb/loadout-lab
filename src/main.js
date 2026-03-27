@@ -19,6 +19,7 @@ import * as Optimize from './ui/pages/optimize.js';
 import * as Tune from './ui/pages/tune.js';
 import * as Compare from './ui/pages/compare.js';
 import * as Compendium from './ui/pages/compendium.js';
+import * as Strings from './ui/pages/strings.js';
 
 // Import dock components
 import * as DockCollapse from './ui/components/dock-collapse.js';
@@ -77,7 +78,7 @@ window.renderStatBars = Overview.renderStatBars;
 window.renderBuildDNAHighlights = Overview.renderBuildDNAHighlights;
 window.radarTooltipHandler = Overview.radarTooltipHandler;
 window.renderRadarChart = Overview.renderRadarChart;
-window.renderFitProfile = Overview.renderFitProfile;
+window.renderFitProfile = Overview.renderFitProfileCard;
 window.renderWarnings = Overview.renderWarnings;
 window.generateFitProfile = Overview.generateFitProfile;
 window.generateWarnings = Overview.generateWarnings;
@@ -178,9 +179,31 @@ window._compAction = Compendium._compAction;
 window._compAddBuildToCompare = Compendium._compAddBuildToCompare;
 window._compActionCompare = Compendium._compActionCompare;
 
-// Bridge: expose remaining legacy string compendium functions used by extracted compendium tab switching
-window._stringRenderRoster = App._stringRenderRoster;
-window._stringSyncWithActiveLoadout = App._stringSyncWithActiveLoadout;
+// Bridge: expose String Compendium functions to window
+window._stringEnsureInitialized = Strings._stringEnsureInitialized;
+window._stringToggleHud = Strings._stringToggleHud;
+window._stringGetFilteredStrings = Strings._stringGetFilteredStrings;
+window._stringSyncWithActiveLoadout = Strings._stringSyncWithActiveLoadout;
+window._stringRenderRoster = Strings._stringRenderRoster;
+window._stringGetArchetype = Strings._stringGetArchetype;
+window._stringSelectString = Strings._stringSelectString;
+window._stringGeneratePills = Strings._stringGeneratePills;
+window._stringRenderBatteryBars = Strings._stringRenderBatteryBars;
+window._stringFindSimilarStrings = Strings._stringFindSimilarStrings;
+window._stringFindBestFrames = Strings._stringFindBestFrames;
+window._stringRenderMain = Strings._stringRenderMain;
+window._stringInitModulator = Strings._stringInitModulator;
+window._stringSetModMode = Strings._stringSetModMode;
+window._stringOnCrossesStringChange = Strings._stringOnCrossesStringChange;
+window._stringOnCrossesGaugeChange = Strings._stringOnCrossesGaugeChange;
+window._stringOnFrameChange = Strings._stringOnFrameChange;
+window._stringOnGaugeChange = Strings._stringOnGaugeChange;
+window._stringOnTensionChange = Strings._stringOnTensionChange;
+window._stringUpdatePreview = Strings._stringUpdatePreview;
+window._stringRenderPreviewBars = Strings._stringRenderPreviewBars;
+window._stringClearPreview = Strings._stringClearPreview;
+window._stringAddToLoadout = Strings._stringAddToLoadout;
+window._stringSetActiveLoadout = Strings._stringSetActiveLoadout;
 
 // Bridge: expose dock component functions to window
 window.toggleDockCollapse = DockCollapse.toggleDockCollapse;

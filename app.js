@@ -1830,7 +1830,7 @@ function _assignStaggerIndices(containerSel) {
   }
 }
 
-function renderDashboard() {
+function _renderDashboardLegacy() {
   renderMobileLoadoutPills();
   const setup = getCurrentSetup();
 
@@ -1846,7 +1846,9 @@ function renderDashboard() {
   const { racquet, stringConfig } = setup;
   const stats = predictSetup(racquet, stringConfig);
   const identity = generateIdentity(stats, racquet, stringConfig);
-  const fitProfile = generateFitProfile(stats, racquet, stringConfig);
+  const fitProfile = typeof window.generateFitProfile === 'function'
+    ? window.generateFitProfile(stats, racquet, stringConfig)
+    : generateFitProfile(stats, racquet, stringConfig);
   const warnings = generateWarnings(racquet, stringConfig, stats);
 
   // Hero Band (replaces summary + identity + rating cards)
@@ -1857,7 +1859,7 @@ function renderDashboard() {
   renderRadarChart(stats);
 
   // Fit
-  renderFitProfile(fitProfile);
+  renderFitProfileActive(fitProfile);
 
   // Progressive depth (foundation now inside Build DNA)
   renderOCFoundation(racquet, stringConfig, stats);
@@ -1870,6 +1872,13 @@ function renderDashboard() {
 
   // If Tune mode is open, refresh its panels with the updated setup
   refreshTuneIfActive();
+}
+
+function renderDashboard() {
+  if (typeof window.renderDashboard === 'function' && window.renderDashboard !== renderDashboard) {
+    return window.renderDashboard();
+  }
+  return _renderDashboardLegacy();
 }
 
 function renderOverviewHero(racquet, stringConfig, stats, identity) {
@@ -2251,6 +2260,7 @@ function renderRadarChart(stats) {
 
 function renderFitProfile(fitProfile) {
   const grid = $('#fit-grid');
+  if (!grid) return;
   const bestForList = Array.isArray(fitProfile.bestFor) ? fitProfile.bestFor : [];
   const watchOutList = Array.isArray(fitProfile.watchOut) ? fitProfile.watchOut : [];
   const bestFor = bestForList.join(', ');
@@ -2263,8 +2273,39 @@ function renderFitProfile(fitProfile) {
   if (bestFor) parts.push('<span class="dna-fit-label dna-fit-best">Best for:</span> ' + bestFor);
   if (watchOut) parts.push('<span class="dna-fit-label dna-fit-warn">Watch:</span> ' + watchOut);
   if (tension) parts.push('<span class="dna-fit-label dna-fit-tension">Sweet spot:</span> ' + tension);
+  if (parts.length === 0) parts.push('<span class="dna-fit-label dna-fit-best">Fit:</span> Versatile all-court setup');
 
   grid.innerHTML = '<p class="dna-fit-line">' + parts.join(' <span class="dna-fit-sep">·</span> ') + '</p>';
+}
+
+function renderFitProfileActive(fitProfile) {
+  const grid = $('#fit-grid');
+  if (!grid) return;
+
+  const bestForList = Array.isArray(fitProfile.bestFor) ? fitProfile.bestFor : [];
+  const watchOutList = Array.isArray(fitProfile.watchOut) ? fitProfile.watchOut : [];
+  const bestFor = bestForList.join(', ') || 'Versatile all-court players';
+  const watchOut = watchOutList.length > 0 && watchOutList[0].toLowerCase().indexOf('no major') === -1
+    ? watchOutList.join(', ')
+    : 'No major red flags';
+  const tension = fitProfile.tensionRec || 'Use the frame range midpoint';
+
+  grid.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;">
+      <div style="display:flex;flex-direction:column;gap:4px;min-width:0;">
+        <span class="dna-fit-label dna-fit-best">Best For</span>
+        <p class="dna-fit-line">${bestFor}</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;min-width:0;">
+        <span class="dna-fit-label dna-fit-warn">Watch</span>
+        <p class="dna-fit-line">${watchOut}</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;min-width:0;">
+        <span class="dna-fit-label dna-fit-tension">Sweet Spot</span>
+        <p class="dna-fit-line">${tension}</p>
+      </div>
+    </div>
+  `;
 }
 
 function renderWarnings(warnings) {

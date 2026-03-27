@@ -69,7 +69,7 @@ export function renderDashboard(): void {
   renderRadarChart(stats);
 
   // Fit
-  renderFitProfile(fitProfile);
+  renderFitProfileCard(fitProfile);
 
   // Progressive depth
   renderOCFoundation(racquet, stringConfig, stats);
@@ -530,6 +530,41 @@ export function renderFitProfile(fitProfile: {
   grid.innerHTML = '<p class="dna-fit-line">' + parts.join(' <span class="dna-fit-sep">·</span> ') + '</p>';
 }
 
+export function renderFitProfileCard(fitProfile: {
+  bestFor: string[];
+  watchOut: string[];
+  tensionRec: string;
+}): void {
+  const grid = document.getElementById('fit-grid');
+  if (!grid) return;
+
+  const bestForList = Array.isArray(fitProfile.bestFor) ? fitProfile.bestFor : [];
+  const watchOutList = Array.isArray(fitProfile.watchOut) ? fitProfile.watchOut : [];
+  const bestForText = bestForList.join(', ') || 'Versatile all-court players';
+  const watchOutText =
+    watchOutList.length > 0 && !watchOutList[0].toLowerCase().includes('no major')
+      ? watchOutList.join(', ')
+      : 'No major red flags';
+  const tensionText = fitProfile.tensionRec || 'Use the frame range midpoint';
+
+  grid.innerHTML = `
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="flex flex-col gap-1">
+        <span class="dna-fit-label dna-fit-best">Best For</span>
+        <p class="dna-fit-line">${bestForText}</p>
+      </div>
+      <div class="flex flex-col gap-1">
+        <span class="dna-fit-label dna-fit-warn">Watch</span>
+        <p class="dna-fit-line">${watchOutText}</p>
+      </div>
+      <div class="flex flex-col gap-1">
+        <span class="dna-fit-label dna-fit-tension">Sweet Spot</span>
+        <p class="dna-fit-line">${tensionText}</p>
+      </div>
+    </div>
+  `;
+}
+
 /**
  * Render warnings section
  */
@@ -564,18 +599,22 @@ export function generateFitProfile(
   racquet: Racquet,
   _stringConfig: StringConfig
 ): { bestFor: string[]; watchOut: string[]; tensionRec: string } {
-  const bestFor: string[] = [];
+  const bestForCandidates: Array<{ label: string; score: number }> = [];
   const watchOut: string[] = [];
+  if (stats.spin >= 70) bestForCandidates.push({ label: 'Baseline grinders who rely on topspin', score: stats.spin });
+  if (stats.power >= 65) bestForCandidates.push({ label: 'Players who like to dictate with pace', score: stats.power });
+  if (stats.control >= 70) bestForCandidates.push({ label: 'Touch players and all-courters', score: stats.control });
+  if (stats.comfort >= 70) bestForCandidates.push({ label: 'Players with arm sensitivity', score: stats.comfort });
+  if (stats.stability >= 70) bestForCandidates.push({ label: 'Aggressive returners and blockers', score: stats.stability });
+  if (stats.feel >= 75) bestForCandidates.push({ label: 'Net players and volleyers', score: stats.feel });
+  if (stats.maneuverability >= 70) bestForCandidates.push({ label: 'Quick-swing players and net rushers', score: stats.maneuverability });
+  if (stats.forgiveness >= 65) bestForCandidates.push({ label: 'Developing players building consistency', score: stats.forgiveness });
+  if (stats.playability >= 80) bestForCandidates.push({ label: 'Frequent players (3+ times/week)', score: stats.playability });
 
-  if (stats.spin >= 70) bestFor.push('Baseline grinders who rely on topspin');
-  if (stats.power >= 65) bestFor.push('Players who like to dictate with pace');
-  if (stats.control >= 70) bestFor.push('Touch players and all-courters');
-  if (stats.comfort >= 70) bestFor.push('Players with arm sensitivity');
-  if (stats.stability >= 70) bestFor.push('Aggressive returners and blockers');
-  if (stats.feel >= 75) bestFor.push('Net players and volleyers');
-  if (stats.maneuverability >= 70) bestFor.push('Quick-swing players and net rushers');
-  if (stats.forgiveness >= 65) bestFor.push('Developing players building consistency');
-  if (stats.playability >= 80) bestFor.push('Frequent players (3+ times/week)');
+  const bestFor = bestForCandidates
+    .sort((left, right) => right.score - left.score)
+    .slice(0, 3)
+    .map((entry) => entry.label);
 
   if (bestFor.length === 0) bestFor.push('Versatile all-court players');
 
