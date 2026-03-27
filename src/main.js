@@ -254,8 +254,8 @@ window.renderOverallBuildScore = SharedRenderers.renderOverallBuildScore;
 window.renderStatBar = SharedRenderers.renderStatBar;
 window.renderGroupedStatBars = SharedRenderers.renderGroupedStatBars;
 window.renderIdentityPill = SharedRenderers.renderIdentityPill;
-window.generateFitProfile = SharedRenderers.generateFitProfile;
-window.generateWarnings = SharedRenderers.generateWarnings;
+window.sharedGenerateFitProfile = SharedRenderers.generateFitProfile;
+window.sharedGenerateWarnings = SharedRenderers.generateWarnings;
 window.assignStaggerIndices = SharedRenderers.assignStaggerIndices;
 window.animateCounter = SharedRenderers.animateCounter;
 

@@ -548,16 +548,16 @@ export function renderFitProfileCard(fitProfile: {
   const tensionText = fitProfile.tensionRec || 'Use the frame range midpoint';
 
   grid.innerHTML = `
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="flex flex-col gap-1">
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;">
+      <div style="display:flex;flex-direction:column;gap:4px;min-width:0;">
         <span class="dna-fit-label dna-fit-best">Best For</span>
         <p class="dna-fit-line">${bestForText}</p>
       </div>
-      <div class="flex flex-col gap-1">
+      <div style="display:flex;flex-direction:column;gap:4px;min-width:0;">
         <span class="dna-fit-label dna-fit-warn">Watch</span>
         <p class="dna-fit-line">${watchOutText}</p>
       </div>
-      <div class="flex flex-col gap-1">
+      <div style="display:flex;flex-direction:column;gap:4px;min-width:0;">
         <span class="dna-fit-label dna-fit-tension">Sweet Spot</span>
         <p class="dna-fit-line">${tensionText}</p>
       </div>

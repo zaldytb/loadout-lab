@@ -1849,23 +1849,43 @@ function _renderDashboardLegacy() {
   const fitProfile = typeof window.generateFitProfile === 'function'
     ? window.generateFitProfile(stats, racquet, stringConfig)
     : generateFitProfile(stats, racquet, stringConfig);
-  const warnings = generateWarnings(racquet, stringConfig, stats);
+  const warnings = typeof window.generateWarnings === 'function'
+    ? window.generateWarnings(racquet, stringConfig, stats)
+    : generateWarnings(racquet, stringConfig, stats);
+  const renderOverviewHeroImpl = typeof window.renderOverviewHero === 'function'
+    ? window.renderOverviewHero
+    : renderOverviewHero;
+  const renderStatBarsImpl = typeof window.renderStatBars === 'function'
+    ? window.renderStatBars
+    : renderStatBars;
+  const renderRadarChartImpl = typeof window.renderRadarChart === 'function'
+    ? window.renderRadarChart
+    : renderRadarChart;
+  const renderFitProfileImpl = typeof window.renderFitProfile === 'function'
+    ? window.renderFitProfile
+    : renderFitProfileActive;
+  const renderOCFoundationImpl = typeof window.renderOCFoundation === 'function'
+    ? window.renderOCFoundation
+    : renderOCFoundation;
+  const renderWarningsImpl = typeof window.renderWarnings === 'function'
+    ? window.renderWarnings
+    : renderWarnings;
 
   // Hero Band (replaces summary + identity + rating cards)
-  renderOverviewHero(racquet, stringConfig, stats, identity);
+  renderOverviewHeroImpl(racquet, stringConfig, stats, identity);
 
   // Stats
-  renderStatBars(stats);
-  renderRadarChart(stats);
+  renderStatBarsImpl(stats);
+  renderRadarChartImpl(stats);
 
   // Fit
-  renderFitProfileActive(fitProfile);
+  renderFitProfileImpl(fitProfile);
 
   // Progressive depth (foundation now inside Build DNA)
-  renderOCFoundation(racquet, stringConfig, stats);
+  renderOCFoundationImpl(racquet, stringConfig, stats);
 
   // Warnings
-  renderWarnings(warnings);
+  renderWarningsImpl(warnings);
 
   // Wave 2: Assign stagger indices to top-level dashboard sections
   _assignStaggerIndices('#dashboard-content');
@@ -5201,12 +5221,15 @@ function toggleTheme() {
   const callbacks = {
     refreshSlotColors: () => { SLOT_COLORS = getSlotColors(); },
     refreshRadarChart: () => {
-      if (currentRadarChart) {
-        const setup = getCurrentSetup();
-        if (setup) {
-          const stats = predictSetup(setup.racquet, setup.stringConfig);
-          renderRadarChart(stats);
-        }
+      const setup = getCurrentSetup();
+      if (!setup) return;
+
+      const renderRadarChartImpl = typeof window.renderRadarChart === 'function'
+        ? window.renderRadarChart
+        : renderRadarChart;
+      if (typeof renderRadarChartImpl === 'function') {
+        const stats = predictSetup(setup.racquet, setup.stringConfig);
+        renderRadarChartImpl(stats);
       }
     },
     refreshComparison: () => {
