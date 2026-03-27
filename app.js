@@ -10254,75 +10254,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-function _renderCreateFormTailwind(title, showCancel) {
-  return (
-    '<div class="dock-cf-form border border-[var(--dc-border)] bg-[var(--dc-void-deep)] p-4 flex flex-col gap-3">' +
-      '<div class="flex items-center justify-between border-b border-[var(--dc-border)] pb-3">' +
-        '<span class="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--dc-platinum)]">' + title + '</span>' +
-        (showCancel ? '<a class="font-mono text-[9px] uppercase tracking-widest text-[var(--dc-storm)] hover:text-[var(--dc-platinum)] cursor-pointer transition-colors" href="#" onclick="_hideNewLoadoutForm(); return false;">Cancel</a>' : '') +
-      '</div>' +
-      // Full/Hybrid toggle
-      '<div class="flex border border-[var(--dc-border)]">' +
-        '<button class="dock-cf-toggle-btn flex-1 py-2 font-mono text-[9px] font-bold uppercase tracking-[0.12em] bg-[var(--dc-platinum)] text-[var(--dc-void)] border-r border-[var(--dc-border)] transition-colors" data-cf-mode="full" onclick="_cfToggleMode(this)">Full Bed</button>' +
-        '<button class="dock-cf-toggle-btn flex-1 py-2 font-mono text-[9px] font-bold uppercase tracking-[0.12em] bg-transparent text-[var(--dc-storm)] hover:text-[var(--dc-platinum)] transition-colors" data-cf-mode="hybrid" onclick="_cfToggleMode(this)">Hybrid</button>' +
-      '</div>' +
-      // Body
-      '<div class="dock-cf-body flex flex-col gap-3" data-cf-hybrid="false">' +
-        // Full bed
-        '<div class="dock-cf-fullbed flex flex-col gap-2">' +
-          _cfFieldHtml('Frame', 'dock-cf-frame-search', 'dock-cf-frame', 'dock-cf-frame-dropdown', 'Search frames...') +
-          _cfFieldHtml('String', 'dock-cf-string-search', 'dock-cf-string', 'dock-cf-string-dropdown', 'Search strings...') +
-          '<div class="grid grid-cols-2 gap-2">' +
-            _cfTensionHtml('Mains lbs', 'dock-cf-tension-m', '55') +
-            _cfTensionHtml('Crosses lbs', 'dock-cf-tension-x', '53') +
-          '</div>' +
-        '</div>' +
-        // Hybrid
-        '<div class="dock-cf-hybrid hidden flex flex-col gap-2">' +
-          _cfFieldHtml('Frame', 'dock-cf-h-frame-search', 'dock-cf-h-frame', 'dock-cf-h-frame-dropdown', 'Search frames...') +
-          _cfFieldHtml('Mains String', 'dock-cf-mains-search', 'dock-cf-mains', 'dock-cf-mains-dropdown', 'Search mains...') +
-          '<div class="grid grid-cols-2 gap-2">' +
-            _cfTensionHtml('Mains lbs', 'dock-cf-mains-tension', '55') +
-            _cfTensionHtml('Crosses lbs', 'dock-cf-crosses-tension', '53') +
-          '</div>' +
-          _cfFieldHtml('Crosses String', 'dock-cf-crosses-search', 'dock-cf-crosses', 'dock-cf-crosses-dropdown', 'Search crosses...') +
-        '</div>' +
-      '</div>' +
-      // Actions
-      '<div class="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--dc-border)]">' +
-        '<button class="py-2.5 font-mono text-[9px] font-bold uppercase tracking-[0.12em] bg-[var(--dc-platinum)] text-[var(--dc-void)] hover:bg-[var(--dc-white)] transition-colors" onclick="_cfActivate()">Set Active</button>' +
-        '<button class="py-2.5 font-mono text-[9px] font-bold uppercase tracking-[0.12em] border border-[var(--dc-border)] text-[var(--dc-storm)] hover:text-[var(--dc-platinum)] hover:border-[var(--dc-border-hover)] bg-transparent transition-colors" onclick="_cfSave()">Save</button>' +
-      '</div>' +
-    '</div>'
-  );
-}
-
-// ─────────────────────────────────────────────
-// setHybridMode(isHybrid)
-// ─────────────────────────────────────────────
-
-function _cfFieldHtml(label, searchId, hiddenId, dropdownId, placeholder) {
-  return (
-    '<div class="flex flex-col gap-1">' +
-      '<span class="font-mono text-[9px] uppercase tracking-[0.2em] text-[var(--dc-storm)]">' + label + '</span>' +
-      '<div class="relative">' +
-        '<input type="text" class="w-full px-2 py-1.5 bg-[var(--dc-void)] border border-[var(--dc-border)] text-[var(--dc-platinum)] font-sans text-[12px] outline-none focus:border-[var(--dc-border-active)] transition-colors placeholder:text-[var(--dc-storm)]" id="' + searchId + '" placeholder="' + placeholder + '" autocomplete="off">' +
-        '<input type="hidden" id="' + hiddenId + '">' +
-        '<div class="absolute top-full left-0 right-0 z-50 bg-[var(--dc-void-deep)] border border-[var(--dc-border)] max-h-48 overflow-y-auto hidden" id="' + dropdownId + '"></div>' +
-      '</div>' +
-    '</div>'
-  );
-}
-
-function _cfTensionHtml(label, inputId, defaultVal) {
-  return (
-    '<div class="flex flex-col gap-1">' +
-      '<span class="font-mono text-[9px] uppercase tracking-[0.15em] text-[var(--dc-storm)]">' + label + '</span>' +
-      '<input type="number" class="px-2 py-1.5 bg-[var(--dc-void)] border border-[var(--dc-border)] text-[var(--dc-platinum)] font-mono text-[12px] outline-none focus:border-[var(--dc-border-active)] transition-colors" id="' + inputId + '" value="' + defaultVal + '" min="30" max="70">' +
-    '</div>'
-  );
-}
-
 // ES Module exports
 export {
   // Re-export data for other modules
@@ -10396,11 +10327,6 @@ export {
   _stringAddToLoadout,
   _stringSetActiveLoadout,
   _stringClearPreview,
-  
-  // Create flow functions
-  _renderCreateFormTailwind,
-  _cfFieldHtml,
-  _cfTensionHtml,
   
   // Tune mode functions
   tuneSandboxCommit,
