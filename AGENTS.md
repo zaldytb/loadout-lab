@@ -372,3 +372,69 @@ User journey that maintains consistency:
 2. Switch to Tune/Compare/Optimize → uses active racquet + strings
 3. Modify in Tune → updates active loadout
 4. Return to Racket Bible → syncs to show updated active racket + strings
+
+
+---
+
+## TypeScript Migration (Phase 8)
+
+### Phase 8a: Dock Infrastructure + Find My Build
+
+**Status:** ✅ Completed
+
+**New Files:**
+
+| File | Functions | Description |
+|------|-----------|-------------|
+| `src/ui/components/dock-renderers.ts` | 16 | Dock panel renderers including `renderDockPanel()`, `renderDockContextPanel()`, and all 6 mode-specific panel renderers (`_renderDockPanelBible`, `_renderDockPanelOverview`, `_renderDockPanelTune`, `_renderDockPanelCompare`, `_renderDockPanelOptimize`, `_renderDockPanelReference`) |
+| `src/ui/components/dock-create.ts` | 16 | Create loadout form handlers including `renderDockCreateSection()`, `_cfToggleMode()`, `_cfActivate()`, `_cfSave()`, and form validation |
+| `src/ui/pages/find-my-build.ts` | 17 | Find My Build wizard including `openFindMyBuild()`, `_fmbShowStep()`, `_fmbGenerateProfile()`, `_fmbRankFrames()`, `_fmbRenderFrameCard()` |
+
+**Key Implementation Details:**
+
+1. **Co-located Panel Renderers**: All 6 `_renderDockPanel*` functions live in `dock-renderers.ts` alongside the dispatcher `renderDockContextPanel()`. This prevents circular import risk as noted in the architecture review.
+
+2. **State Management**: 
+   - `dock-create.ts` maintains module-level `_cfCreatingNew` flag
+   - `find-my-build.ts` maintains wizard state (`_fmbStep`, `_fmbAnswers`, `_fmbCurrentFrames`, `_fmbLastProfile`)
+
+3. **External Dependencies**: Functions that need to call back into app.js use the `WindowExt` interface pattern:
+   ```typescript
+   interface WindowExt extends Window {
+     createLoadout?: (...) => Loadout | null;
+     activateLoadout?: (loadout: Loadout) => void;
+     // ... etc
+   }
+   ```
+
+4. **Type Safety**: RACQUETS and STRINGS arrays from data.js require `as unknown as Racquet[]` casts due to tensionRange type mismatch (`number[]` in data vs `[number, number]` in engine types).
+
+5. **Window Bridge**: All new exports are bridged in `src/main.js`:
+   - Dock renderers: `renderDockPanel`, `renderDockContextPanel`, `_dockCompareEdit`, etc.
+   - Dock create: `renderDockCreateSection`, `_cfActivate`, `_cfSave`, etc.
+   - Find My Build: `openFindMyBuild`, `fmbBack`, `fmbNext`, `_fmbRankFrames`, etc.
+
+**Verification:**
+- ✅ `npm run typecheck` — zero errors
+- ✅ `npm run canary` — all 5 tests pass, 0.0 OBS drift
+- ✅ No accidental `window.` leakage (only `window.innerWidth` for responsive check)
+
+### Remaining Migration Work
+
+**Phase 8b:** Overview Page (~36 functions)
+- `renderDashboard()`, `renderOverviewHero()`, radar charts, stat bars
+
+**Phase 8c:** Optimize Page (~18 functions)
+- `initOptimize()`, `runOptimizer()`, `renderOptimizerResults()`
+
+**Phase 8d:** Tune Page (~32 functions)
+- `initTuneMode()`, `runTensionSweep()`, tension charts
+
+**Phase 8e:** Compare Page (~67 functions)
+- `renderComparisonSlots()`, `renderCompareSummaries()`, verdict/matrix
+
+**Phase 8f:** Racket Bible (~28 functions)
+- `_compRenderMain()`, `_compRenderRoster()`, build card generation
+
+**Phase 8g:** String Compendium (~25 functions)
+- `_stringRenderMain()`, `_stringRenderRoster()`, string-first modulator

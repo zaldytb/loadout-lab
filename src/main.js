@@ -13,11 +13,15 @@ import { getActiveLoadout, getSavedLoadouts, setActiveLoadout, setSavedLoadouts 
 // Import page modules
 import * as Leaderboard from './ui/pages/leaderboard.js';
 import * as MyLoadouts from './ui/pages/my-loadouts.js';
+import * as FindMyBuild from './ui/pages/find-my-build.js';
 
 // Import dock components
 import * as DockCollapse from './ui/components/dock-collapse.js';
 import * as MobileDock from './ui/components/mobile-dock.js';
 import * as ObsAnimation from './ui/components/obs-animation.js';
+import * as DockPanel from './ui/components/dock-panel.js';
+import * as DockRenderers from './ui/components/dock-renderers.js';
+import * as DockCreate from './ui/components/dock-create.js';
 
 // Bridge: expose all exports to window for inline HTML handlers
 // This maintains backward compatibility with onclick="funcName()" patterns
@@ -37,6 +41,20 @@ window.setSavedLoadouts = setSavedLoadouts;
 window.renderMyLoadouts = MyLoadouts.renderMyLoadouts;
 window.confirmRemoveLoadout = MyLoadouts.confirmRemoveLoadout;
 
+// Bridge: expose Find My Build functions to window
+window.openFindMyBuild = FindMyBuild.openFindMyBuild;
+window.closeFindMyBuild = FindMyBuild.closeFindMyBuild;
+window.fmbBack = FindMyBuild.fmbBack;
+window.fmbNext = FindMyBuild.fmbNext;
+window._fmbShowStep = FindMyBuild._fmbShowStep;
+window._fmbUpdateNextState = FindMyBuild._fmbUpdateNextState;
+window._fmbGenerateProfile = FindMyBuild._fmbGenerateProfile;
+window._fmbShowResults = FindMyBuild._fmbShowResults;
+window._fmbSearchDirection = FindMyBuild._fmbSearchDirection;
+window._fmbRankFrames = FindMyBuild._fmbRankFrames;
+window._fmbRenderFrameCard = FindMyBuild._fmbRenderFrameCard;
+window._fmbAction = FindMyBuild._fmbAction;
+
 // Bridge: expose dock component functions to window
 window.toggleDockCollapse = DockCollapse.toggleDockCollapse;
 window._syncDockRail = DockCollapse._syncDockRail;
@@ -44,6 +62,41 @@ window._initDockCollapse = DockCollapse._initDockCollapse;
 window.toggleMobileDock = MobileDock.toggleMobileDock;
 window._syncMobileDockBar = MobileDock._syncMobileDockBar;
 window.animateOBS = ObsAnimation.animateOBS;
+
+// Bridge: expose dock panel functions to window
+window._dockContextActions = DockPanel._dockContextActions;
+window._dockGuidance = DockPanel._dockGuidance;
+window._dockIcons = DockPanel._dockIcons;
+window._dockReturnEditorHome = DockPanel._dockReturnEditorHome;
+window._dockRelocateEditorToContext = DockPanel._dockRelocateEditorToContext;
+window._dockClearNonEditor = DockPanel._dockClearNonEditor;
+
+// Bridge: expose dock renderer functions to window
+window.renderDockPanel = DockRenderers.renderDockPanel;
+window.renderDockState = DockRenderers.renderDockState;
+window.renderMobileLoadoutPills = DockRenderers.renderMobileLoadoutPills;
+window.renderDockContextPanel = DockRenderers.renderDockContextPanel;
+window._dockCompareEdit = DockRenderers._dockCompareEdit;
+window._dockCompareRemove = DockRenderers._dockCompareRemove;
+window._dockCompareQuickAdd = DockRenderers._dockCompareQuickAdd;
+
+// Bridge: expose dock create functions to window
+window.renderDockCreateSection = DockCreate.renderDockCreateSection;
+window._renderCreateForm = DockCreate._renderCreateForm;
+window._renderCreateFormTailwind = DockCreate._renderCreateFormTailwind;
+window._cfToggleMode = DockCreate._cfToggleMode;
+window._wireCreateForm = DockCreate._wireCreateForm;
+window._cfBuildLoadout = DockCreate._cfBuildLoadout;
+window._cfActivate = DockCreate._cfActivate;
+window._cfSave = DockCreate._cfSave;
+window._cfHighlightMissingFields = DockCreate._cfHighlightMissingFields;
+window._cfShowFieldError = DockCreate._cfShowFieldError;
+window._cfClearFieldErrors = DockCreate._cfClearFieldErrors;
+window._showNewLoadoutForm = DockCreate._showNewLoadoutForm;
+window._hideNewLoadoutForm = DockCreate._hideNewLoadoutForm;
+window.toggleQuickAdd = DockCreate.toggleQuickAdd;
+window.quickAddActivate = DockCreate.quickAddActivate;
+window.quickAddSave = DockCreate.quickAddSave;
 
 // Backward-compatible shims for inline HTML handlers that reference activeLoadout/savedLoadouts directly
 Object.defineProperty(window, 'activeLoadout', {
