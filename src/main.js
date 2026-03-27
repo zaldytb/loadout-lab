@@ -17,6 +17,7 @@ import * as FindMyBuild from './ui/pages/find-my-build.js';
 import * as Overview from './ui/pages/overview.js';
 import * as Optimize from './ui/pages/optimize.js';
 import * as Tune from './ui/pages/tune.js';
+import * as Compare from './ui/pages/compare.js';
 
 // Import dock components
 import * as DockCollapse from './ui/components/dock-collapse.js';
@@ -125,6 +126,42 @@ window._updateTuneApplyButton = Tune._updateTuneApplyButton;
 // Bridge: expose Tune state
 window.tuneState = Tune.tuneState;
 window.sweepChart = Tune.sweepChart;
+
+// Bridge: expose Compare functions to window
+// Note: openTuneForSlot uses app.js version (has full UI population logic)
+window.toggleComparisonMode = Compare.toggleComparisonMode;
+window.addComparisonSlot = Compare.addComparisonSlot;
+window.addComparisonSlotFromHome = Compare.addComparisonSlotFromHome;
+window.removeComparisonSlot = Compare.removeComparisonSlot;
+window.renderComparisonSlots = Compare.renderComparisonSlots;
+window.recalcSlot = Compare.recalcSlot;
+window.updateComparisonRadar = Compare.updateComparisonRadar;
+window.renderComparisonDeltas = Compare.renderComparisonDeltas;
+window.renderCompareSummaries = Compare.renderCompareSummaries;
+window.renderCompareVerdict = Compare.renderCompareVerdict;
+window.renderCompareMatrix = Compare.renderCompareMatrix;
+window.openCompareEditor = Compare.openCompareEditor;
+window.closeCompareEditors = Compare.closeCompareEditors;
+window._toggleCompareCardEditor = Compare._toggleCompareCardEditor;
+window._compareEditorStringHTML = Compare._compareEditorStringHTML;
+window._compareInitEditorSS = Compare._compareInitEditorSS;
+window._compareBuildLoadFromSavedDropdown = Compare._compareBuildLoadFromSavedDropdown;
+window._compareLoadFromSaved = Compare._compareLoadFromSaved;
+window.generateCompareVerdict = Compare.generateCompareVerdict;
+window._renderCompareSuggestions = Compare._renderCompareSuggestions;
+window._addSuggestionToCompare = Compare._addSuggestionToCompare;
+window._getCompareSlotTag = Compare._getCompareSlotTag;
+window._addLoadoutAsSlot = Compare._addLoadoutAsSlot;
+window._isCompareSlotStale = Compare._isCompareSlotStale;
+window._refreshCompareSlot = Compare._refreshCompareSlot;
+window._autoFillCompareFromSaved = Compare._autoFillCompareFromSaved;
+window._showCompareQuickAddPrompt = Compare._showCompareQuickAddPrompt;
+window._compareQuickAdd = Compare._compareQuickAdd;
+window.getSlotColors = Compare.getSlotColors;
+// openTuneForSlot not bridged - uses app.js version
+
+// Note: Compare state (comparisonSlots, comparisonRadarChart) comes from app.js
+// The TypeScript functions access them via window global dynamically
 
 // Bridge: expose dock component functions to window
 window.toggleDockCollapse = DockCollapse.toggleDockCollapse;

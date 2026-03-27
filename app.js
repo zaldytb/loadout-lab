@@ -10333,8 +10333,13 @@ export {
   onTuneSliderInput,
   _onEditorChange,
   
+  // Compare state (note: comparisonSlots exported above in State variables section)
+  comparisonRadarChart,
+  SLOT_COLORS,
+  
   // Compare functions
   addComparisonSlot,
+  addComparisonSlotFromHome,
   removeComparisonSlot,
   renderComparisonSlots,
   renderCompareSummaries,
@@ -10342,6 +10347,7 @@ export {
   renderCompareMatrix,
   updateComparisonRadar,
   closeCompareEditors,
+  openTuneForSlot,
   _refreshCompareSlot,
   _toggleCompareCardEditor,
   
