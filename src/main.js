@@ -10,8 +10,9 @@ import * as App from '../app.js';
 // Import state store for window bridge
 import { getActiveLoadout, getSavedLoadouts, setActiveLoadout, setSavedLoadouts } from './state/store.js';
 
-// Import leaderboard section
+// Import page modules
 import * as Leaderboard from './ui/pages/leaderboard.js';
+import * as MyLoadouts from './ui/pages/my-loadouts.js';
 
 // Bridge: expose all exports to window for inline HTML handlers
 // This maintains backward compatibility with onclick="funcName()" patterns
@@ -26,6 +27,10 @@ window.getActiveLoadout = getActiveLoadout;
 window.getSavedLoadouts = getSavedLoadouts;
 window.setActiveLoadout = setActiveLoadout;
 window.setSavedLoadouts = setSavedLoadouts;
+
+// Bridge: expose My Loadouts functions to window
+window.renderMyLoadouts = MyLoadouts.renderMyLoadouts;
+window.confirmRemoveLoadout = MyLoadouts.confirmRemoveLoadout;
 
 // Backward-compatible shims for inline HTML handlers that reference activeLoadout/savedLoadouts directly
 Object.defineProperty(window, 'activeLoadout', {

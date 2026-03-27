@@ -44,6 +44,7 @@ import { calcHybridInteraction } from './src/engine/hybrid.js';
 import { loadSavedLoadouts, persistSavedLoadouts, setActiveLoadout as _stateSetActiveLoadout, setSavedLoadouts as _stateSetSavedLoadouts, getSetupFromLoadout } from './src/state/loadout.js';
 import { getActiveLoadout, setActiveLoadout, getSavedLoadouts, setSavedLoadouts, addSavedLoadout, removeSavedLoadout, updateSavedLoadout, subscribe } from './src/state/store.js';
 import { createSearchableSelect, ssInstances, _initQaSearchable } from './src/ui/components/searchable-select.js';
+import { renderMyLoadouts, confirmRemoveLoadout } from './src/ui/pages/my-loadouts.js';
 import { 
   encodeLoadoutToURL, 
   decodeLoadoutFromURL, 
@@ -1974,100 +1975,6 @@ function _handleSharedBuildURL() {
     return true;
   }
   return false;
-}
-
-function renderMyLoadouts() {
-  var listEl = document.getElementById('dock-myl-list');
-  var countEl = document.getElementById('dock-myl-count');
-  if (!listEl) return;
-
-  if (countEl) countEl.textContent = savedLoadouts.length;
-
-  if (savedLoadouts.length === 0) {
-    listEl.innerHTML = '<div class="px-3 py-4 text-center font-mono text-[10px] text-dc-storm">No saved loadouts yet</div>';
-    return;
-  }
-
-  var sourceLabels = { quiz: 'Quiz', compendium: 'Bible', manual: '', preset: 'Preset', optimize: 'Opt', shared: 'Shared', import: 'Imp' };
-
-  listEl.innerHTML = savedLoadouts.map(function(lo) {
-    var isActive = activeLoadout && activeLoadout.id === lo.id;
-    if (!isActive && activeLoadout) {
-      isActive = activeLoadout.frameId === lo.frameId &&
-        activeLoadout.mainsTension === lo.mainsTension &&
-        activeLoadout.crossesTension === lo.crossesTension &&
-        activeLoadout.isHybrid === (lo.isHybrid || false) &&
-        (lo.isHybrid
-          ? activeLoadout.mainsId === lo.mainsId && activeLoadout.crossesId === lo.crossesId
-          : activeLoadout.stringId === lo.stringId);
-    }
-
-    var racquet = RACQUETS.find(function(r) { return r.id === lo.frameId; });
-    var frameName = racquet ? racquet.name : '\u2014';
-    var stringName = '\u2014';
-    if (lo.isHybrid) {
-      var m = STRINGS.find(function(s) { return s.id === lo.mainsId; });
-      var x = STRINGS.find(function(s) { return s.id === lo.crossesId; });
-      stringName = (m && x) ? (m.name + ' / ' + x.name) : '\u2014';
-    } else {
-      var str = STRINGS.find(function(s) { return s.id === lo.stringId; });
-      stringName = str ? str.name : '\u2014';
-    }
-
-    var srcLabel = sourceLabels[lo.source] || '';
-    var obsColor = getObsScoreColor(lo.obs || 0);
-    var activeBorderClass = isActive
-      ? 'border-l-2 border-l-[var(--dc-accent)] bg-[var(--dc-void-lift)]'
-      : 'border-l-2 border-l-transparent hover:bg-[var(--dc-void-lift)]';
-
-    return (
-      '<div class="group relative flex items-stretch border-b border-[var(--dc-border)] last:border-b-0 transition-colors ' + activeBorderClass + '" data-lo-id="' + lo.id + '">' +
-        // Clickable main area
-        '<div class="flex items-center gap-2.5 flex-1 min-w-0 px-3 py-2.5 cursor-pointer" onclick="switchToLoadout(\'' + lo.id + '\')">' +
-          // OBS box
-          '<div class="w-9 h-9 shrink-0 border border-[var(--dc-border)] flex items-center justify-center">' +
-            '<span class="font-mono text-[11px] font-bold" style="color:' + obsColor + '">' + (lo.obs ? lo.obs.toFixed(1) : '\u2014') + '</span>' +
-          '</div>' +
-          // Info
-          '<div class="flex-1 min-w-0">' +
-            '<div class="font-sans text-[11px] font-semibold text-[var(--dc-platinum)] leading-tight truncate flex items-center gap-1">' +
-              frameName +
-              (isActive ? '<span class="font-mono text-[7px] uppercase tracking-wider text-[var(--dc-accent)]">Active</span>' : '') +
-              (srcLabel ? '<span class="font-mono text-[7px] text-[var(--dc-storm)] border border-[var(--dc-border)] px-1">' + srcLabel + '</span>' : '') +
-            '</div>' +
-            '<div class="font-mono text-[9px] text-[var(--dc-storm)] truncate leading-tight mt-0.5">' + stringName + '</div>' +
-            '<div class="font-mono text-[8px] text-[var(--dc-storm)]/60 mt-0.5">M' + lo.mainsTension + '/X' + lo.crossesTension + ' lbs</div>' +
-          '</div>' +
-        '</div>' +
-        // Ghost action buttons (hover reveal)
-        '<div class="flex items-stretch opacity-0 group-hover:opacity-100 transition-opacity border-l border-[var(--dc-border)]">' +
-          '<button class="w-8 flex items-center justify-center text-[var(--dc-storm)] hover:text-[var(--dc-platinum)] hover:bg-[var(--dc-void)] transition-colors" onclick="shareLoadout(\'' + lo.id + '\')" title="Share">' +
-            '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7.5L8 4.5M8 4.5V7M8 4.5H5.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="1" y="1" width="10" height="10" rx="2"/></svg>' +
-          '</button>' +
-          '<button class="w-8 flex items-center justify-center text-[var(--dc-storm)] hover:text-[var(--dc-platinum)] hover:bg-[var(--dc-void)] transition-colors border-l border-[var(--dc-border)]" onclick="addLoadoutToCompare(\'' + lo.id + '\')" title="Compare">' +
-            '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="4" height="10" rx="0.5"/><rect x="7" y="1" width="4" height="10" rx="0.5"/></svg>' +
-          '</button>' +
-          '<button class="w-8 flex items-center justify-center text-[var(--dc-storm)] hover:text-[var(--dc-red)] hover:bg-[var(--dc-void)] transition-colors border-l border-[var(--dc-border)]" onclick="confirmRemoveLoadout(\'' + lo.id + '\')" title="Remove">' +
-            '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg>' +
-          '</button>' +
-        '</div>' +
-      '</div>'
-    );
-  }).join('');
-}
-
-// Fix J: Two-step remove confirmation (QA-028)
-function confirmRemoveLoadout(loadoutId) {
-  var item = document.querySelector('[data-lo-id="' + loadoutId + '"]');
-  if (!item) return;
-  var actionBar = item.querySelector('div.flex.items-stretch.opacity-0, div.flex.items-stretch');
-  if (!actionBar) return;
-  actionBar.style.opacity = '1';
-  actionBar.style.pointerEvents = 'auto';
-  actionBar.innerHTML =
-    '<span class="font-mono text-[8px] text-[var(--dc-storm)] px-2 flex items-center whitespace-nowrap">Delete?</span>' +
-    '<button class="px-2 font-mono text-[9px] font-bold text-[var(--dc-red)] hover:bg-[var(--dc-void)] border-l border-[var(--dc-border)] h-full transition-colors" onclick="removeLoadout(\'' + loadoutId + '\')">Yes</button>' +
-    '<button class="px-2 font-mono text-[9px] text-[var(--dc-storm)] hover:text-[var(--dc-platinum)] border-l border-[var(--dc-border)] h-full transition-colors" onclick="renderMyLoadouts()">No</button>';
 }
 
 // Dock action handlers
