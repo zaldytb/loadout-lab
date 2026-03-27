@@ -26,6 +26,12 @@ import * as DockPanel from './ui/components/dock-panel.js';
 import * as DockRenderers from './ui/components/dock-renderers.js';
 import * as DockCreate from './ui/components/dock-create.js';
 
+// Import shared utilities
+import * as SharedRenderers from './ui/shared/renderers.js';
+import * as SharedRecommendations from './ui/shared/recommendations.js';
+import * as SharedPresets from './ui/shared/presets.js';
+import * as SharedHelpers from './ui/shared/helpers.js';
+
 // Bridge: expose all exports to window for inline HTML handlers
 // This maintains backward compatibility with onclick="funcName()" patterns
 Object.entries(App).forEach(([key, val]) => {
@@ -162,6 +168,57 @@ window._hideNewLoadoutForm = DockCreate._hideNewLoadoutForm;
 window.toggleQuickAdd = DockCreate.toggleQuickAdd;
 window.quickAddActivate = DockCreate.quickAddActivate;
 window.quickAddSave = DockCreate.quickAddSave;
+
+// Bridge: expose shared renderer functions to window
+window.renderOBSBadge = SharedRenderers.renderOBSBadge;
+window.renderOverallBuildScore = SharedRenderers.renderOverallBuildScore;
+window.renderStatBar = SharedRenderers.renderStatBar;
+window.renderGroupedStatBars = SharedRenderers.renderGroupedStatBars;
+window.renderIdentityPill = SharedRenderers.renderIdentityPill;
+window.generateFitProfile = SharedRenderers.generateFitProfile;
+window.generateWarnings = SharedRenderers.generateWarnings;
+window.assignStaggerIndices = SharedRenderers.assignStaggerIndices;
+window.animateCounter = SharedRenderers.animateCounter;
+
+// Bridge: expose shared recommendation functions to window
+window.computeDeltas = SharedRecommendations.computeDeltas;
+window.computeProfileSimilarity = SharedRecommendations.computeProfileSimilarity;
+window.topGains = SharedRecommendations.topGains;
+window.topLosses = SharedRecommendations.topLosses;
+window.renderWhatToTryNext = SharedRecommendations.renderWhatToTryNext;
+window.generateRecommendedBuilds = SharedRecommendations.generateRecommendedBuilds;
+window.renderExplorePrompt = SharedRecommendations.renderExplorePrompt;
+
+// Bridge: expose shared preset functions to window
+window.getPresetDetail = SharedPresets.getPresetDetail;
+window.getPresetName = SharedPresets.getPresetName;
+window.createUserPreset = SharedPresets.createUserPreset;
+window.renderPresetItemHTML = SharedPresets.renderPresetItemHTML;
+window.renderPresetListHTML = SharedPresets.renderPresetListHTML;
+window.extractPresetData = SharedPresets.extractPresetData;
+window.loadPresetIntoComparisonSlot = SharedPresets.loadPresetIntoComparisonSlot;
+window.loadPresetsFromStorage = SharedPresets.loadPresetsFromStorage;
+window.savePresetsToStorage = SharedPresets.savePresetsToStorage;
+window.PresetManager = SharedPresets.PresetManager;
+
+// Bridge: expose shared helper functions to window
+window.$ = SharedHelpers.$;
+window.$$ = SharedHelpers.$$;
+window.show = SharedHelpers.show;
+window.hide = SharedHelpers.hide;
+window.toggleClass = SharedHelpers.toggleClass;
+window.showFrameSpecs = SharedHelpers.showFrameSpecs;
+window.getFrameSpecs = SharedHelpers.getFrameSpecs;
+window.populateRacquetDropdown = SharedHelpers.populateRacquetDropdown;
+window.populateStringDropdown = SharedHelpers.populateStringDropdown;
+window.populateGaugeDropdown = SharedHelpers.populateGaugeDropdown;
+window.getSetupFromEditorDOM = SharedHelpers.getSetupFromEditorDOM;
+// NOTE: setHybridMode is defined in app.js with different selector defaults
+// Don't bridge SharedHelpers.setHybridMode to avoid breaking the editor toggle
+// window.setHybridMode = SharedHelpers.setHybridMode;
+window.scrollToElement = SharedHelpers.scrollToElement;
+window.debounce = SharedHelpers.debounce;
+window.throttle = SharedHelpers.throttle;
 
 // Backward-compatible shims for inline HTML handlers that reference activeLoadout/savedLoadouts directly
 Object.defineProperty(window, 'activeLoadout', {

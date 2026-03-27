@@ -65,84 +65,68 @@ export function _renderCreateForm(title: string, showCancel: boolean): string {
  * Render create form HTML with Tailwind styling
  */
 export function _renderCreateFormTailwind(title: string, showCancel: boolean): string {
-  return '<div class="dock-cf-form">' +
-    '<div class="dock-cf-header">' +
-      '<span class="dock-cf-title">' + title + '</span>' +
-      (showCancel ? '<a class="dock-cf-cancel" href="#" onclick="_hideNewLoadoutForm(); return false;">Cancel</a>' : '') +
-    '</div>' +
-    '<div class="dock-cf-toggle">' +
-      '<button class="dock-cf-toggle-btn active" data-cf-mode="full" onclick="_cfToggleMode(this)">Full Bed</button>' +
-      '<button class="dock-cf-toggle-btn" data-cf-mode="hybrid" onclick="_cfToggleMode(this)">Hybrid</button>' +
-    '</div>' +
-    '<div class="dock-cf-body" data-cf-hybrid="false">' +
-      '<div class="dock-cf-section dock-cf-fullbed">' +
-        '<div class="dock-qa-field">' +
-          '<label class="dock-qa-label">Frame</label>' +
-          '<div class="dock-qa-searchable">' +
-            '<input type="text" class="dock-qa-search" id="dock-cf-frame-search" placeholder="Search frames..." autocomplete="off">' +
-            '<input type="hidden" id="dock-cf-frame">' +
-            '<div class="dock-qa-dropdown hidden" id="dock-cf-frame-dropdown"></div>' +
+  return (
+    '<div class="border border-[var(--dc-border)] bg-[var(--dc-void-deep)] p-4 flex flex-col gap-3">' +
+      '<div class="flex items-center justify-between border-b border-[var(--dc-border)] pb-3">' +
+        '<span class="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--dc-platinum)]">' + title + '</span>' +
+        (showCancel ? '<a class="font-mono text-[9px] uppercase tracking-widest text-[var(--dc-storm)] hover:text-[var(--dc-platinum)] cursor-pointer transition-colors" href="#" onclick="_hideNewLoadoutForm(); return false;">Cancel</a>' : '') +
+      '</div>' +
+      // Full/Hybrid toggle
+      '<div class="flex border border-[var(--dc-border)]">' +
+        '<button class="dock-cf-toggle-btn flex-1 py-2 font-mono text-[9px] font-bold uppercase tracking-[0.12em] bg-[var(--dc-platinum)] text-[var(--dc-void)] border-r border-[var(--dc-border)] transition-colors" data-cf-mode="full" onclick="_cfToggleMode(this)">Full Bed</button>' +
+        '<button class="dock-cf-toggle-btn flex-1 py-2 font-mono text-[9px] font-bold uppercase tracking-[0.12em] bg-transparent text-[var(--dc-storm)] hover:text-[var(--dc-platinum)] transition-colors" data-cf-mode="hybrid" onclick="_cfToggleMode(this)">Hybrid</button>' +
+      '</div>' +
+      // Body
+      '<div class="dock-cf-body flex flex-col gap-3" data-cf-hybrid="false">' +
+        // Full bed
+        '<div class="dock-cf-fullbed flex flex-col gap-2">' +
+          _cfFieldHtml('Frame', 'dock-cf-frame-search', 'dock-cf-frame', 'dock-cf-frame-dropdown', 'Search frames...') +
+          _cfFieldHtml('String', 'dock-cf-string-search', 'dock-cf-string', 'dock-cf-string-dropdown', 'Search strings...') +
+          '<div class="grid grid-cols-2 gap-2">' +
+            _cfTensionHtml('Mains lbs', 'dock-cf-tension-m', '55') +
+            _cfTensionHtml('Crosses lbs', 'dock-cf-tension-x', '53') +
           '</div>' +
         '</div>' +
-        '<div class="dock-qa-field">' +
-          '<label class="dock-qa-label">String</label>' +
-          '<div class="dock-qa-searchable">' +
-            '<input type="text" class="dock-qa-search" id="dock-cf-string-search" placeholder="Search strings..." autocomplete="off">' +
-            '<input type="hidden" id="dock-cf-string">' +
-            '<div class="dock-qa-dropdown hidden" id="dock-cf-string-dropdown"></div>' +
+        // Hybrid
+        '<div class="dock-cf-hybrid hidden flex flex-col gap-2">' +
+          _cfFieldHtml('Frame', 'dock-cf-h-frame-search', 'dock-cf-h-frame', 'dock-cf-h-frame-dropdown', 'Search frames...') +
+          _cfFieldHtml('Mains String', 'dock-cf-mains-search', 'dock-cf-mains', 'dock-cf-mains-dropdown', 'Search mains...') +
+          '<div class="grid grid-cols-2 gap-2">' +
+            _cfTensionHtml('Mains lbs', 'dock-cf-mains-tension', '55') +
+            _cfTensionHtml('Crosses lbs', 'dock-cf-crosses-tension', '53') +
           '</div>' +
-        '</div>' +
-        '<div class="dock-cf-row">' +
-          '<div class="dock-qa-field dock-cf-half">' +
-            '<label class="dock-qa-label">Mains (lbs)</label>' +
-            '<input type="number" class="dock-qa-input" id="dock-cf-tension-m" value="55" min="30" max="70">' +
-          '</div>' +
-          '<div class="dock-qa-field dock-cf-half">' +
-            '<label class="dock-qa-label">Crosses (lbs)</label>' +
-            '<input type="number" class="dock-qa-input" id="dock-cf-tension-x" value="53" min="30" max="70">' +
-          '</div>' +
+          _cfFieldHtml('Crosses String', 'dock-cf-crosses-search', 'dock-cf-crosses', 'dock-cf-crosses-dropdown', 'Search crosses...') +
         '</div>' +
       '</div>' +
-      '<div class="dock-cf-section dock-cf-hybrid hidden">' +
-        '<div class="dock-qa-field">' +
-          '<label class="dock-qa-label">Frame</label>' +
-          '<div class="dock-qa-searchable">' +
-            '<input type="text" class="dock-qa-search" id="dock-cf-h-frame-search" placeholder="Search frames..." autocomplete="off">' +
-            '<input type="hidden" id="dock-cf-h-frame">' +
-            '<div class="dock-qa-dropdown hidden" id="dock-cf-h-frame-dropdown"></div>' +
-          '</div>' +
-        '</div>' +
-        '<div class="dock-qa-field">' +
-          '<label class="dock-qa-label dock-cf-accent-cyan">Mains String</label>' +
-          '<div class="dock-qa-searchable">' +
-            '<input type="text" class="dock-qa-search" id="dock-cf-mains-search" placeholder="Search mains..." autocomplete="off">' +
-            '<input type="hidden" id="dock-cf-mains">' +
-            '<div class="dock-qa-dropdown hidden" id="dock-cf-mains-dropdown"></div>' +
-          '</div>' +
-        '</div>' +
-        '<div class="dock-qa-field">' +
-          '<label class="dock-qa-label">Mains Tension</label>' +
-          '<input type="number" class="dock-qa-input" id="dock-cf-mains-tension" value="55" min="30" max="70">' +
-        '</div>' +
-        '<div class="dock-qa-field">' +
-          '<label class="dock-qa-label dock-cf-accent-green">Crosses String</label>' +
-          '<div class="dock-qa-searchable">' +
-            '<input type="text" class="dock-qa-search" id="dock-cf-crosses-search" placeholder="Search crosses..." autocomplete="off">' +
-            '<input type="hidden" id="dock-cf-crosses">' +
-            '<div class="dock-qa-dropdown hidden" id="dock-cf-crosses-dropdown"></div>' +
-          '</div>' +
-        '</div>' +
-        '<div class="dock-qa-field">' +
-          '<label class="dock-qa-label">Crosses Tension</label>' +
-          '<input type="number" class="dock-qa-input" id="dock-cf-crosses-tension" value="53" min="30" max="70">' +
-        '</div>' +
+      // Actions
+      '<div class="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--dc-border)]">' +
+        '<button class="py-2.5 font-mono text-[9px] font-bold uppercase tracking-[0.12em] bg-[var(--dc-platinum)] text-[var(--dc-void)] hover:bg-[var(--dc-white)] transition-colors" onclick="_cfActivate()">Set Active</button>' +
+        '<button class="py-2.5 font-mono text-[9px] font-bold uppercase tracking-[0.12em] border border-[var(--dc-border)] text-[var(--dc-storm)] hover:text-[var(--dc-platinum)] hover:border-[var(--dc-border-hover)] bg-transparent transition-colors" onclick="_cfSave()">Save</button>' +
       '</div>' +
-    '</div>' +
-    '<div class="dock-qa-btns">' +
-      '<button class="dock-qa-btn dock-qa-btn-primary" onclick="_cfActivate()">Set Active</button>' +
-      '<button class="dock-qa-btn" onclick="_cfSave()">Save to Loadouts</button>' +
-    '</div>' +
-  '</div>';
+    '</div>'
+  );
+}
+
+function _cfFieldHtml(label: string, searchId: string, hiddenId: string, dropdownId: string, placeholder: string): string {
+  return (
+    '<div class="flex flex-col gap-1">' +
+      '<span class="font-mono text-[9px] uppercase tracking-[0.2em] text-[var(--dc-storm)]">' + label + '</span>' +
+      '<div class="relative">' +
+        '<input type="text" class="w-full px-2 py-1.5 bg-[var(--dc-void)] border border-[var(--dc-border)] text-[var(--dc-platinum)] font-sans text-[12px] outline-none focus:border-[var(--dc-border-active)] transition-colors placeholder:text-[var(--dc-storm)]" id="' + searchId + '" placeholder="' + placeholder + '" autocomplete="off">' +
+        '<input type="hidden" id="' + hiddenId + '">' +
+        '<div class="absolute top-full left-0 right-0 z-50 bg-[var(--dc-void-deep)] border border-[var(--dc-border)] max-h-48 overflow-y-auto hidden" id="' + dropdownId + '"></div>' +
+      '</div>' +
+    '</div>'
+  );
+}
+
+function _cfTensionHtml(label: string, inputId: string, defaultVal: string): string {
+  return (
+    '<div class="flex flex-col gap-1">' +
+      '<span class="font-mono text-[9px] uppercase tracking-[0.15em] text-[var(--dc-storm)]">' + label + '</span>' +
+      '<input type="number" class="px-2 py-1.5 bg-[var(--dc-void)] border border-[var(--dc-border)] text-[var(--dc-platinum)] font-mono text-[12px] outline-none focus:border-[var(--dc-border-active)] transition-colors" id="' + inputId + '" value="' + defaultVal + '" min="30" max="70">' +
+    '</div>'
+  );
 }
 
 /**
