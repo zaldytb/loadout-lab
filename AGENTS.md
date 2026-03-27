@@ -505,3 +505,61 @@ window.generateWarnings = Overview.generateWarnings;
 
 **Phase 8g:** String Compendium (~25 functions)
 - `_stringRenderMain()`, `_stringRenderRoster()`, string-first modulator
+
+
+### Phase 8c: Optimize Page
+
+**Status:** ✅ Completed
+
+**New File:**
+
+| File | Functions | Description |
+|------|-----------|-------------|
+| `src/ui/pages/optimize.ts` | 15 | Optimizer page including `initOptimize()`, `runOptimizer()`, `renderOptimizerResults()`, tension filtering, and action handlers (`optActionView`, `optActionTune`, `optActionCompare`, `optActionSave`) |
+
+**Key Implementation Details:**
+
+1. **Module State**: Maintains several module-level variables:
+   - `_optimizeInitialized` - prevents double initialization
+   - `_optExcludedStringIds` - Set of excluded string IDs for filtering
+   - `_optLastCandidates` - cached optimization results for re-sorting
+   - `_optLastCurrentOBS` - baseline OBS for delta calculations
+
+2. **Candidate Generation**: The optimizer generates candidates in three phases:
+   - Full bed candidates: optimal tension sweep for each filtered string
+   - Hybrid candidates: smart pairing of mains (top 12 + gut/multi) × crosses (round/slick/elastic/soft polys)
+   - Hybrid lock mode: constrain one side (mains or crosses) to a specific string
+
+3. **Tension Optimization**: `findOptimalTension()` sweeps 1-lb increments across the tension range to find the OBS-maximizing tension for each string/hybrid combo.
+
+4. **Filtering Pipeline**:
+   - Material/brand multi-select filters
+   - Excluded strings Set-based filter
+   - Stat minimum thresholds (spin, control, power, etc.)
+   - Upgrade mode: only show builds that improve on current setup
+   - Target tension: client-side ±1 lb filter
+
+5. **Window Dependencies**: Uses `WindowExt` interface for callbacks into app.js:
+   - `getCurrentSetup()` - baseline for OBS deltas
+   - `loadPresetFromData()` - apply optimizer result
+   - `switchMode()` - navigate to view/tune/compare
+   - `comparisonSlots` / `recalcSlot()` - compare mode integration
+
+**Verification:**
+- ✅ `npm run typecheck` — zero errors
+- ✅ `npm run canary` — all 5 tests pass, 0.0 OBS drift
+- ✅ No accidental `window.` leakage (only `window.matchMedia` for mobile breakpoint)
+
+### Remaining Migration Work
+
+**Phase 8d:** Tune Page (~32 functions)
+- `initTuneMode()`, `runTensionSweep()`, tension charts, optimal zone calculation
+
+**Phase 8e:** Compare Page (~67 functions)
+- `renderComparisonSlots()`, `renderCompareSummaries()`, verdict/matrix
+
+**Phase 8f:** Racket Bible (~28 functions)
+- `_compRenderMain()`, `_compRenderRoster()`, build card generation
+
+**Phase 8g:** String Compendium (~25 functions)
+- `_stringRenderMain()`, `_stringRenderRoster()`, string-first modulator

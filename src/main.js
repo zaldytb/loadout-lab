@@ -15,6 +15,7 @@ import * as Leaderboard from './ui/pages/leaderboard.js';
 import * as MyLoadouts from './ui/pages/my-loadouts.js';
 import * as FindMyBuild from './ui/pages/find-my-build.js';
 import * as Overview from './ui/pages/overview.js';
+import * as Optimize from './ui/pages/optimize.js';
 
 // Import dock components
 import * as DockCollapse from './ui/components/dock-collapse.js';
@@ -71,6 +72,21 @@ window.renderFitProfile = Overview.renderFitProfile;
 window.renderWarnings = Overview.renderWarnings;
 window.generateFitProfile = Overview.generateFitProfile;
 window.generateWarnings = Overview.generateWarnings;
+
+// Bridge: expose Optimize functions to window
+window.initOptimize = Optimize.initOptimize;
+window.runOptimizer = Optimize.runOptimizer;
+window.renderOptimizerResults = Optimize.renderOptimizerResults;
+window._optApplyTensionFilter = Optimize._optApplyTensionFilter;
+window._optClearTensionFilter = Optimize._optClearTensionFilter;
+window._optBuildPresetData = Optimize._optBuildPresetData;
+window.optActionView = Optimize.optActionView;
+window.optActionTune = Optimize.optActionTune;
+window.optActionCompare = Optimize.optActionCompare;
+window.optActionSave = Optimize.optActionSave;
+window._toggleOptMS = Optimize._toggleOptMS;
+window._updateOptMSLabel = Optimize._updateOptMSLabel;
+window._renderExcludeTags = Optimize._renderExcludeTags;
 
 // Bridge: expose dock component functions to window
 window.toggleDockCollapse = DockCollapse.toggleDockCollapse;
