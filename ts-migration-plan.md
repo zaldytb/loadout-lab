@@ -1,138 +1,227 @@
 # TypeScript Migration Plan
 
-## Current State
+## Architecture Map
 
-The migration is in a late transitional phase.
+The app is no longer a single-owner monolith, but it is still in a transitional dual-runtime state.
 
-What is already live through TypeScript-owned bridge entrypoints:
-- shell and mode orchestration
-- overview runtime
-- tune runtime
-- compare runtime
-- optimize
-- compendium
-- string compendium
+### Current runtime layers
 
-What is still legacy-heavy:
-- `app.js` still contains duplicate implementations and compatibility wrappers
-- Tune recommendation content still comes from `app.js`
-- `leaderboard.js` is still JavaScript
-- some shared rendering and preset utilities still exist in both TS and legacy paths
+1. `app.js`
+   - Compatibility surface
+   - Legacy fallback implementations
+   - Still contains duplicate page logic for Overview, Tune, Compare, Compendium, and shell-era helpers
 
-## Main Goal
+2. `src/main.js`
+   - Bridge layer from module code to `window.*`
+   - Decides which implementation is the public runtime owner for inline handlers
 
-Reduce `app.js` from a compatibility monolith into a thin bootstrap layer that:
-- imports modules
-- exposes compatibility shims where still necessary
-- initializes the app
+3. `src/state/store.ts`
+   - Canonical saved/active loadout store
+   - Source of truth for loadout persistence and active loadout switching
 
-## Guiding Principle
+4. `src/state/app-state.ts`
+   - Shared runtime coordination state
+   - Owns mode flags, compare compatibility mirrors, radar refs, slot color mirrors, dock editor context
 
-Do not migrate by file name alone. Migrate by runtime ownership.
+5. Page modules under `src/ui/pages/*`
+   - Most app surfaces now have a TypeScript owner
+   - Some pages are fully runtime-owned in TS
+   - Some still coexist with legacy duplicates in `app.js`
 
-A phase is only done when:
-1. the live `window.*` bridge points to the TS implementation
-2. the surrounding flows use the same state source
-3. the legacy `app.js` version is no longer the active path
+6. Compare has two TS layers today
+   - `src/ui/pages/compare/index.ts`
+     - New fixed 3-slot compare page runtime
+     - Own state store in `src/ui/pages/compare/hooks/useCompareState.ts`
+     - Own card, radar, diff, and editor modal components
+   - `src/ui/pages/compare.ts`
+     - Transitional compatibility layer
+     - Still backs legacy compare render/edit APIs
+     - Still reads and writes the older app-state compare mirror
 
-## Remaining Work
+### Current ownership by surface
 
-### Phase A: Finish Tune Content Ownership
+#### Strongly TS-owned
+
+- Engine: `src/engine/*`
+- Store/loadout state: `src/state/*`
+- Shell mode orchestration: `src/ui/pages/shell.ts`
+- Overview runtime: `src/ui/pages/overview.ts`
+- Tune runtime: `src/ui/pages/tune.ts`
+- Compendium: `src/ui/pages/compendium.ts`
+- Strings: `src/ui/pages/strings.ts`
+- New Compare page: `src/ui/pages/compare/index.ts`
+
+#### Transitional / split-owner
+
+- Compare compatibility layer: `src/ui/pages/compare.ts`
+- Compare persistence/mirroring between:
+  - `src/ui/pages/compare/hooks/useCompareState.ts`
+  - `src/state/app-state.ts`
+  - legacy compare helpers in `app.js`
+- Leaderboard: `src/ui/pages/leaderboard.js`
+- Legacy wrappers and dead-but-present renderers in `app.js`
+
+### Current monolith status
+
+- `app.js` is still large: about 8.8k lines
+- The live app usually routes through TS first
+- The main remaining risk is no longer missing TS modules
+- The main remaining risk is duplicated runtime ownership and compatibility mirrors that can drift
+
+## What Is Done
+
+- Shell ownership moved to `src/ui/pages/shell.ts`
+- Overview is routed through the TS page path
+- Tune runtime, recommendation panels, and recommendation actions are TS-owned
+- Compendium and Strings are extracted
+- Compare page exists as a new TS module set under `src/ui/pages/compare/*`
+- Dock, leaderboard, optimize, and compendium compare entrypoints now prefer the newer compare APIs
+- Compare slot cards now support Tune, Save, and Set Active directly
+- Compare slot colors, radar datasets, and diff bars use the updated contrast palette
+
+## Main Remaining Problem
+
+The app still has **two compare systems**:
+
+1. The new compare page runtime in `src/ui/pages/compare/index.ts`
+2. The older compatibility compare runtime in `src/ui/pages/compare.ts` plus legacy `app.js` helpers
+
+That duality is still the biggest source of migration risk.
+
+## Further Migration Phases
+
+### Phase 1: Converge Compare State to a Single Owner
 
 Goal:
-- move the remaining Tune recommendation content out of `app.js`
-
-Still legacy-sourced today:
-- `renderRecommendedBuilds`
-- `renderWhatToTryNext`
-- `renderExplorePrompt`
-- related recommendation helpers used only by Tune
-
-Why this is next:
-- Tune runtime is already TS-owned
-- the remaining risk is content/render duplication, not control-flow ownership
-- finishing Tune fully removes one of the most regression-prone mixed systems
-
-Success criteria:
-- Tune slider, delta card, OBS card, WTTN, recommended builds, and apply flow all come from the TS page module
-- `app.js` only forwards or no longer owns Tune rendering
-
-### Phase B: Delete or Dead-Code-Isolate Legacy Compare and Tune Duplicates
-
-Goal:
-- remove inactive compare and tune implementations from `app.js`
+- Make `src/ui/pages/compare/index.ts` plus `useCompareState.ts` the only real compare state owner
 
 Scope:
-- legacy compare renderers and helpers now shadowed by `compare.ts`
-- legacy tune runtime and renderer functions now shadowed by `tune.ts`
+- Move remaining public compare actions off `src/ui/pages/compare.ts`
+- Keep `src/ui/pages/compare.ts` only as a thin adapter temporarily, or remove it once safe
+- Stop treating `app-state` compare slots as a second canonical model
 
-Strategy:
-- keep wrapper entrypoints only if older flows still call them
-- delete dead leaf renderers first
-- verify the bridge remains stable after each removal
-
-Success criteria:
-- `app.js` no longer contains active compare/tune page logic
-
-### Phase C: Finish Overview Cleanup
-
-Goal:
-- remove remaining duplicate overview renderers that are no longer needed
-
-Scope:
-- legacy overview leaf helpers still present in `app.js`
-- any duplicate fit/warning/radar helpers that are now TS-owned
+Key work:
+- Bridge compare actions directly from `compare/index.ts` where possible:
+  - add slot
+  - edit slot
+  - remove slot
+  - quick load from saved
+  - open Tune from slot
+  - set active
+  - save slot
+- Narrow `app-state` compare usage to compatibility mirroring only
+- Remove remaining old compare render/edit assumptions from shell and dock flows
 
 Success criteria:
-- overview is TS-owned both publicly and internally
-- `app.js` is no longer a hidden fallback for overview rendering
+- One compare store only
+- `compareGetState()` is the canonical source
+- No user-facing compare flow depends on the old app-state slot array
 
-### Phase D: Convert Leaderboard to TypeScript
-
-Goal:
-- replace `src/ui/pages/leaderboard.js` with `leaderboard.ts`
-
-Why this is later:
-- leaderboard is more self-contained
-- the bigger current risk is still duplicate runtime ownership elsewhere
-
-Success criteria:
-- leaderboard builds and runs through TypeScript
-- `src/main.js` bridges the TS version directly
-
-### Phase E: Shared Utility and Preset Cleanup
+### Phase 2: Remove Legacy Compare Implementations from `app.js`
 
 Goal:
-- consolidate helpers that still exist in both legacy and TS paths
+- Delete or dead-code-isolate the old compare rendering and editing system in `app.js`
 
 Likely targets:
-- recommendation helpers
-- preset rendering/storage helpers
-- duplicated shared renderers
+- `renderComparisonSlots`
+- `recalcSlot`
+- `updateComparisonRadar`
+- `renderComparisonDeltas`
+- `renderCompareSummaries`
+- `renderCompareVerdict`
+- `renderCompareMatrix`
+- `_compareLoadFromSaved`
+- `_toggleCompareCardEditor`
+- `_refreshCompareSlot`
+- compare bootstrap helpers that are now shell-owned
 
 Success criteria:
-- one authoritative owner per shared helper
+- `app.js` no longer contains a working compare page implementation
+- compare-specific logic lives only under `src/ui/pages/compare/*`
+
+### Phase 3: Finish Tune Legacy Excision
+
+Goal:
+- Remove inactive Tune duplicates from `app.js`
+
+Scope:
+- dead-code-isolate old slider/render/apply helpers still present there
+- keep only wrappers if any straggling callers still need compatibility
+
+Success criteria:
+- Tune page behavior comes only from `src/ui/pages/tune.ts`
+- `app.js` no longer contains an alternate Tune implementation
+
+### Phase 4: Finish Overview Legacy Excision
+
+Goal:
+- Remove the last duplicate Overview renderers in `app.js`
+
+Scope:
+- fit profile
+- radar fallback
+- stat bars
+- warnings
+- overview shell fragments still present only for fallback safety
+
+Success criteria:
+- Overview is TS-owned publicly and internally
+- `app.js` does not secretly render Overview anymore
+
+### Phase 5: Convert Leaderboard to TypeScript
+
+Goal:
+- Replace `src/ui/pages/leaderboard.js` with `leaderboard.ts`
+
+Why later:
+- It is less risky than compare-state convergence
+- The compare API it talks to should stabilize first
+
+Success criteria:
+- `src/main.js` bridges a TS leaderboard module
+- leaderboard compare integration uses the canonical compare API only
+
+### Phase 6: Shared Utility Cleanup
+
+Goal:
+- Consolidate duplicated helper and recommendation logic
+
+Likely targets:
+- preset helpers
+- recommendation helpers
+- rendering helpers that still exist in both legacy and TS paths
+- comments/docs that still describe old ownership
+
+Success criteria:
+- One owner per shared utility
 - fewer bridge collisions
+- fewer mixed old/new helper chains
 
-### Phase F: Thin Bootstrap `app.js`
+### Phase 7: Shrink `app.js` to Bootstrap Only
 
-End state target for `app.js`:
-- bootstrap/init only
-- compatibility wrappers only where truly needed
-- no large page-level render systems
+Goal:
+- Turn `app.js` into a thin compatibility/bootstrap shell
 
-Target outcome:
-- `app.js` becomes a small shell instead of a working implementation dump
+Target state:
+- imports and startup only
+- temporary compatibility shims only where unavoidable
+- no page-level render systems
+- no active state owners
+
+Success criteria:
+- `app.js` is small
+- all page logic is under `src/`
+- migration risk is no longer dominated by duplicate runtime paths
 
 ## Recommended Execution Order
 
-1. Finish Tune content ownership
-2. Remove legacy Tune duplicates
-3. Remove legacy Compare duplicates
-4. Finish Overview cleanup
-5. Convert Leaderboard to TypeScript
+1. Converge Compare state to a single owner
+2. Remove legacy Compare implementations from `app.js`
+3. Remove legacy Tune implementations from `app.js`
+4. Remove legacy Overview implementations from `app.js`
+5. Convert `leaderboard.js` to TypeScript
 6. Consolidate shared utilities
-7. Shrink `app.js` to bootstrap level
+7. Reduce `app.js` to bootstrap only
 
 ## Verification Gate
 
@@ -144,25 +233,30 @@ npm run canary
 npm run build
 ```
 
-Manual smoke checks:
-- create, save, activate, reset, and duplicate loadouts
-- switch across Overview, Tune, Compare, Optimize, Compendium, and Strings
-- verify Tune slider, delta bars, OBS card, WTTN, and apply flow
-- verify Compare slots, verdicts, and radar
-- verify Compendium and Strings actions still save, activate, and compare correctly
+Manual checks:
 
-## Risks to Watch
-
-- fixing a legacy function that is no longer the live path
-- bridge collisions in `src/main.js`
-- split state between `app.js`, `app-state.ts`, and store-backed loadouts
-- Chart.js instance reuse bugs when ownership changes
-- hidden DOM/CSS dependencies that were previously masked by old renderers
+- switch between Overview, Tune, Compare, Optimize, Compendium, and Strings
+- verify Compare slots survive mode roundtrips
+- verify Compare card actions:
+  - Tune
+  - Set Active
+  - Save
+  - Edit
+- verify Compare entrypoints from:
+  - dock
+  - leaderboard
+  - optimize
+  - compendium
+  - saved loadouts
+- verify Tune delta card, OBS card, WTTN, recommendations, and apply flow
+- verify Overview fit-grid, warnings, hero, and radar
 
 ## Definition of Done
 
 The migration is done when:
-- all page runtime ownership is in TypeScript
-- shared app state is centralized in TS modules
-- `app.js` is a thin compatibility/bootstrap layer
-- the full verification gate passes without special fallback wiring
+
+- page runtime ownership is fully in TypeScript
+- Compare has a single state owner
+- `app.js` is only bootstrap/compatibility glue
+- `src/main.js` has no ambiguous bridge collisions
+- the verification gate passes without relying on legacy fallback behavior

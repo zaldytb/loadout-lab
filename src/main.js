@@ -166,24 +166,38 @@ window.compareSetSlotLoadout = ComparePage.setSlotLoadout;
 window.compareAddLoadoutToNextAvailableSlot = ComparePage.addLoadoutToNextAvailableSlot;
 window.compareClearSlot = ComparePage.clearSlot;
 window.compareGetConfiguredSlots = ComparePage.getConfiguredSlots;
+window.compareAddSlot = ComparePage.addSlot;
+window.compareEditSlot = ComparePage.editSlot;
+window.compareRemoveSlot = ComparePage.removeSlot;
+window.compareTuneSlot = ComparePage.tuneSlot;
+window.compareSetActiveSlot = ComparePage.setActiveSlot;
+window.compareSaveSlot = ComparePage.saveSlot;
+window.compareQuickAddSaved = ComparePage.quickAddSaved;
+window._compareLoadFromSaved = ComparePage.compareLoadFromSaved;
+window._refreshCompareSlot = ComparePage.refreshCompareSlot;
+window.compareEditorCancel = ComparePage.cancelEditor;
+window.compareEditorSave = ComparePage.saveEditor;
+window.compareEditorSetHybrid = ComparePage.setEditorHybrid;
+window.compareEditorUpdateTension = ComparePage.updateEditorTension;
+window.compareEditorLoadFromSaved = ComparePage.editorLoadFromSaved;
 
 // Bridge: expose LEGACY Compare functions to window (for backward compatibility)
 // Note: openTuneForSlot uses app.js version (has full UI population logic)
-window.toggleComparisonMode = Compare.toggleComparisonMode;
-window.addComparisonSlot = Compare.addComparisonSlot;
-window.addComparisonSlotFromHome = Compare.addComparisonSlotFromHome;
-window.removeComparisonSlot = Compare.removeComparisonSlot;
-window.renderComparisonSlots = Compare.renderComparisonSlots;
-window.recalcSlot = Compare.recalcSlot;
-window.updateComparisonRadar = Compare.updateComparisonRadar;
-window.renderComparisonDeltas = Compare.renderComparisonDeltas;
-window.renderCompareSummaries = Compare.renderCompareSummaries;
-window.renderCompareVerdict = Compare.renderCompareVerdict;
-window.renderCompareMatrix = Compare.renderCompareMatrix;
-window._toggleCompareCardEditor = Compare._toggleCompareCardEditor;
-window._compareLoadFromSaved = Compare._compareLoadFromSaved;
-window._refreshCompareSlot = Compare._refreshCompareSlot;
-window.getSlotColors = Compare.getSlotColors;
+window.toggleComparisonMode = ComparePage.toggleComparisonMode;
+window.addComparisonSlot = ComparePage.addComparisonSlot;
+window.addComparisonSlotFromHome = ComparePage.addComparisonSlotFromHome;
+window.removeComparisonSlot = ComparePage.removeComparisonSlot;
+window.renderComparisonSlots = ComparePage.renderComparisonSlots;
+window.recalcSlot = ComparePage.recalcSlot;
+window.updateComparisonRadar = ComparePage.updateComparisonRadar;
+window.renderComparisonDeltas = ComparePage.renderComparisonDeltas;
+window.renderCompareSummaries = ComparePage.renderCompareSummaries;
+window.renderCompareVerdict = ComparePage.renderCompareVerdict;
+window.renderCompareMatrix = ComparePage.renderCompareMatrix;
+window._toggleCompareCardEditor = ComparePage._toggleCompareCardEditor;
+window._compareLoadFromSaved = ComparePage.compareLoadFromSaved;
+window._refreshCompareSlot = ComparePage.refreshCompareSlot;
+window.getSlotColors = ComparePage.getSlotColors;
 // openTuneForSlot not bridged - uses app.js version
 // Several legacy compare helpers still come from app.js; avoid overwriting them here.
 
