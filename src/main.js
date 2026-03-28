@@ -186,8 +186,8 @@ window.getSlotColors = Compare.getSlotColors;
 // openTuneForSlot not bridged - uses app.js version
 // Several legacy compare helpers still come from app.js; avoid overwriting them here.
 
-// Note: Compare state (comparisonSlots, comparisonRadarChart) comes from app.js
-// The TypeScript functions access them via window global dynamically
+// Note: Compare runtime state lives in app-state.ts.
+// app.js still exposes compatibility globals during the migration.
 
 // Bridge: expose Compendium functions to window
 window.initCompendium = Compendium.initCompendium;

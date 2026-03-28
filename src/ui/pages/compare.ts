@@ -10,7 +10,9 @@ import {
   getComparisonSlots as getAppComparisonSlots,
   setComparisonRadarChart as setAppComparisonRadarChart,
   getComparisonRadarChart as getAppComparisonRadarChart,
-  getCurrentMode as getAppCurrentMode
+  getCurrentMode as getAppCurrentMode,
+  getSlotColors as getAppSlotColors,
+  setSlotColors as setAppSlotColors
 } from '../../state/app-state.js';
 import { createSearchableSelect } from '../components/searchable-select.js';
 import type { SetupStats, StringData, Racquet, IdentityResult, TensionContext } from '../../engine/types.js';
@@ -67,41 +69,45 @@ function getRadarChart(): any {
   return getAppComparisonRadarChart();
 }
 
-// Exports for backward compatibility
-export const comparisonSlots = [] as CompareSlot[];
-export let comparisonRadarChart: any | null = null;
+const SLOT_COLOR_PALETTE: SlotColor[] = [
+  {
+    border: 'rgba(175, 0, 0, 0.8)',
+    bg: 'rgba(175, 0, 0, 0.06)',
+    bgFaint: 'rgba(175, 0, 0, 0.04)',
+    label: 'A',
+    cssClass: 'a',
+    borderDash: []
+  },
+  {
+    border: 'rgba(220, 223, 226, 0.5)',
+    bg: 'rgba(220, 223, 226, 0.03)',
+    bgFaint: 'rgba(220, 223, 226, 0.02)',
+    label: 'B',
+    cssClass: 'b',
+    borderDash: [6, 3]
+  },
+  {
+    border: 'rgba(220, 223, 226, 0.25)',
+    bg: 'rgba(220, 223, 226, 0.02)',
+    bgFaint: 'rgba(220, 223, 226, 0.01)',
+    label: 'C',
+    cssClass: 'c',
+    borderDash: [2, 2]
+  }
+];
 
-// Digicraft Brutalism â€” Slot A is Artful Red (active), B and C are platinum ghosts
 export function getSlotColors(): SlotColor[] {
-  return [
-    {
-      // Slot A: Artful Red â€” the "active" read
-      border: 'rgba(175, 0, 0, 0.8)',
-      bg: 'rgba(175, 0, 0, 0.06)',
-      bgFaint: 'rgba(175, 0, 0, 0.04)',
-      label: 'A',
-      cssClass: 'a',
-      borderDash: []
-    },
-    {
-      // Slot B: Platinum ghost
-      border: 'rgba(220, 223, 226, 0.5)',
-      bg: 'rgba(220, 223, 226, 0.03)',
-      bgFaint: 'rgba(220, 223, 226, 0.02)',
-      label: 'B',
-      cssClass: 'b',
-      borderDash: [6, 3]
-    },
-    {
-      // Slot C: Faintest platinum
-      border: 'rgba(220, 223, 226, 0.25)',
-      bg: 'rgba(220, 223, 226, 0.02)',
-      bgFaint: 'rgba(220, 223, 226, 0.01)',
-      label: 'C',
-      cssClass: 'c',
-      borderDash: [2, 2]
-    }
-  ];
+  const existing = getAppSlotColors<SlotColor>();
+  if (existing.length > 0) {
+    return existing;
+  }
+
+  const colors = SLOT_COLOR_PALETTE.map((color) => ({
+    ...color,
+    borderDash: [...color.borderDash]
+  }));
+  setAppSlotColors(colors);
+  return getAppSlotColors<SlotColor>();
 }
 
 // ============================================

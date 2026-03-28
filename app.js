@@ -2399,6 +2399,9 @@ function renderWarnings(warnings) {
 // ============================================
 
 function toggleComparisonMode() {
+  if (typeof window.toggleComparisonMode === 'function' && window.toggleComparisonMode !== toggleComparisonMode) {
+    return window.toggleComparisonMode();
+  }
   // Legacy compat — now routes through switchMode
   if (currentMode === 'compare') {
     switchMode('overview');
@@ -2408,6 +2411,9 @@ function toggleComparisonMode() {
 }
 
 function addComparisonSlotFromHome() {
+  if (typeof window.addComparisonSlotFromHome === 'function' && window.addComparisonSlotFromHome !== addComparisonSlotFromHome) {
+    return window.addComparisonSlotFromHome();
+  }
   if (comparisonSlots.length >= 3) return;
   const setup = getCurrentSetup();
   const slotData = {
@@ -2448,6 +2454,9 @@ function addComparisonSlotFromHome() {
 }
 
 function addComparisonSlot() {
+  if (typeof window.addComparisonSlot === 'function' && window.addComparisonSlot !== addComparisonSlot) {
+    return window.addComparisonSlot();
+  }
   if (comparisonSlots.length >= 3) return;
 
   const slotIndex = comparisonSlots.length;
@@ -2479,6 +2488,9 @@ function addComparisonSlot() {
 }
 
 function removeComparisonSlot(index) {
+  if (typeof window.removeComparisonSlot === 'function' && window.removeComparisonSlot !== removeComparisonSlot) {
+    return window.removeComparisonSlot(index);
+  }
   comparisonSlots.splice(index, 1);
   renderComparisonSlots();
   renderCompareSummaries();
@@ -2490,12 +2502,18 @@ function removeComparisonSlot(index) {
 }
 
 function renderComparisonSlots() {
+  if (typeof window.renderComparisonSlots === 'function' && window.renderComparisonSlots !== renderComparisonSlots) {
+    return window.renderComparisonSlots();
+  }
   // Legacy: editors panel is hidden. Only update add button visibility.
   const addBtn = $('#btn-add-slot');
   if (addBtn) addBtn.style.display = comparisonSlots.length >= 3 ? 'none' : '';
 }
 
 function recalcSlot(index) {
+  if (typeof window.recalcSlot === 'function' && window.recalcSlot !== recalcSlot) {
+    return window.recalcSlot(index);
+  }
   const slot = comparisonSlots[index];
   const racquet = RACQUETS.find(r => r.id === slot.racquetId);
 
@@ -2572,6 +2590,9 @@ function recalcSlot(index) {
 }
 
 function updateComparisonRadar() {
+  if (typeof window.updateComparisonRadar === 'function' && window.updateComparisonRadar !== updateComparisonRadar) {
+    return window.updateComparisonRadar();
+  }
   const ctx = document.getElementById('comparison-radar-chart').getContext('2d');
   const datasets = [];
   const colors = getSlotColors();
@@ -2690,6 +2711,9 @@ function renderComparisonDeltas() {
 // ============================================
 
 function renderCompareSummaries() {
+  if (typeof window.renderCompareSummaries === 'function' && window.renderCompareSummaries !== renderCompareSummaries) {
+    return window.renderCompareSummaries();
+  }
   const container = $('#compare-summaries');
   const emptyState = $('#compare-empty-state');
   const validSlots = comparisonSlots.filter(s => s.stats);
@@ -2860,6 +2884,9 @@ function _compareBuildLoadFromSavedDropdown(slotIndex) {
 
 // Fix 2: Load a saved loadout into a compare slot
 function _compareLoadFromSaved(slotIndex, loadoutId) {
+  if (typeof window._compareLoadFromSaved === 'function' && window._compareLoadFromSaved !== _compareLoadFromSaved) {
+    return window._compareLoadFromSaved(slotIndex, loadoutId);
+  }
   if (!loadoutId) return;
 
   const lo = savedLoadouts.find(function(l) { return l.id === loadoutId; });
@@ -2916,6 +2943,9 @@ function _compareEditorStringHTML(slot, index) {
 }
 
 function _toggleCompareCardEditor(index) {
+  if (typeof window._toggleCompareCardEditor === 'function' && window._toggleCompareCardEditor !== _toggleCompareCardEditor) {
+    return window._toggleCompareCardEditor(index);
+  }
   var card = document.querySelector('.compare-summary-card[data-slot-index="' + index + '"]');
   if (!card) return;
   var wasEditing = card.classList.contains('compare-card-editing');
@@ -3078,6 +3108,9 @@ function generateCompareVerdict(slotA, slotB) {
 }
 
 function renderCompareVerdict() {
+  if (typeof window.renderCompareVerdict === 'function' && window.renderCompareVerdict !== renderCompareVerdict) {
+    return window.renderCompareVerdict();
+  }
   const container = $('#compare-verdict');
   const validSlots = comparisonSlots.filter(s => s.stats);
 
@@ -3165,6 +3198,9 @@ function renderCompareVerdict() {
 }
 
 function renderCompareMatrix() {
+  if (typeof window.renderCompareMatrix === 'function' && window.renderCompareMatrix !== renderCompareMatrix) {
+    return window.renderCompareMatrix();
+  }
   const container = $('#compare-matrix');
   const proof = $('#compare-proof');
   const radarDetails = document.getElementById('compare-details-radar');
@@ -9285,6 +9321,9 @@ function _isCompareSlotStale(slot) {
 }
 
 function _refreshCompareSlot(slotIndex) {
+  if (typeof window._refreshCompareSlot === 'function' && window._refreshCompareSlot !== _refreshCompareSlot) {
+    return window._refreshCompareSlot(slotIndex);
+  }
   var slot = comparisonSlots[slotIndex];
   if (!slot || !slot.sourceLoadoutId) return;
   var src = null;
