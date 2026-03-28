@@ -6316,11 +6316,38 @@ function optActionTune(idx) {
 }
 
 function optActionCompare(idx) {
+  if (typeof window.optActionCompare === 'function' && window.optActionCompare !== optActionCompare) {
+    return window.optActionCompare(idx);
+  }
   const c = _optLastCandidates[idx];
   if (!c) return;
   const preset = _optBuildPresetData(c);
 
-  // Build a comparison slot from this candidate
+  const lo = createLoadout(
+    preset.racquetId,
+    preset.isHybrid ? preset.mainsId : preset.stringId,
+    preset.mainsTension,
+    {
+      source: 'optimize',
+      isHybrid: preset.isHybrid,
+      mainsId: preset.mainsId || null,
+      crossesId: preset.crossesId || null,
+      crossesTension: preset.crossesTension,
+    }
+  );
+
+  const compareState = window.compareGetState?.();
+  if (lo && lo.stats && compareState?.slots && typeof window.compareSetSlotLoadout === 'function') {
+    const emptySlot = compareState.slots.find(function(slot) { return slot.loadout === null; });
+    const targetSlotId = (emptySlot || compareState.slots[compareState.slots.length - 1])?.id;
+    if (targetSlotId) {
+      window.compareSetSlotLoadout(targetSlotId, lo, lo.stats);
+      switchMode('compare');
+      return;
+    }
+  }
+
+  // Legacy fallback
   if (comparisonSlots.length >= 3) {
     comparisonSlots.pop(); // remove last to make room
   }
@@ -8790,6 +8817,21 @@ function _compAction(action, buildIndex, evt) {
 }
 
 function _compAddBuildToCompare(build) {
+  if (typeof window._compAddBuildToCompare === 'function' && window._compAddBuildToCompare !== _compAddBuildToCompare) {
+    return window._compAddBuildToCompare(build);
+  }
+  var compareLoadout = _compCreateLoadoutFromBuild(build);
+  var compareState = window.compareGetState?.();
+  if (compareLoadout && compareLoadout.stats && compareState?.slots && typeof window.compareSetSlotLoadout === 'function') {
+    var emptySlot = compareState.slots.find(function(slot) { return slot.loadout === null; });
+    var targetSlotId = (emptySlot || compareState.slots[compareState.slots.length - 1])?.id;
+    if (targetSlotId) {
+      window.compareSetSlotLoadout(targetSlotId, compareLoadout, compareLoadout.stats);
+      switchMode('compare');
+      return;
+    }
+  }
+
   if (comparisonSlots.length >= 3) comparisonSlots.pop();
 
   var racquetId = _compSelectedRacquetId;
@@ -8825,6 +8867,21 @@ function _compAddBuildToCompare(build) {
 // Legacy scalar-param compare handler — used by _addSuggestionToCompare and _compareQuickAdd
 // These flows only produce full-bed slots from dropdown selections.
 function _compActionCompare(racquetId, stringId, tension) {
+  if (typeof window._compActionCompare === 'function' && window._compActionCompare !== _compActionCompare) {
+    return window._compActionCompare(racquetId, stringId, tension);
+  }
+  var compareLoadout = createLoadout(racquetId, stringId, tension, { source: 'compare' });
+  var compareState = window.compareGetState?.();
+  if (compareLoadout && compareLoadout.stats && compareState?.slots && typeof window.compareSetSlotLoadout === 'function') {
+    var emptySlot = compareState.slots.find(function(slot) { return slot.loadout === null; });
+    var targetSlotId = (emptySlot || compareState.slots[compareState.slots.length - 1])?.id;
+    if (targetSlotId) {
+      window.compareSetSlotLoadout(targetSlotId, compareLoadout, compareLoadout.stats);
+      switchMode('compare');
+      return;
+    }
+  }
+
   if (comparisonSlots.length >= 3) {
     comparisonSlots.pop();
   }
@@ -9263,6 +9320,16 @@ function _getCompareSlotTag(slot) {
 // ============================================
 
 function _addLoadoutAsSlot(lo) {
+  var compareState = window.compareGetState?.();
+  if (lo && lo.stats && compareState?.slots && typeof window.compareSetSlotLoadout === 'function') {
+    var emptySlot = compareState.slots.find(function(slot) { return slot.loadout === null; });
+    var targetSlotId = (emptySlot || compareState.slots[compareState.slots.length - 1])?.id;
+    if (targetSlotId) {
+      window.compareSetSlotLoadout(targetSlotId, lo, lo.stats);
+      return;
+    }
+  }
+
   var racquet = RACQUETS.find(function(r) { return r.id === lo.frameId; });
   var stringData = lo.isHybrid ? null : STRINGS.find(function(s) { return s.id === lo.stringId; });
 
@@ -9355,6 +9422,36 @@ function _refreshCompareSlot(slotIndex) {
 }
 
 function _autoFillCompareFromSaved() {
+  var compareState = window.compareGetState?.();
+  if (compareState?.slots && typeof window.compareClearSlot === 'function' && typeof window.compareSetSlotLoadout === 'function') {
+    compareState.slots.forEach(function(slot) {
+      window.compareClearSlot(slot.id);
+    });
+
+    var compareCandidates = [];
+    if (activeLoadout) compareCandidates.push(activeLoadout);
+
+    for (var j = 0; j < savedLoadouts.length && compareCandidates.length < 3; j++) {
+      var candidate = savedLoadouts[j];
+      if (activeLoadout && candidate.id === activeLoadout.id) continue;
+      compareCandidates.push(candidate);
+    }
+
+    if (compareCandidates.length < 2 && savedLoadouts.length > 0) {
+      var fallback = savedLoadouts[0];
+      var exists = compareCandidates.some(function(candidate) { return candidate.id === fallback.id; });
+      if (!exists) compareCandidates.push(fallback);
+    }
+
+    compareCandidates.slice(0, 3).forEach(function(candidate) {
+      if (!candidate || !candidate.stats) return;
+      var latestState = window.compareGetState?.();
+      var emptySlot = latestState?.slots?.find(function(slot) { return slot.loadout === null; });
+      if (emptySlot) window.compareSetSlotLoadout(emptySlot.id, candidate, candidate.stats);
+    });
+    return;
+  }
+
   comparisonSlots = [];
   _setAppComparisonSlots(comparisonSlots);
   var added = 0;

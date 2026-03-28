@@ -12,9 +12,11 @@ interface WindowExt extends Window {
   getCurrentSetup?: () => { racquet: Racquet; stringConfig: StringConfig } | null;
   switchMode?: (mode: string) => void;
   loadPresetFromData?: (preset: Record<string, unknown>) => void;
-  createLoadout?: (frameId: string, stringId: string, tension: number, opts?: Record<string, unknown>) => { id: string } | null;
+  createLoadout?: (frameId: string, stringId: string, tension: number, opts?: Record<string, unknown>) => { id: string; stats?: SetupAttributes | null } | null;
   saveLoadout?: (loadout: { id: string }) => void;
   activeLoadout?: { frameId: string } | null;
+  compareGetState?: () => { slots?: Array<{ id: string; loadout: unknown | null }> };
+  compareSetSlotLoadout?: (slotId: string, loadout: { id: string }, stats: SetupAttributes) => void;
 }
 
 interface CompareSlot {
@@ -732,12 +734,31 @@ export function optActionCompare(idx: number): void {
   if (!c) return;
   const preset = _optBuildPresetData(c);
   const win = window as WindowExt;
-
-  const comparisonSlots = getAppComparisonSlots<CompareSlot>();
-  if (comparisonSlots.length >= 3) {
-    comparisonSlots.pop();
+  const lo = win.createLoadout?.(
+    preset.racquetId,
+    preset.isHybrid ? preset.mainsId! : preset.stringId!,
+    preset.mainsTension,
+    {
+      source: 'optimize',
+      isHybrid: preset.isHybrid,
+      mainsId: preset.mainsId,
+      crossesId: preset.crossesId,
+      crossesTension: preset.crossesTension,
+    }
+  );
+  const compareState = win.compareGetState?.();
+  if (lo?.stats && compareState?.slots && typeof win.compareSetSlotLoadout === 'function') {
+    const emptySlot = compareState.slots.find((slot: any) => slot.loadout === null);
+    const targetSlotId = (emptySlot || compareState.slots[compareState.slots.length - 1])?.id;
+    if (targetSlotId) {
+      win.compareSetSlotLoadout(targetSlotId, lo, lo.stats);
+      win.switchMode?.('compare');
+      return;
+    }
   }
 
+  const comparisonSlots = getAppComparisonSlots<CompareSlot>();
+  if (comparisonSlots.length >= 3) comparisonSlots.pop();
   const slotData = {
     id: Date.now(),
     racquetId: preset.racquetId,
@@ -750,10 +771,8 @@ export function optActionCompare(idx: number): void {
     stats: undefined as unknown as SetupAttributes,
     identity: null
   };
-
   comparisonSlots.push(slotData);
-  const slotIndex = comparisonSlots.length - 1;
-  recalcSlot(slotIndex);
+  recalcSlot(comparisonSlots.length - 1);
   win.switchMode?.('compare');
   renderComparisonSlots();
   renderCompareSummaries();

@@ -48,6 +48,12 @@ interface CompareSlot {
   identity: unknown;
 }
 
+interface CompareWindowExt extends Window {
+  compareGetState?: () => { slots?: Array<{ id: string; loadout: Loadout | null }> };
+  compareSetSlotLoadout?: (slotId: string, loadout: Loadout, stats: SetupStats) => void;
+  createLoadout?: typeof createLoadout;
+}
+
 type BuildWithArchetype = Build & { archetype?: string };
 
 let _compSelectedRacquetId: string | null = null;
@@ -970,6 +976,19 @@ export function _compAction(action: string, buildIndex: number, evt?: Event): vo
 }
 
 export function _compAddBuildToCompare(build: BuildWithArchetype): void {
+  const win = window as CompareWindowExt;
+  const compareLoadout = _compCreateLoadoutFromBuild(build);
+  const compareState = win.compareGetState?.();
+  if (compareLoadout?.stats && compareState?.slots && typeof win.compareSetSlotLoadout === 'function') {
+    const emptySlot = compareState.slots.find((slot: any) => slot.loadout === null);
+    const targetSlotId = (emptySlot || compareState.slots[compareState.slots.length - 1])?.id;
+    if (targetSlotId) {
+      win.compareSetSlotLoadout(targetSlotId, compareLoadout, compareLoadout.stats);
+      getWindowFn<(mode: string) => void>('switchMode')?.('compare');
+      return;
+    }
+  }
+
   const comparisonSlots = getComparisonSlots();
   if (comparisonSlots.length >= 3) comparisonSlots.pop();
   const racquetId = _compSelectedRacquetId;
@@ -1000,6 +1019,19 @@ export function _compAddBuildToCompare(build: BuildWithArchetype): void {
 }
 
 export function _compActionCompare(racquetId: string, stringId: string, tension: number): void {
+  const win = window as CompareWindowExt;
+  const compareLoadout = win.createLoadout?.(racquetId, stringId, tension, { source: 'compare' });
+  const compareState = win.compareGetState?.();
+  if (compareLoadout?.stats && compareState?.slots && typeof win.compareSetSlotLoadout === 'function') {
+    const emptySlot = compareState.slots.find((slot: any) => slot.loadout === null);
+    const targetSlotId = (emptySlot || compareState.slots[compareState.slots.length - 1])?.id;
+    if (targetSlotId) {
+      win.compareSetSlotLoadout(targetSlotId, compareLoadout, compareLoadout.stats);
+      getWindowFn<(mode: string) => void>('switchMode')?.('compare');
+      return;
+    }
+  }
+
   const comparisonSlots = getComparisonSlots();
   if (comparisonSlots.length >= 3) comparisonSlots.pop();
   const racquet = RACQUET_DATA.find((r) => r.id === racquetId);
