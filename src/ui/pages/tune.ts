@@ -14,6 +14,7 @@ import type { Racquet, StringData, SetupAttributes, StringConfig, Loadout } from
 import { GAUGE_LABELS } from '../../engine/constants.js';
 import { getGaugeOptions } from '../../engine/string-profile.js';
 import { STRINGS } from '../../data/loader.js';
+import { getSavedLoadouts } from '../../state/store.js';
 import { _prevObsValues } from '../components/obs-animation.js';
 
 // Window extensions for external dependencies
@@ -28,6 +29,7 @@ interface WindowExt extends Window {
   activeLoadout?: Loadout | null;
   currentMode?: string;
   $?: (sel: string) => HTMLElement | null;
+  renderDockPanel?: () => void;
 }
 
 // Module-level state
@@ -631,7 +633,7 @@ export function renderBaselineMarker(sliderMin: number, sliderMax: number): void
  * Render optimal zone
  */
 export function renderOptimalZone(sliderMin: number, sliderMax: number): void {
-  const zone = document.getElementById('optimal-zone');
+  const zone = document.getElementById('slider-optimal-zone');
   const w = tuneState.optimalWindow;
   if (!zone || !w) return;
 
@@ -781,14 +783,16 @@ export function renderBestValueMove(): void {
  * Render tune hybrid toggle
  */
 export function renderTuneHybridToggle(stringConfig: StringConfig): void {
-  const container = document.getElementById('tune-dimension-toggle');
+  const container = document.getElementById('tune-hybrid-toggle');
   if (!container) return;
 
-  const isHybrid = stringConfig.isHybrid;
-  if (!isHybrid) {
+  const hasSplitTensions = stringConfig.isHybrid || (stringConfig.mainsTension !== undefined && stringConfig.crossesTension !== undefined);
+  if (!hasSplitTensions) {
     container.innerHTML = '';
+    (container as HTMLElement).style.display = 'none';
     return;
   }
+  (container as HTMLElement).style.display = 'flex';
 
   const dims = [
     { key: 'linked', label: 'Linked' },
@@ -817,9 +821,15 @@ export function renderTuneHybridToggle(stringConfig: StringConfig): void {
         calculateOptimalWindow(setup);
         renderOptimalBuildWindow(parseInt(slider?.min || '30'), parseInt(slider?.max || '75'));
         renderDeltaVsBaseline();
+        renderGaugeExplorer(setup);
+        renderBaselineMarker(parseInt(slider?.min || '30'), parseInt(slider?.max || '75'));
+        renderOptimalZone(parseInt(slider?.min || '30'), parseInt(slider?.max || '75'));
         renderSweepChart(setup);
         renderBestValueMove();
         _recomputeExploredState();
+        renderOriginalTensionMarker();
+        win.renderOverallBuildScore?.(setup, true);
+        win.renderRecommendedBuilds?.(setup);
       }
     });
   });
@@ -894,8 +904,19 @@ export function _recomputeExploredState(): void {
 export function _updateTuneApplyButton(): void {
   const btn = document.getElementById('tune-apply-btn');
   if (!btn) return;
-  const isDirty = tuneState.exploredTension !== tuneState.baselineTension;
-  btn.classList.toggle('hidden', !isDirty);
+  if (!tuneState.baseline || !tuneState.explored) {
+    btn.classList.add('hidden');
+    return;
+  }
+  const delta = tuneState.explored.obs - tuneState.baseline.obs;
+  if (Math.abs(delta) <= 0.05) {
+    btn.classList.add('hidden');
+    btn.textContent = 'Apply changes';
+    return;
+  }
+  const sign = delta > 0 ? '+' : '';
+  btn.classList.remove('hidden');
+  btn.textContent = `Apply changes (${sign}${delta.toFixed(1)} OBS)`;
 }
 
 /**
@@ -903,8 +924,8 @@ export function _updateTuneApplyButton(): void {
  */
 export function tuneSandboxCommit(): void {
   const win = window as WindowExt;
-  const setup = win.getCurrentSetup?.();
-  if (!setup || !tuneState.baseline) return;
+  if (!tuneState.explored || !win.activeLoadout) return;
+  if (!tuneState.baseline) return;
 
   const diff = tuneState.baseline.mainsTension - tuneState.baseline.crossesTension;
   let newMainsTension = tuneState.baseline.mainsTension;
@@ -919,32 +940,49 @@ export function tuneSandboxCommit(): void {
     newCrossesTension = tuneState.exploredTension - diff;
   }
 
-  // Update baseline
-  tuneState.baseline.mainsTension = newMainsTension;
-  tuneState.baseline.crossesTension = newCrossesTension;
-  tuneState.baselineTension = tuneState.exploredTension;
-  tuneState.baseline.stats = tuneState.explored!.stats;
-  tuneState.baseline.obs = tuneState.explored!.obs;
-  tuneState.baseline.identity = tuneState.explored!.identity;
+  win.activeLoadout.mainsTension = newMainsTension;
+  win.activeLoadout.crossesTension = newCrossesTension;
 
-  // Refresh UI
-  if (setup) {
-    runTensionSweep(setup);
-    calculateOptimalWindow(setup);
-    const slider = document.getElementById('tune-slider') as HTMLInputElement | null;
-    const sliderMin = slider ? parseInt(slider.min) : 30;
-    const sliderMax = slider ? parseInt(slider.max) : 75;
-    renderOptimalBuildWindow(sliderMin, sliderMax);
-    renderDeltaVsBaseline();
-    renderBaselineMarker(sliderMin, sliderMax);
-    renderOptimalZone(sliderMin, sliderMax);
-    renderSweepChart(setup);
-    renderBestValueMove();
-    renderOriginalTensionMarker();
-    win.renderOverallBuildScore?.(setup, true);
+  const freshSetup = win.getCurrentSetup?.();
+  if (freshSetup) {
+    const stats = predictSetup(freshSetup.racquet, freshSetup.stringConfig);
+    const tCtx = buildTensionContext(freshSetup.stringConfig, freshSetup.racquet);
+    win.activeLoadout.stats = stats;
+    win.activeLoadout.obs = +computeCompositeScore(stats, tCtx).toFixed(1);
+    win.activeLoadout.identity = generateIdentity(stats, freshSetup.racquet, freshSetup.stringConfig)?.name || '';
+  }
+  win.activeLoadout._dirty = getSavedLoadouts().some((loadout) => loadout.id === win.activeLoadout?.id);
+
+  const mainsInput = document.getElementById('input-tension-mains') as HTMLInputElement | null;
+  const crossesInput = document.getElementById('input-tension-crosses') as HTMLInputElement | null;
+  const fullMainsInput = document.getElementById('input-tension-full-mains') as HTMLInputElement | null;
+  const fullCrossesInput = document.getElementById('input-tension-full-crosses') as HTMLInputElement | null;
+
+  if (win.activeLoadout.isHybrid) {
+    if (mainsInput) mainsInput.value = String(newMainsTension);
+    if (crossesInput) crossesInput.value = String(newCrossesTension);
+  } else {
+    if (fullMainsInput) fullMainsInput.value = String(newMainsTension);
+    if (fullCrossesInput) fullCrossesInput.value = String(newCrossesTension);
   }
 
-  _updateTuneApplyButton();
+  tuneState.baseline = null;
+  tuneState.explored = null;
+  tuneState.baselineTension = tuneState.exploredTension;
+
+  const resetSetup = win.getCurrentSetup?.();
+  if (resetSetup) {
+    initTuneMode(resetSetup);
+  }
+
+  const btn = document.getElementById('tune-apply-btn');
+  if (btn) {
+    btn.classList.add('hidden');
+    btn.textContent = 'Apply changes';
+  }
+
+  win.renderDockPanel?.();
+  win.renderDashboard?.();
 }
 
 /**

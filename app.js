@@ -104,8 +104,15 @@ let _tuneInitialized = false;
 let _optimizeInitialized = false;
 let _compendiumInitialized = false;
 
+function _syncLegacyModeState(mode) {
+  currentMode = mode;
+  isTuneMode = (mode === 'tune');
+  isComparisonMode = (mode === 'compare');
+  _setAppCurrentMode(currentMode);
+}
+
 installWindowAppStateBridge();
-_setAppCurrentMode(currentMode);
+_syncLegacyModeState(currentMode);
 _setAppComparisonSlots(comparisonSlots);
 _setAppComparisonRadarChart(comparisonRadarChart);
 _setAppCurrentRadarChart(currentRadarChart);
@@ -226,6 +233,9 @@ function createLoadout(frameId, stringId, tension, opts) {
 }
 
 function activateLoadout(loadout) {
+  if (typeof window.activateLoadout === 'function' && window.activateLoadout !== activateLoadout) {
+    return window.activateLoadout(loadout);
+  }
   if (!loadout) return;
 
   // Fix A: Auto-save dirty loadout before overwriting (QA-007, QA-012)
@@ -346,6 +356,9 @@ function hydrateDock(loadout) {
 // ============================================
 
 function commitEditorToLoadout() {
+  if (typeof window.commitEditorToLoadout === 'function' && window.commitEditorToLoadout !== commitEditorToLoadout) {
+    return window.commitEditorToLoadout();
+  }
   const al = getActiveLoadout();
   if (!al) return;
 
@@ -1094,6 +1107,9 @@ function _handleSharedBuildURL() {
 
 // Dock action handlers
 function saveActiveLoadout() {
+  if (typeof window.saveActiveLoadout === 'function' && window.saveActiveLoadout !== saveActiveLoadout) {
+    return window.saveActiveLoadout();
+  }
   const al = getActiveLoadout();
   if (!al) return;
   al._dirty = false;
@@ -1112,6 +1128,9 @@ function duplicateActiveLoadout() {
 }
 
 function resetActiveLoadout() {
+  if (typeof window.resetActiveLoadout === 'function' && window.resetActiveLoadout !== resetActiveLoadout) {
+    return window.resetActiveLoadout();
+  }
   setActiveLoadout(null);
   _stateSetActiveLoadout(null);
 
@@ -1156,6 +1175,9 @@ function resetActiveLoadout() {
 }
 
 function addLoadoutToCompare(loadoutId) {
+  if (typeof window.addLoadoutToCompare === 'function' && window.addLoadoutToCompare !== addLoadoutToCompare) {
+    return window.addLoadoutToCompare(loadoutId);
+  }
   var lo = savedLoadouts.find(function(l) { return l.id === loadoutId; });
   if (!lo) return;
 
@@ -1179,6 +1201,13 @@ function renderDockState() {
 }
 
 function switchMode(mode) {
+  if (typeof window.switchMode === 'function' && window.switchMode !== switchMode) {
+    const result = window.switchMode(mode);
+    if (typeof window.currentMode === 'string') {
+      _syncLegacyModeState(window.currentMode);
+    }
+    return result;
+  }
   if (mode === currentMode) return;
 
   // On mobile the page itself scrolls (workspace has height:auto/overflow:visible)
@@ -1215,12 +1244,7 @@ function switchMode(mode) {
   }
 
   const prevMode = currentMode;
-  currentMode = mode;
-  _setAppCurrentMode(currentMode);
-
-  // Update legacy flags for backward compat
-  isTuneMode = (mode === 'tune');
-  isComparisonMode = (mode === 'compare');
+  _syncLegacyModeState(mode);
 
   // Show new mode section with animation replay
   const newSection = document.getElementById('mode-' + mode);
@@ -3241,6 +3265,9 @@ function setHybridMode(isHybrid) {
 
 // Global editor change handler
 function _onEditorChange() {
+  if (typeof window._onEditorChange === 'function' && window._onEditorChange !== _onEditorChange) {
+    return window._onEditorChange();
+  }
   if (activeLoadout) {
     commitEditorToLoadout();
   } else {
@@ -3250,6 +3277,9 @@ function _onEditorChange() {
 
 // Fix 3: Handle Full Bed <-> Hybrid toggle with confirmation and pre-populate
 function _handleHybridToggle(toHybrid) {
+  if (typeof window._handleHybridToggle === 'function' && window._handleHybridToggle !== _handleHybridToggle) {
+    return window._handleHybridToggle(toHybrid);
+  }
   const currentlyHybrid = $('#btn-hybrid').classList.contains('active');
   if (toHybrid === currentlyHybrid) return;
 
@@ -5184,6 +5214,13 @@ function applyExploredTension() {
 
 // Compare page entry: open tune for a specific comparison slot
 function openTuneForSlot(slotIndex) {
+  if (typeof window.openTuneForSlot === 'function' && window.openTuneForSlot !== openTuneForSlot) {
+    const result = window.openTuneForSlot(slotIndex);
+    if (typeof window.currentMode === 'string') {
+      _syncLegacyModeState(window.currentMode);
+    }
+    return result;
+  }
   const slot = comparisonSlots[slotIndex];
   if (!slot || !slot.stats) return;
 
@@ -5277,6 +5314,9 @@ function toggleTheme() {
 let _initCalled = false;
 
 function init() {
+  if (typeof window.init === 'function' && window.init !== init) {
+    return window.init();
+  }
   // Prevent duplicate event listener attachment
   if (_initCalled) return;
   _initCalled = true;
@@ -9413,20 +9453,34 @@ export {
   createSearchableSelect,
   ssInstances,
   switchMode,
+  _syncLegacyModeState,
   switchToLoadout,
   toggleTheme,
   setHybridMode,
   toggleDockCollapse,
   toggleMobileDock,
+  hydrateDock,
+  renderDockPanel,
+  renderComparisonPresets,
+  populateRacquetDropdown,
+  populateStringDropdown,
+  showFrameSpecs,
+  populateGaugeDropdown,
+  _handleSharedBuildURL,
   
   // Scoring and context
   computeCompositeScore,
   buildTensionContext,
   getObsScoreColor,
+  renderOverallBuildScore,
+  renderRecommendedBuilds,
+  renderWhatToTryNext,
+  renderExplorePrompt,
   
   // Initialization functions
   init,
   initTuneMode,
+  refreshTuneIfActive,
   initOptimize,
   initCompendium,
   
@@ -9440,6 +9494,7 @@ export {
   
   // Landing search
   _initLandingSearch,
+  _showCompareQuickAddPrompt,
   
   // Racket Bible / Compendium functions
   _compToggleHud,
@@ -9458,7 +9513,10 @@ export {
   _stringClearPreview,
   
   // Tune mode functions
+  toggleTuneMode,
+  closeTuneMode,
   tuneSandboxCommit,
+  applyExploredTension,
   onTuneSliderInput,
   _onEditorChange,
   

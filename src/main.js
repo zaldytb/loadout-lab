@@ -20,6 +20,7 @@ import * as Tune from './ui/pages/tune.js';
 import * as Compare from './ui/pages/compare.js';
 import * as Compendium from './ui/pages/compendium.js';
 import * as Strings from './ui/pages/strings.js';
+import * as Shell from './ui/pages/shell.js';
 
 // Import dock components
 import * as DockCollapse from './ui/components/dock-collapse.js';
@@ -48,6 +49,18 @@ window.getActiveLoadout = getActiveLoadout;
 window.getSavedLoadouts = getSavedLoadouts;
 window.setActiveLoadout = setActiveLoadout;
 window.setSavedLoadouts = setSavedLoadouts;
+
+// Bridge: expose shell functions to window
+window.activateLoadout = Shell.activateLoadout;
+window.saveActiveLoadout = Shell.saveActiveLoadout;
+window.resetActiveLoadout = Shell.resetActiveLoadout;
+window.commitEditorToLoadout = Shell.commitEditorToLoadout;
+window.addLoadoutToCompare = Shell.addLoadoutToCompare;
+window.switchMode = Shell.switchMode;
+window.openTuneForSlot = Shell.openTuneForSlot;
+window._onEditorChange = Shell._onEditorChange;
+window._handleHybridToggle = Shell._handleHybridToggle;
+window.init = Shell.init;
 
 // Bridge: expose My Loadouts functions to window
 window.renderMyLoadouts = MyLoadouts.renderMyLoadouts;
@@ -99,11 +112,11 @@ window._updateOptMSLabel = Optimize._updateOptMSLabel;
 window._renderExcludeTags = Optimize._renderExcludeTags;
 
 // Bridge: expose Tune functions to window
-window.toggleTuneMode = Tune.toggleTuneMode;
-window.closeTuneMode = Tune.closeTuneMode;
+window.toggleTuneMode = App.toggleTuneMode;
+window.closeTuneMode = App.closeTuneMode;
 window.dockBuilderPanel = Tune.dockBuilderPanel;
-window.refreshTuneIfActive = Tune.refreshTuneIfActive;
-window.initTuneMode = Tune.initTuneMode;
+window.refreshTuneIfActive = App.refreshTuneIfActive;
+window.initTuneMode = App.initTuneMode;
 window.runTensionSweep = Tune.runTensionSweep;
 window.calculateOptimalWindow = Tune.calculateOptimalWindow;
 window.renderOptimalBuildWindow = Tune.renderOptimalBuildWindow;
@@ -115,9 +128,13 @@ window.renderSweepChart = Tune.renderSweepChart;
 window.renderBestValueMove = Tune.renderBestValueMove;
 window.renderTuneHybridToggle = Tune.renderTuneHybridToggle;
 window.renderOriginalTensionMarker = Tune.renderOriginalTensionMarker;
-window.onTuneSliderInput = Tune.onTuneSliderInput;
-// tuneSandboxCommit intentionally uses app.js version (slider/state bound to app.js flow)
-window.applyExploredTension = Tune.applyExploredTension;
+window.renderOverallBuildScore = App.renderOverallBuildScore;
+window.renderRecommendedBuilds = App.renderRecommendedBuilds;
+window.renderWhatToTryNext = App.renderWhatToTryNext;
+window.renderExplorePrompt = App.renderExplorePrompt;
+window.onTuneSliderInput = App.onTuneSliderInput;
+window.tuneSandboxCommit = App.tuneSandboxCommit;
+window.applyExploredTension = App.applyExploredTension;
 window.updateSliderLabel = Tune.updateSliderLabel;
 window.updateDeltaTitle = Tune.updateDeltaTitle;
 window.getHybridBaselineTension = Tune.getHybridBaselineTension;
@@ -250,7 +267,7 @@ window.quickAddSave = DockCreate.quickAddSave;
 
 // Bridge: expose shared renderer functions to window
 window.renderOBSBadge = SharedRenderers.renderOBSBadge;
-window.renderOverallBuildScore = SharedRenderers.renderOverallBuildScore;
+window.sharedRenderOverallBuildScore = SharedRenderers.renderOverallBuildScore;
 window.renderStatBar = SharedRenderers.renderStatBar;
 window.renderGroupedStatBars = SharedRenderers.renderGroupedStatBars;
 window.renderIdentityPill = SharedRenderers.renderIdentityPill;
@@ -264,9 +281,9 @@ window.computeDeltas = SharedRecommendations.computeDeltas;
 window.computeProfileSimilarity = SharedRecommendations.computeProfileSimilarity;
 window.topGains = SharedRecommendations.topGains;
 window.topLosses = SharedRecommendations.topLosses;
-window.renderWhatToTryNext = SharedRecommendations.renderWhatToTryNext;
+window.sharedRenderWhatToTryNext = SharedRecommendations.renderWhatToTryNext;
 window.generateRecommendedBuilds = SharedRecommendations.generateRecommendedBuilds;
-window.renderExplorePrompt = SharedRecommendations.renderExplorePrompt;
+window.sharedRenderExplorePrompt = SharedRecommendations.renderExplorePrompt;
 
 // Bridge: expose shared preset functions to window
 window.getPresetDetail = SharedPresets.getPresetDetail;
