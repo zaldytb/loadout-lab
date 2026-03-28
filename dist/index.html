@@ -55,8 +55,8 @@
     }
   }
 </script>
-  <script type="module" crossorigin src="./assets/index-DlfZbnGL.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-BNYqel0b.css">
+  <script type="module" crossorigin src="./assets/index-CkevgaGV.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BoVnkKWb.css">
 </head>
 <body>
 
@@ -263,7 +263,7 @@
         <details class="dock-editor-details" id="dock-editor-section">
           <summary class="dock-editor-summary">
             <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.5 1.5l2 2-7.5 7.5H3v-2L10.5 1.5z"/></svg>
-            Edit Active Loadout
+            <span id="dock-editor-title">Edit Active Loadout</span>
           </summary>
           <div class="dock-editor-body">
 
@@ -340,6 +340,14 @@
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            <div class="dock-editor-compare-actions hidden" id="dock-editor-compare-actions">
+              <div class="dock-editor-compare-copy" id="dock-editor-compare-copy">Changes stay in the dock until you apply them to this compare slot.</div>
+              <div class="dock-editor-compare-row">
+                <button class="dock-editor-compare-btn" type="button" onclick="cancelCompareSlotEditing()">Cancel</button>
+                <button class="dock-editor-compare-btn dock-editor-compare-btn-primary" id="dock-editor-compare-apply" type="button" onclick="applyDockEditorChanges()" disabled>Apply To Slot</button>
               </div>
             </div>
 
@@ -715,73 +723,36 @@
       </section>
 
       <!-- Mode: Compare -->
+      <!-- ═══════════════ COMPARE ═══════════════ -->
       <section class="workspace-mode hidden" id="mode-compare" data-mode="compare">
-        <div class="compare-workspace">
-
-          <!-- TOP BAR: title + add slot -->
-          <div class="comparison-header">
-            <h2 class="comparison-title">Compare</h2>
-            <button class="btn-add-slot" id="btn-add-slot">+ Add Slot</button>
+        <div class="compare-page">
+          
+          <!-- Header -->
+          <div class="compare-header">
+            <span class="compare-title">// COMPARE</span>
           </div>
-
-          <!-- HERO: Summaries + Verdict in 3-col layout -->
-          <div class="compare-hero" id="compare-hero">
-            <div class="compare-summaries" id="compare-summaries"></div>
-            <div class="compare-verdict card" id="compare-verdict" style="display:none;"></div>
+          
+          <!-- Slot Cards Grid -->
+          <div class="compare-slots-grid" id="compare-slots-container">
+            <!-- Slots rendered dynamically -->
           </div>
-
-          <!-- Empty state when no setups configured -->
-          <div class="compare-empty-state" id="compare-empty-state">
-            <div class="compare-empty-icon">
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                <circle cx="16" cy="24" r="11" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
-                <circle cx="32" cy="24" r="11" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
-              </svg>
+          
+          <!-- Radar Chart Section -->
+          <div class="compare-radar-section">
+            <div class="compare-radar-wrapper" id="compare-radar-container">
+              <!-- Radar chart rendered here -->
             </div>
-            <p class="compare-empty-title">Configure two setups to compare</p>
-            <p class="compare-empty-sub">Add slots above to begin</p>
           </div>
-
-          <!-- Grouped Comparison Matrix -->
-          <div class="compare-matrix card" id="compare-matrix" style="display:none;"></div>
-
-          <!-- Collapsible: Radar Overlay -->
-          <details class="compare-details" id="compare-details-radar">
-            <summary class="compare-details-summary">
-              <svg class="details-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Stat overlay
-            </summary>
-            <div class="compare-proof" id="compare-proof" style="display:none;">
-              <div class="compare-proof-layout">
-                <div class="comparison-radar-container">
-                  <canvas id="comparison-radar-chart"></canvas>
-                </div>
-              </div>
-            </div>
-          </details>
-
-          <!-- Collapsible: Quick Load -->
-          <details class="compare-details" id="compare-details-quickload">
-            <summary class="compare-details-summary">
-              <svg class="details-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Quick load
-            </summary>
-            <div class="comparison-presets-body">
-              <div class="comparison-presets" id="comparison-presets"></div>
-            </div>
-          </details>
-
-          <!-- Expandable Edit Panels (hidden by default) -->
-          <!-- Legacy editors panel (replaced by inline card editors) -->
-          <div class="compare-editors" id="compare-editors" style="display:none !important;">
-            <div class="compare-editors-header">
-              <h3 class="card-title">Setup editors</h3>
-              <button class="compare-editors-close" id="compare-editors-close" onclick="closeCompareEditors()">✕ Close</button>
-            </div>
-            <div class="comparison-slots" id="comparison-slots"></div>
+          
+          <!-- Differential Analysis Section -->
+          <div class="compare-diff-section" id="compare-diff-container">
+            <!-- Diff battery rendered here -->
           </div>
-
+          
         </div>
+        
+        <!-- Editor Modal Container -->
+        <div id="compare-editor-container"></div>
       </section>
 
       <!-- ═══════════════ OPTIMIZE ═══════════════ -->

@@ -3398,6 +3398,9 @@ function dockBuilderPanel(inTune) {
 
 // Auto-refresh Tune panels when user changes setup while Tune is open
 function refreshTuneIfActive() {
+  if (typeof window.refreshTuneIfActive === 'function' && window.refreshTuneIfActive !== refreshTuneIfActive) {
+    return window.refreshTuneIfActive();
+  }
   if (currentMode !== 'tune' || _tuneRefreshing) return;
   _tuneRefreshing = true;
   try {
@@ -3471,6 +3474,9 @@ function _tuneStringKey(lo) {
 }
 
 function initTuneMode(setup) {
+  if (typeof window.initTuneMode === 'function' && window.initTuneMode !== initTuneMode) {
+    return window.initTuneMode(setup);
+  }
   const { racquet, stringConfig } = setup;
 
   // --- Snapshot baseline from activeLoadout (the committed state) ---
@@ -4384,6 +4390,9 @@ function animateOBS(el, from, to, duration) {
 }
 
 function renderOverallBuildScore(setup, animate) {
+  if (typeof window.renderOverallBuildScore === 'function' && window.renderOverallBuildScore !== renderOverallBuildScore) {
+    return window.renderOverallBuildScore(setup, animate);
+  }
   const container = $('#obs-content');
   if (!container) return;
   const { racquet, stringConfig } = setup;
@@ -4968,6 +4977,9 @@ function renderExplorePrompt(setup, isCurrentInTop, topBuilds) {
 }
 
 function onTuneSliderInput(e) {
+  if (typeof window.onTuneSliderInput === 'function' && window.onTuneSliderInput !== onTuneSliderInput) {
+    return window.onTuneSliderInput(e);
+  }
   const val = parseInt(e.target.value);
   tuneState.exploredTension = val;
   updateSliderLabel();
@@ -5067,6 +5079,9 @@ function _updateTuneApplyButton() {
 }
 
 function tuneSandboxCommit() {
+  if (typeof window.tuneSandboxCommit === 'function' && window.tuneSandboxCommit !== tuneSandboxCommit) {
+    return window.tuneSandboxCommit();
+  }
   if (!tuneState.explored || !activeLoadout) return;
 
   var bl = tuneState.baseline;
@@ -5216,6 +5231,9 @@ function syncTuneToMain(tension) {
 
 // Apply explored tension as new baseline
 function applyExploredTension() {
+  if (typeof window.applyExploredTension === 'function' && window.applyExploredTension !== applyExploredTension) {
+    return window.applyExploredTension();
+  }
   syncTuneToMain(tuneState.exploredTension);
   // Re-init with new baseline
   const setup = getCurrentSetup();
