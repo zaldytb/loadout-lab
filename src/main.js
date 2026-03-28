@@ -3,6 +3,7 @@
 
 // Import CSS for Vite to process
 import '../style.css';
+import './ui/pages/compare/compare.css';
 
 // Import all app functionality
 import * as App from '../app.js';
@@ -18,6 +19,7 @@ import * as Overview from './ui/pages/overview.js';
 import * as Optimize from './ui/pages/optimize.js';
 import * as Tune from './ui/pages/tune.js';
 import * as Compare from './ui/pages/compare.js';
+import * as ComparePage from './ui/pages/compare/index.js';
 import * as Compendium from './ui/pages/compendium.js';
 import * as Strings from './ui/pages/strings.js';
 import * as Shell from './ui/pages/shell.js';
@@ -60,6 +62,10 @@ window.switchMode = Shell.switchMode;
 window.openTuneForSlot = Shell.openTuneForSlot;
 window._onEditorChange = Shell._onEditorChange;
 window._handleHybridToggle = Shell._handleHybridToggle;
+window.startCompareSlotEditing = Shell.startCompareSlotEditing;
+window.applyDockEditorChanges = Shell.applyDockEditorChanges;
+window.cancelCompareSlotEditing = Shell.cancelCompareSlotEditing;
+window.addActiveLoadoutToCompare = Shell.addActiveLoadoutToCompare;
 window.init = Shell.init;
 
 // Bridge: expose My Loadouts functions to window
@@ -146,7 +152,17 @@ window._updateTuneApplyButton = Tune._updateTuneApplyButton;
 window.tuneState = Tune.tuneState;
 window.sweepChart = Tune.sweepChart;
 
-// Bridge: expose Compare functions to window
+// Bridge: expose NEW Compare functions to window
+// New TypeScript-based compare system
+window.initComparePage = ComparePage.initComparePage;
+window.cleanupComparePage = ComparePage.cleanupComparePage;
+window.compareGetState = ComparePage.getState;
+window.compareSubscribe = ComparePage.subscribe;
+window.compareSetSlotLoadout = ComparePage.setSlotLoadout;
+window.compareClearSlot = ComparePage.clearSlot;
+window.compareGetConfiguredSlots = ComparePage.getConfiguredSlots;
+
+// Bridge: expose LEGACY Compare functions to window (for backward compatibility)
 // Note: openTuneForSlot uses app.js version (has full UI population logic)
 window.toggleComparisonMode = Compare.toggleComparisonMode;
 window.addComparisonSlot = Compare.addComparisonSlot;

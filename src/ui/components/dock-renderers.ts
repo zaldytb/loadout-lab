@@ -7,6 +7,7 @@ import type { Loadout } from '../../engine/types.js';
 import { getActiveLoadout, getSavedLoadouts } from '../../state/store.js';
 import {
   getComparisonSlots as getAppComparisonSlots,
+  getDockEditorContext as getAppDockEditorContext,
   getSlotColors as getAppSlotColors,
   getCurrentMode as getAppCurrentMode
 } from '../../state/app-state.js';
@@ -38,6 +39,10 @@ function getComparisonSlots(): DockComparisonSlot[] {
 
 function getSlotColors(): DockSlotColor[] {
   return getAppSlotColors<DockSlotColor>();
+}
+
+function getDockEditorContext() {
+  return getAppDockEditorContext();
 }
 
 /**
@@ -109,13 +114,22 @@ export function renderDockPanel(): void {
     // Save button dirty tint
     const saveBtnEl = document.querySelector('#dock-lo-active button[onclick="saveActiveLoadout()"]') as HTMLElement | null;
     if (saveBtnEl) {
-      // Access activeLoadout via window for backward compat with inline handlers
       const activeLoadout = getActiveLoadout();
-      if (activeLoadout && activeLoadout._dirty) {
+      const editorContext = getDockEditorContext();
+      if (editorContext.kind === 'compare-slot') {
+        saveBtnEl.style.color = 'var(--dc-storm)';
+        saveBtnEl.style.opacity = '0.45';
+        saveBtnEl.style.pointerEvents = 'none';
+        saveBtnEl.title = `Dock editor is updating compare slot ${editorContext.slotId}`;
+      } else if (activeLoadout && activeLoadout._dirty) {
         saveBtnEl.style.color = 'var(--dc-warn)';
+        saveBtnEl.style.opacity = '';
+        saveBtnEl.style.pointerEvents = '';
         saveBtnEl.title = 'Unsaved changes';
       } else {
         saveBtnEl.style.color = '';
+        saveBtnEl.style.opacity = '';
+        saveBtnEl.style.pointerEvents = '';
         saveBtnEl.title = 'Save to My Loadouts';
       }
     }
@@ -373,19 +387,183 @@ function _renderDockPanelTune(container: HTMLElement): void {
 
 /**
  * Render Compare mode dock panel
+ * Updated for new compare system with A/B/C slots
  */
 function _renderDockPanelCompare(container: HTMLElement): void {
   _dockReturnEditorHome();
   const editorSection = document.getElementById('dock-editor-section');
-  if (editorSection) editorSection.style.display = 'none';
 
   let html = '';
 
+  // Use new compare system state if available, fallback to legacy
+  const win = window as any;
+  const newCompareState = win.compareGetState?.();
+  
+  if (newCompareState) {
+    // New compare system
+    html += _renderNewComparePanel(newCompareState);
+  } else {
+    // Legacy compare system
+    html += _renderLegacyComparePanel();
+  }
+
+  const al = getActiveLoadout();
+  const hasConfiguredSlots = newCompareState 
+    ? newCompareState.slots.some((s: any) => s.loadout !== null)
+    : getComparisonSlots().length > 0;
+  const savedLoadouts = getSavedLoadouts();
+  
+  if (!hasConfiguredSlots && savedLoadouts.length === 0 && !al) {
+    html = _dockGuidance(_dockIcons.compare, 'Nothing to compare yet',
+      'Set a build active from the Racket Bible, then come back here.');
+  }
+
+  // Actions based on state
+  const validSlots = newCompareState 
+    ? newCompareState.slots.filter((s: any) => s.loadout !== null)
+    : getComparisonSlots().filter(s => s.stats);
+    
+  html += _dockContextActions([
+    ...(validSlots.length >= 2 ? [{ label: '\u2192 Tune active build', onclick: "switchMode('tune')" }] : []),
+    { label: '\u2192 Optimize from here', onclick: "switchMode('optimize')" },
+    { label: '\u2192 Back to overview', onclick: "switchMode('overview')" }
+  ]);
+
+  container.innerHTML = html;
+
+  const editorContext = getDockEditorContext();
+  const shouldEmbedEditor = editorContext.kind === 'compare-slot';
+  if (editorSection) {
+    editorSection.style.display = shouldEmbedEditor ? '' : 'none';
+  }
+  if (shouldEmbedEditor && _dockRelocateEditorToContext(container)) {
+    const intro = container.querySelector('.dock-compare-intro');
+    const editorBody = container.querySelector('.dock-editor-body');
+    if (intro && editorBody) {
+      intro.insertAdjacentElement('afterend', editorBody as HTMLElement);
+    }
+  }
+}
+
+/**
+ * Render new compare panel with A/B/C slots
+ */
+function _renderNewComparePanel(state: any): string {
+  const editorContext = getDockEditorContext();
+  const activeLoadout = getActiveLoadout();
+  const hasEmptySlot = state.slots.some((slot: any) => slot.loadout === null);
+  let html = `
+    <div class="dock-compare-intro">
+      <div class="dock-ctx-label">Setup Controls</div>
+      <div class="dock-compare-title">Use this dock to build and modify each compare setup</div>
+      <div class="dock-compare-subtitle">${editorContext.kind === 'compare-slot'
+        ? `Editing Slot ${editorContext.slotId} below. This is the only time the compare editor opens in the dock.`
+        : 'This dock manages Slot A, B, and C. Import from your active setup or saved loadouts, then edit a slot when needed.'}</div>
+    </div>
+  `;
+  if (editorContext.kind !== 'compare-slot') {
+    html += '<div class="dock-compare-sources">';
+    if (activeLoadout) {
+      const racquet = RACQUETS.find(r => r.id === activeLoadout.frameId);
+      const frameName = racquet ? racquet.name.replace(/\s+\d+g$/, '') : 'Active setup';
+      html += `
+        <div class="dock-compare-source-card">
+          <div class="dock-ctx-label">Active Setup</div>
+          <div class="dock-compare-source-title">${frameName}</div>
+          <div class="dock-compare-source-copy">${hasEmptySlot ? 'Add your current active setup into the next open compare slot.' : 'All slots are filled. Adding will replace the last slot.'}</div>
+          <button class="dock-compare-slot-btn dock-compare-slot-btn-primary" onclick="window.addActiveLoadoutToCompare && window.addActiveLoadoutToCompare()">Use Active Loadout</button>
+        </div>
+      `;
+    } else {
+      html += `
+        <div class="dock-compare-source-card">
+          <div class="dock-ctx-label">Saved Sources</div>
+          <div class="dock-compare-source-copy">Use the Compare action in My Loadouts below to add a saved build into the next open slot.</div>
+        </div>
+      `;
+    }
+    html += '</div>';
+  }
+  html += '<div class="dock-compare-slots">';
+  
+  const slotColors = [
+    { border: 'rgba(175, 0, 0, 0.8)', label: 'A' },
+    { border: 'rgba(220, 223, 226, 0.5)', label: 'B' },
+    { border: 'rgba(220, 223, 226, 0.25)', label: 'C' }
+  ];
+  
+  state.slots.forEach((slot: any, i: number) => {
+    const color = slotColors[i];
+    
+    if (!slot.loadout) {
+      // Empty slot
+      html += `
+        <div class="dock-compare-slot dock-compare-slot-empty" style="border-left: 3px solid ${color.border}">
+          <div class="dock-compare-slot-header">
+            <span class="dock-compare-slot-label" style="color: ${color.border}">Slot ${color.label}</span>
+            <span class="dock-compare-slot-obs">—</span>
+          </div>
+          <div class="dock-compare-slot-meta">Build this slot from scratch, or fill it from Active Setup / My Loadouts.</div>
+          <button class="dock-compare-slot-btn dock-compare-slot-btn-primary" onclick="window.compareAddSlot && window.compareAddSlot('${slot.id}')">+ Add Setup</button>
+        </div>
+      `;
+      return;
+    }
+    
+    // Configured slot
+    const racquet = RACQUETS.find(r => r.id === slot.loadout.frameId);
+    const frameName = racquet ? racquet.name.replace(/\s+\d+g$/, '') : 'Unknown';
+    
+    let stringName = '\u2014';
+    if (slot.loadout.isHybrid) {
+      const m = STRINGS.find(s => s.id === slot.loadout.mainsId);
+      const x = STRINGS.find(s => s.id === slot.loadout.crossesId);
+      stringName = m && x ? m.name.split(' ')[0] + '/' + x.name.split(' ')[0] : 'Hybrid';
+    } else {
+      const str = STRINGS.find(s => s.id === slot.loadout.stringId);
+      stringName = str ? str.name.split(' ')[0] : '\u2014';
+    }
+    
+    const obs = slot.loadout.obs?.toFixed(1) || '\u2014';
+    const obsColor = slot.loadout.obs ? getObsScoreColor(slot.loadout.obs) : 'var(--dc-storm)';
+    
+    html += `
+      <div class="dock-compare-slot" style="border-left: 3px solid ${color.border}">
+        <div class="dock-compare-slot-header">
+          <span class="dock-compare-slot-label" style="color: ${color.border}">${i === 0 ? '★ ' : ''}Slot ${color.label}</span>
+          <span class="dock-compare-slot-obs" style="color:${obsColor}">${obs}</span>
+        </div>
+        <div class="dock-compare-slot-frame">${frameName}</div>
+        <div class="dock-compare-slot-meta">${stringName} \u00B7 ${slot.loadout.mainsTension}/${slot.loadout.crossesTension}</div>
+        <div class="dock-compare-slot-actions">
+          <button class="dock-compare-slot-btn dock-compare-slot-btn-primary" onclick="window.compareEditSlot && window.compareEditSlot('${slot.id}')">Edit Setup</button>
+          <button class="dock-compare-slot-btn dock-compare-slot-remove" onclick="window.compareRemoveSlot && window.compareRemoveSlot('${slot.id}')">Clear</button>
+        </div>
+      </div>
+    `;
+  });
+  
+  html += '</div>';
+  
+  return html;
+}
+
+/**
+ * Render legacy compare panel (fallback)
+ */
+function _renderLegacyComparePanel(): string {
+  let html = `
+    <div class="dock-compare-intro">
+      <div class="dock-ctx-label">Setup Controls</div>
+      <div class="dock-compare-title">Use this dock to adjust compare slots</div>
+      <div class="dock-compare-subtitle">This panel is where you modify the setups feeding the compare view.</div>
+    </div>
+  `;
   const comparisonSlots = getComparisonSlots();
   const slotColors = getSlotColors();
 
   if (comparisonSlots.length > 0) {
-    html += '<div class="dock-ctx-label">Compare slots</div>';
+    html += '<div class="dock-ctx-label">Compare Slots</div>';
     html += '<div class="dock-compare-slots">';
     comparisonSlots.forEach((slot, i) => {
       const color = slotColors[i];
@@ -417,11 +595,11 @@ function _renderDockPanelCompare(container: HTMLElement): void {
             <span class="dock-compare-slot-label" style="color: ${color.border}">Slot ${color.label}</span>
             <span class="dock-compare-slot-obs" style="color:${slot.stats ? getObsScoreColor(parseFloat(obs)) : 'var(--dc-storm)'}">${obs}</span>
           </div>
-          <div class="dock-compare-slot-meta">${frameName}</div>
+          <div class="dock-compare-slot-frame">${frameName}</div>
           <div class="dock-compare-slot-meta">${stringName} \u00B7 ${slot.mainsTension}/${slot.crossesTension}</div>
           <div class="dock-compare-slot-actions">
-            <button class="dock-compare-slot-btn" onclick="_dockCompareEdit(${i})">Edit</button>
-            <button class="dock-compare-slot-btn dock-compare-slot-remove" onclick="_dockCompareRemove(${i})">Remove</button>
+            <button class="dock-compare-slot-btn dock-compare-slot-btn-primary" onclick="_dockCompareEdit(${i})">Edit Setup</button>
+            <button class="dock-compare-slot-btn dock-compare-slot-remove" onclick="_dockCompareRemove(${i})">Clear</button>
           </div>
         </div>
       `;
@@ -429,60 +607,20 @@ function _renderDockPanelCompare(container: HTMLElement): void {
     html += '</div>';
   }
 
-  const slotKeys = comparisonSlots.map(s => s.racquetId + '-' + (s.stringId || s.mainsId));
-  const savedLoadouts = getSavedLoadouts();
-  const available = savedLoadouts.filter(lo => {
-    const key = lo.frameId + '-' + (lo.stringId || lo.mainsId);
-    return !slotKeys.includes(key);
-  });
-
-  if (available.length > 0 && comparisonSlots.length < 3) {
-    html += '<div class="dock-ctx-label">Quick add</div>';
-    html += '<div class="dock-compare-quickadd">';
-    available.slice(0, 5).forEach(lo => {
-      const racquet = RACQUETS.find(r => r.id === lo.frameId);
-      const frameName = racquet ? racquet.name.split(' ').slice(0, 2).join(' ') : 'Unknown';
-      let stringName = '';
-      if (lo.isHybrid) {
-        const m = STRINGS.find(s => s.id === lo.mainsId);
-        const x = STRINGS.find(s => s.id === lo.crossesId);
-        stringName = m && x ? m.name.split(' ')[0] + '/' + x.name.split(' ')[0] : 'Hybrid';
-      } else {
-        const str = STRINGS.find(s => s.id === lo.stringId);
-        stringName = str ? str.name.split(' ')[0] : '\u2014';
-      }
-      const slotObsValue = getNumericObs(lo.obs);
-      html += '<button class="dock-compare-pill" onclick="_dockCompareQuickAdd(\'' + lo.id + '\')" title="OBS ' + (slotObsValue > 0 ? slotObsValue.toFixed(1) : '\u2014') + '">' +
-        '<span class="dock-compare-pill-frame">' + frameName + '</span>' +
-        '<span class="dock-compare-pill-string">' + stringName + '</span>' +
-      '</button>';
-    });
-    html += '</div>';
-  }
-
-  const al = getActiveLoadout();
-  if (comparisonSlots.length === 0 && savedLoadouts.length === 0 && !al) {
-    html = _dockGuidance(_dockIcons.compare, 'Nothing to compare yet',
-      'Set a build active from the Racket Bible, then come back here.');
-  }
-
-  const validSlots = comparisonSlots.filter(s => s.stats);
-  html += _dockContextActions([
-    ...(validSlots.length >= 2 ? [{ label: '\u2192 Tune active build', onclick: "switchMode('tune')" }] : []),
-    { label: '\u2192 Optimize from here', onclick: "switchMode('optimize')" },
-    { label: '\u2192 Back to overview', onclick: "switchMode('overview')" }
-  ]);
-
-  container.innerHTML = html;
+  return html;
 }
 
 /**
  * Edit a compare slot
  */
-export function _dockCompareEdit(slotIndex: number): void {
-  (window as any)._toggleCompareCardEditor?.(slotIndex);
-  const card = document.querySelector('.compare-summary-card[data-slot-index="' + slotIndex + '"]');
-  if (card) requestAnimationFrame(() => { card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); });
+export function _dockCompareEdit(slotIndex: number | string): void {
+  (window as any).compareEditSlot?.(String(slotIndex));
+  const editor = document.getElementById('dock-editor-section');
+  if (editor) {
+    requestAnimationFrame(() => {
+      editor.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  }
 }
 
 /**

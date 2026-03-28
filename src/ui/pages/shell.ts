@@ -12,7 +12,9 @@ import { getActiveLoadout, getSavedLoadouts, setActiveLoadout, setSavedLoadouts 
 import {
   getComparisonSlots,
   getCurrentMode,
+  getDockEditorContext,
   installWindowAppStateBridge,
+  setDockEditorContext,
   setCurrentMode,
   setSlotColors,
 } from '../../state/app-state.js';
@@ -83,6 +85,7 @@ const scrollPositions: Record<string, number> = {
 let _initCalled = false;
 let _optimizeInitialized = false;
 let _compendiumInitialized = false;
+let _compareEditorDirty = false;
 
 function getCompareSlots(): CompareSlot[] {
   return getComparisonSlots<CompareSlot>();
@@ -198,6 +201,96 @@ function autoFillCompareFromSaved(): void {
   renderCompareSurfaces();
 }
 
+function updateDockEditorTitle(context = getDockEditorContext()): void {
+  const title = document.getElementById('dock-editor-title');
+  if (!title) return;
+  if (context.kind === 'compare-slot') {
+    title.textContent = `Edit Compare Slot ${context.slotId}`;
+    return;
+  }
+  if (context.kind === 'compare-overview') {
+    title.textContent = 'Compare Slot Editor';
+    return;
+  }
+  title.textContent = 'Edit Active Loadout';
+}
+
+function updateDockEditorActionState(): void {
+  const context = getDockEditorContext();
+  const actions = document.getElementById('dock-editor-compare-actions');
+  const copy = document.getElementById('dock-editor-compare-copy');
+  const applyBtn = document.getElementById('dock-editor-compare-apply') as HTMLButtonElement | null;
+  if (!actions || !copy || !applyBtn) return;
+
+  if (context.kind !== 'compare-slot') {
+    actions.classList.add('hidden');
+    applyBtn.disabled = true;
+    return;
+  }
+
+  actions.classList.remove('hidden');
+  applyBtn.disabled = !_compareEditorDirty;
+  copy.textContent = _compareEditorDirty
+    ? `Draft changes are ready for compare slot ${context.slotId}.`
+    : `Editing compare slot ${context.slotId}. Make changes, then apply them here.`;
+}
+
+function clearDockEditorFields(): void {
+  ssInstances['select-racquet']?.setValue('');
+  ssInstances['select-string-full']?.setValue('');
+  ssInstances['select-string-mains']?.setValue('');
+  ssInstances['select-string-crosses']?.setValue('');
+  setHybridMode(false);
+
+  const tensionIds = [
+    ['input-tension-full-mains', '55'],
+    ['input-tension-full-crosses', '53'],
+    ['input-tension-mains', '55'],
+    ['input-tension-crosses', '53'],
+  ] as const;
+  tensionIds.forEach(([id, value]) => {
+    const input = document.getElementById(id) as HTMLInputElement | null;
+    if (input) input.value = value;
+  });
+
+  ['gauge-select-full', 'gauge-select-mains', 'gauge-select-crosses'].forEach((id) => {
+    const element = document.getElementById(id) as HTMLSelectElement | null;
+    if (!element) return;
+    element.innerHTML = '<option value="">—</option>';
+    element.disabled = true;
+  });
+
+  const specs = document.getElementById('frame-specs');
+  if (specs) specs.classList.add('hidden');
+}
+
+function getCompareStateSlot(slotId: string): any | null {
+  const compareState = (window as any).compareGetState?.();
+  if (!compareState?.slots) return null;
+  return compareState.slots.find((slot: any) => String(slot.id) === String(slotId)) || null;
+}
+
+function getDockEditorTargetLoadout(): Loadout | null {
+  const context = getDockEditorContext();
+  if (context.kind === 'compare-slot') {
+    const compareSlot = getCompareStateSlot(context.slotId);
+    return (compareSlot?.loadout as Loadout | null) || null;
+  }
+  return getActiveLoadout();
+}
+
+function primeDockEditor(loadout: Loadout | null): void {
+  if (loadout) {
+    hydrateDock(loadout);
+  } else {
+    clearDockEditorFields();
+  }
+
+  const editor = document.getElementById('dock-editor-section') as HTMLDetailsElement | null;
+  if (editor) editor.open = true;
+  updateDockEditorActionState();
+}
+
 export function activateLoadout(loadout: Loadout | null): void {
   if (!loadout) return;
 
@@ -207,6 +300,10 @@ export function activateLoadout(loadout: Loadout | null): void {
   }
 
   setActiveLoadout(loadout);
+  setDockEditorContext(getCurrentMode() === 'compare' ? { kind: 'compare-overview' } : { kind: 'active' });
+  _compareEditorDirty = false;
+  updateDockEditorTitle();
+  updateDockEditorActionState();
 
   try {
     _store?.setItem('tll-active-loadout-id', loadout.id);
@@ -243,6 +340,10 @@ export function saveActiveLoadout(): void {
 
 export function resetActiveLoadout(): void {
   setActiveLoadout(null);
+  setDockEditorContext(getCurrentMode() === 'compare' ? { kind: 'compare-overview' } : { kind: 'active' });
+  _compareEditorDirty = false;
+  updateDockEditorTitle();
+  updateDockEditorActionState();
 
   (Tune.tuneState as any).baseline = null;
   (Tune.tuneState as any).explored = null;
@@ -281,71 +382,163 @@ export function resetActiveLoadout(): void {
 }
 
 export function commitEditorToLoadout(): void {
-  const active = getActiveLoadout();
-  if (!active) return;
+  const context = getDockEditorContext();
+  const existingTarget = getDockEditorTargetLoadout();
+  if (!existingTarget && context.kind === 'active') return;
+
+  const baseLoadout: Loadout = existingTarget
+    ? { ...existingTarget }
+    : {
+        id: `compare-${context.kind === 'compare-slot' ? context.slotId : Date.now()}`,
+        name: 'Untitled Setup',
+        frameId: '',
+        stringId: null,
+        isHybrid: false,
+        mainsId: null,
+        crossesId: null,
+        mainsTension: 55,
+        crossesTension: 53,
+        gauge: null,
+        mainsGauge: null,
+        crossesGauge: null,
+        obs: 0,
+        source: context.kind === 'compare-slot' ? 'compare' : 'manual',
+        _dirty: false,
+      };
 
   const isHybrid = document.getElementById('btn-hybrid')?.classList.contains('active') ?? false;
-  const racquetId = ssInstances['select-racquet']?.getValue() || active.frameId;
+  const racquetId = ssInstances['select-racquet']?.getValue() || baseLoadout.frameId;
+  if (!racquetId) return;
 
   if (isHybrid) {
-    active.isHybrid = true;
-    active.mainsId = ssInstances['select-string-mains']?.getValue() || active.mainsId;
-    active.crossesId = ssInstances['select-string-crosses']?.getValue() || active.crossesId;
-    active.mainsTension = parseInt(($<HTMLInputElement>('#input-tension-mains')?.value || ''), 10) || active.mainsTension;
-    active.crossesTension = parseInt(($<HTMLInputElement>('#input-tension-crosses')?.value || ''), 10) || active.crossesTension;
+    baseLoadout.isHybrid = true;
+    baseLoadout.mainsId = ssInstances['select-string-mains']?.getValue() || baseLoadout.mainsId;
+    baseLoadout.crossesId = ssInstances['select-string-crosses']?.getValue() || baseLoadout.crossesId;
+    baseLoadout.mainsTension = parseInt(($<HTMLInputElement>('#input-tension-mains')?.value || ''), 10) || baseLoadout.mainsTension;
+    baseLoadout.crossesTension = parseInt(($<HTMLInputElement>('#input-tension-crosses')?.value || ''), 10) || baseLoadout.crossesTension;
     const mainsGauge = document.getElementById('gauge-select-mains') as HTMLSelectElement | null;
     const crossesGauge = document.getElementById('gauge-select-crosses') as HTMLSelectElement | null;
-    active.mainsGauge = mainsGauge?.value ? String(parseFloat(mainsGauge.value)) : null;
-    active.crossesGauge = crossesGauge?.value ? String(parseFloat(crossesGauge.value)) : null;
-    active.stringId = null;
-    active.gauge = null;
+    baseLoadout.mainsGauge = mainsGauge?.value ? String(parseFloat(mainsGauge.value)) : null;
+    baseLoadout.crossesGauge = crossesGauge?.value ? String(parseFloat(crossesGauge.value)) : null;
+    baseLoadout.stringId = null;
+    baseLoadout.gauge = null;
   } else {
-    active.isHybrid = false;
-    active.stringId = ssInstances['select-string-full']?.getValue() || active.stringId;
-    active.mainsTension = parseInt(($<HTMLInputElement>('#input-tension-full-mains')?.value || ''), 10) || active.mainsTension;
-    active.crossesTension = parseInt(($<HTMLInputElement>('#input-tension-full-crosses')?.value || ''), 10) || active.crossesTension;
+    baseLoadout.isHybrid = false;
+    baseLoadout.stringId = ssInstances['select-string-full']?.getValue() || baseLoadout.stringId;
+    baseLoadout.mainsTension = parseInt(($<HTMLInputElement>('#input-tension-full-mains')?.value || ''), 10) || baseLoadout.mainsTension;
+    baseLoadout.crossesTension = parseInt(($<HTMLInputElement>('#input-tension-full-crosses')?.value || ''), 10) || baseLoadout.crossesTension;
     const gauge = document.getElementById('gauge-select-full') as HTMLSelectElement | null;
-    active.gauge = gauge?.value ? String(parseFloat(gauge.value)) : null;
-    active.mainsId = null;
-    active.crossesId = null;
-    active.mainsGauge = null;
-    active.crossesGauge = null;
+    baseLoadout.gauge = gauge?.value ? String(parseFloat(gauge.value)) : null;
+    baseLoadout.mainsId = null;
+    baseLoadout.crossesId = null;
+    baseLoadout.mainsGauge = null;
+    baseLoadout.crossesGauge = null;
   }
 
-  active.frameId = racquetId;
+  baseLoadout.frameId = racquetId;
 
-  const setup = getSetupFromLoadout(active);
+  const setup = getSetupFromLoadout(baseLoadout);
   if (setup) {
     const stats = predictSetup(setup.racquet, setup.stringConfig);
     const tensionContext = buildTensionContext(setup.stringConfig, setup.racquet);
-    active.stats = stats;
-    active.obs = +computeCompositeScore(stats, tensionContext).toFixed(1);
-    active.identity = generateIdentity(stats, setup.racquet, setup.stringConfig)?.name || '';
-    active.name = buildLoadoutName(setup.racquet, setup.stringConfig);
+    baseLoadout.stats = stats;
+    baseLoadout.obs = +computeCompositeScore(stats, tensionContext).toFixed(1);
+    baseLoadout.identity = generateIdentity(stats, setup.racquet, setup.stringConfig)?.name || '';
+    baseLoadout.name = buildLoadoutName(setup.racquet, setup.stringConfig);
+
+    if (context.kind === 'compare-slot') {
+      (window as any).compareSetSlotLoadout?.(context.slotId, baseLoadout, stats);
+      _compareEditorDirty = false;
+    } else {
+      baseLoadout._dirty = getSavedLoadouts().some((loadout) => loadout.id === baseLoadout.id);
+      setActiveLoadout(baseLoadout);
+    }
   }
 
-  active._dirty = getSavedLoadouts().some((loadout) => loadout.id === active.id);
-
   renderDockPanel();
-  Overview.renderDashboard();
-  refreshTuneIfActiveCompat();
+  updateDockEditorActionState();
+  if (context.kind === 'active') {
+    Overview.renderDashboard();
+    refreshTuneIfActiveCompat();
+  }
+}
+
+export function applyDockEditorChanges(): void {
+  if (getDockEditorContext().kind !== 'compare-slot') return;
+  commitEditorToLoadout();
+}
+
+export function cancelCompareSlotEditing(): void {
+  const context = getDockEditorContext();
+  if (context.kind !== 'compare-slot') return;
+
+  const compareSlot = getCompareStateSlot(context.slotId);
+  const loadout = (compareSlot?.loadout as Loadout | null) || getActiveLoadout() || null;
+  _compareEditorDirty = false;
+  primeDockEditor(loadout);
+  setDockEditorContext({ kind: 'compare-overview' });
+  updateDockEditorTitle();
+  updateDockEditorActionState();
+  renderDockContextPanel();
 }
 
 export function addLoadoutToCompare(loadoutId: string): void {
   const loadout = getSavedLoadouts().find((item) => item.id === loadoutId);
   if (!loadout) return;
 
-  const slots = getCompareSlots();
-  if (slots.length >= 3) slots.pop();
+  const win = window as any;
+  const compareState = win.compareGetState?.();
+  if (compareState?.slots && typeof win.compareSetSlotLoadout === 'function') {
+    const emptySlot = compareState.slots.find((slot: any) => slot.loadout === null);
+    const targetSlotId = emptySlot?.id || compareState.slots[compareState.slots.length - 1]?.id;
+    const setup = getSetupFromLoadout(loadout);
+    if (targetSlotId && setup) {
+      const stats = predictSetup(setup.racquet, setup.stringConfig);
+      win.compareSetSlotLoadout(targetSlotId, { ...loadout }, stats);
+      setDockEditorContext({ kind: 'compare-overview' });
+      _compareEditorDirty = false;
+      updateDockEditorTitle();
+      updateDockEditorActionState();
+    }
+  } else {
+    const slots = getCompareSlots();
+    if (slots.length >= 3) slots.pop();
 
-  const slot = buildCompareSlotFromLoadout(loadout);
-  if (!slot) return;
-  slots.push(slot);
+    const slot = buildCompareSlotFromLoadout(loadout);
+    if (!slot) return;
+    slots.push(slot);
+  }
 
   if (getCurrentMode() === 'compare') {
     renderCompareSurfaces();
+    renderDockContextPanel();
   } else {
     switchMode('compare');
+  }
+}
+
+export function addActiveLoadoutToCompare(): void {
+  const activeLoadout = getActiveLoadout();
+  if (!activeLoadout) return;
+
+  const win = window as any;
+  const compareState = win.compareGetState?.();
+  const setup = getSetupFromLoadout(activeLoadout);
+  if (!compareState?.slots || typeof win.compareSetSlotLoadout !== 'function' || !setup) return;
+
+  const emptySlot = compareState.slots.find((slot: any) => slot.loadout === null);
+  const targetSlotId = emptySlot?.id || compareState.slots[compareState.slots.length - 1]?.id;
+  if (!targetSlotId) return;
+
+  const stats = predictSetup(setup.racquet, setup.stringConfig);
+  win.compareSetSlotLoadout(targetSlotId, { ...activeLoadout }, stats);
+  setDockEditorContext({ kind: 'compare-overview' });
+  _compareEditorDirty = false;
+  updateDockEditorTitle();
+  updateDockEditorActionState();
+
+  if (getCurrentMode() === 'compare') {
+    renderDockContextPanel();
   }
 }
 
@@ -381,6 +574,16 @@ export function switchMode(mode: string): void {
 
   setCurrentMode(mode);
   _syncLegacyModeState(mode);
+  if (mode === 'compare') {
+    if (getDockEditorContext().kind !== 'compare-slot') {
+      setDockEditorContext({ kind: 'compare-overview' });
+    }
+  } else {
+    setDockEditorContext({ kind: 'active' });
+    _compareEditorDirty = false;
+  }
+  updateDockEditorTitle();
+  updateDockEditorActionState();
 
   const nextSection = document.getElementById(`mode-${mode}`);
   if (nextSection) {
@@ -404,21 +607,26 @@ export function switchMode(mode: string): void {
     const setup = getCurrentSetup();
     if (setup) initTuneModeCompat(setup);
   } else if (mode === 'compare') {
-    renderComparisonPresets();
-    if (getCompareSlots().length === 0) {
-      if (getSavedLoadouts().length >= 2) {
-        autoFillCompareFromSaved();
-      } else if (getSavedLoadouts().length === 1 || getActiveLoadout()) {
-        Compare.addComparisonSlotFromHome();
-        _showCompareQuickAddPrompt();
-      } else {
-        Compare.addComparisonSlotFromHome();
-      }
+    // Initialize new TypeScript compare page
+    const win = window as any;
+    if (win.initComparePage) {
+      win.initComparePage();
     } else {
-      renderCompareSurfaces();
+      // Fallback to legacy compare
+      renderComparisonPresets();
+      if (getCompareSlots().length === 0) {
+        if (getSavedLoadouts().length >= 2) {
+          autoFillCompareFromSaved();
+        } else if (getSavedLoadouts().length === 1 || getActiveLoadout()) {
+          Compare.addComparisonSlotFromHome();
+          _showCompareQuickAddPrompt();
+        } else {
+          Compare.addComparisonSlotFromHome();
+        }
+      } else {
+        renderCompareSurfaces();
+      }
     }
-    const closeButton = document.getElementById('compare-editors-close');
-    if (closeButton) closeButton.onclick = () => {};
   } else if (mode === 'optimize') {
     if (!_optimizeInitialized) {
       Optimize.initOptimize();
@@ -506,11 +714,25 @@ export function openTuneForSlot(slotIndex: number): void {
 }
 
 export function _onEditorChange(): void {
-  if (getActiveLoadout()) {
+  if (getDockEditorContext().kind === 'compare-slot') {
+    _compareEditorDirty = true;
+    updateDockEditorActionState();
+  } else if (getActiveLoadout()) {
     commitEditorToLoadout();
   } else {
     Overview.renderDashboard();
   }
+}
+
+export function startCompareSlotEditing(slotId: string): void {
+  setDockEditorContext({ kind: 'compare-slot', slotId: String(slotId) });
+  _compareEditorDirty = false;
+  updateDockEditorTitle();
+
+  const compareSlot = getCompareStateSlot(String(slotId));
+  const loadout = (compareSlot?.loadout as Loadout | null) || getActiveLoadout() || null;
+  primeDockEditor(loadout);
+  renderDockContextPanel();
 }
 
 export function _handleHybridToggle(toHybrid: boolean): void {
@@ -641,6 +863,8 @@ export function init(): void {
   }
 
   renderDockPanel();
+  updateDockEditorTitle();
+  updateDockEditorActionState();
   _initLandingSearch();
 
   document.querySelectorAll('.mobile-tab-btn').forEach((button) => {

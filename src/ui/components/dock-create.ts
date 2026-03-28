@@ -33,6 +33,11 @@ export function renderDockCreateSection(): void {
   const editorSection = document.getElementById('dock-editor-section');
   if (!container) return;
 
+  if (getCurrentMode() === 'compare') {
+    container.innerHTML = '';
+    return;
+  }
+
   const al = getActiveLoadout();
   const sls = getSavedLoadouts();
 

@@ -10,11 +10,17 @@ export type AppMode =
   | 'howitworks'
   | string;
 
+export type DockEditorContext =
+  | { kind: 'active' }
+  | { kind: 'compare-overview' }
+  | { kind: 'compare-slot'; slotId: string };
+
 let _currentMode: AppMode = 'overview';
 let _comparisonSlots: unknown[] = [];
 let _comparisonRadarChart: unknown = null;
 let _currentRadarChart: unknown = null;
 let _slotColors: unknown[] = [];
+let _dockEditorContext: DockEditorContext = { kind: 'active' };
 
 export function getCurrentMode(): AppMode {
   return _currentMode;
@@ -56,6 +62,14 @@ export function setSlotColors<T = unknown>(colors: T[]): void {
   _slotColors = colors as unknown[];
 }
 
+export function getDockEditorContext(): DockEditorContext {
+  return _dockEditorContext;
+}
+
+export function setDockEditorContext(context: DockEditorContext): void {
+  _dockEditorContext = context;
+}
+
 export function installWindowAppStateBridge(): void {
   if (typeof window === 'undefined') return;
 
@@ -64,7 +78,12 @@ export function installWindowAppStateBridge(): void {
     ['comparisonSlots', () => _comparisonSlots, (value) => { _comparisonSlots = Array.isArray(value) ? value : []; }],
     ['comparisonRadarChart', () => _comparisonRadarChart, (value) => { _comparisonRadarChart = value; }],
     ['currentRadarChart', () => _currentRadarChart, (value) => { _currentRadarChart = value; }],
-    ['SLOT_COLORS', () => _slotColors, (value) => { _slotColors = Array.isArray(value) ? value : []; }]
+    ['SLOT_COLORS', () => _slotColors, (value) => { _slotColors = Array.isArray(value) ? value : []; }],
+    ['dockEditorContext', () => _dockEditorContext, (value) => {
+      _dockEditorContext = (value && typeof value === 'object' && 'kind' in (value as Record<string, unknown>))
+        ? value as DockEditorContext
+        : { kind: 'active' };
+    }]
   ];
 
   bridgeDefs.forEach(([key, getter, setter]) => {

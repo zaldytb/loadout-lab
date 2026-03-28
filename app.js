@@ -420,6 +420,9 @@ function commitEditorToLoadout() {
 }
 
 function renderDockPanel() {
+  if (typeof window.renderDockPanel === 'function' && window.renderDockPanel !== renderDockPanel) {
+    return window.renderDockPanel();
+  }
   var emptyEl = document.getElementById('dock-lo-empty');
   var activeEl = document.getElementById('dock-lo-active');
   if (!emptyEl || !activeEl) return;
@@ -533,6 +536,9 @@ function renderMobileLoadoutPills() {
 // relocated via appendChild — instances survive the move.
 
 function renderDockContextPanel() {
+  if (typeof window.renderDockContextPanel === 'function' && window.renderDockContextPanel !== renderDockContextPanel) {
+    return window.renderDockContextPanel();
+  }
   const container = document.getElementById('dock-context-panel');
   if (!container) return;
 
@@ -1667,7 +1673,9 @@ function populateRacquetDropdown(targetEl) {
     onChange: (val) => {
       const r = RACQUETS.find(x => x.id === val);
       showFrameSpecs(r);
-      if (activeLoadout) {
+      if (typeof window._onEditorChange === 'function') {
+        window._onEditorChange();
+      } else if (activeLoadout) {
         commitEditorToLoadout();
       } else {
         renderDashboard();
@@ -1687,7 +1695,9 @@ function populateStringDropdown(targetEl, initialValue) {
       // Update gauge display
       const gaugeEl = wrapper.dataset.gaugeTarget ? document.getElementById(wrapper.dataset.gaugeTarget) : null;
       if (gaugeEl) populateGaugeDropdown(gaugeEl, val);
-      if (activeLoadout) {
+      if (typeof window._onEditorChange === 'function') {
+        window._onEditorChange();
+      } else if (activeLoadout) {
         commitEditorToLoadout();
       } else {
         renderDashboard();
