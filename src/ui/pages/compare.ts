@@ -151,17 +151,17 @@ const SLOT_COLOR_PALETTE: SlotColor[] = [
     borderDash: []
   },
   {
-    border: 'rgba(220, 223, 226, 0.5)',
-    bg: 'rgba(220, 223, 226, 0.03)',
-    bgFaint: 'rgba(220, 223, 226, 0.02)',
+    border: 'rgba(188, 160, 255, 0.86)',
+    bg: 'rgba(188, 160, 255, 0.1)',
+    bgFaint: 'rgba(188, 160, 255, 0.08)',
     label: 'B',
     cssClass: 'b',
     borderDash: [6, 3]
   },
   {
-    border: 'rgba(220, 223, 226, 0.25)',
-    bg: 'rgba(220, 223, 226, 0.02)',
-    bgFaint: 'rgba(220, 223, 226, 0.01)',
+    border: 'rgba(210, 255, 74, 0.88)',
+    bg: 'rgba(210, 255, 74, 0.1)',
+    bgFaint: 'rgba(210, 255, 74, 0.08)',
     label: 'C',
     cssClass: 'c',
     borderDash: [2, 2]
