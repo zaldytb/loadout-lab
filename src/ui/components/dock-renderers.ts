@@ -33,6 +33,55 @@ function getNumericObs(value: unknown): number {
   return Number.isFinite(numeric) ? numeric : 0;
 }
 
+function _escapeDockHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/** Structured “current build” summary for Bible / Optimize dock panels */
+function _dockCurrentBuildCardHtml(opts: {
+  sectionLabel: string;
+  headline: string;
+  frameLine: string;
+  stringsLine: string;
+  tensionShort: string;
+  obsNum: string;
+}): string {
+  const obsChip = opts.obsNum === '\u2014' || opts.obsNum === '—' ? '\u2014' : opts.obsNum;
+  const frameRow =
+    opts.frameLine.trim() === ''
+      ? ''
+      : `<div class="dock-ctx-meta-row">
+          <dt>Frame</dt>
+          <dd>${_escapeDockHtml(opts.frameLine)}</dd>
+        </div>`;
+  return `
+    <div class="dock-ctx-current-card">
+      <div class="dock-ctx-current-top">
+        <span class="dock-ctx-label dock-ctx-label--card">${opts.sectionLabel}</span>
+        <div class="dock-ctx-obs-block">
+          <span class="dock-ctx-obs-cap">OBS</span>
+          <span class="dock-ctx-obs-pill">${_escapeDockHtml(obsChip)}</span>
+        </div>
+      </div>
+      <p class="dock-ctx-current-headline">${_escapeDockHtml(opts.headline)}</p>
+      <dl class="dock-ctx-meta-grid">
+        ${frameRow}
+        <div class="dock-ctx-meta-row">
+          <dt>Strings</dt>
+          <dd>${_escapeDockHtml(opts.stringsLine)}</dd>
+        </div>
+        <div class="dock-ctx-meta-row">
+          <dt>Tension</dt>
+          <dd class="dock-ctx-meta-mono">${_escapeDockHtml(opts.tensionShort)}</dd>
+        </div>
+      </dl>
+    </div>`;
+}
+
 function getComparisonSlots(): DockComparisonSlot[] {
   return getAppComparisonSlots<DockComparisonSlot>();
 }
@@ -268,14 +317,20 @@ function _renderDockPanelBible(container: HTMLElement): void {
       stringName = str ? str.name : '\u2014';
     }
 
-    container.innerHTML = `
-      <div class="dock-ctx-current">
-        <div class="dock-ctx-label">Current build</div>
-        <div class="dock-ctx-current-name">${al.name || frameName}</div>
-        <div class="dock-ctx-current-detail">${stringName} \u00B7 M${al.mainsTension}/X${al.crossesTension}</div>
-        <div class="dock-ctx-current-obs">OBS ${obs}</div>
-      </div>
-    ` + _dockContextActions([
+    const named = (al.name && al.name.trim()) ? al.name.trim() : '';
+    const headline = named || frameName;
+    const frameMeta = named && named !== frameName ? frameName : '';
+    const tensionShort = `M${al.mainsTension} / X${al.crossesTension}`;
+
+    container.innerHTML =
+      _dockCurrentBuildCardHtml({
+        sectionLabel: 'Current build',
+        headline,
+        frameLine: frameMeta,
+        stringsLine: stringName,
+        tensionShort,
+        obsNum: obs,
+      }) + _dockContextActions([
       { label: '\u2192 View build overview', onclick: "switchMode('overview')" },
       { label: '\u2192 Tune this build', onclick: "switchMode('tune')" },
       { label: '\u2192 Compare with others', onclick: "switchMode('compare')" },
@@ -723,16 +778,21 @@ function _renderDockPanelOptimize(container: HTMLElement): void {
     stringName = str ? str.name : '\u2014';
   }
 
-  const tensionLabel = `M${al.mainsTension} / X${al.crossesTension}`;
+  const tensionShort = `M${al.mainsTension} / X${al.crossesTension}`;
+  const frameLine = racquet ? racquet.name.replace(/\s+\d+g$/, '') : '\u2014';
+  const named = (al.name && al.name.trim()) ? al.name.trim() : '';
+  const headline = named || frameLine;
+  const frameMeta = named && named !== frameLine ? frameLine : '';
 
-  container.innerHTML = `
-    <div class="dock-ctx-current">
-      <div class="dock-ctx-label">Optimizing from</div>
-      <div class="dock-ctx-current-name">${racquet ? racquet.name.replace(/\s+\d+g$/, '') : '\u2014'}</div>
-      <div class="dock-ctx-current-detail">${stringName} \u00B7 ${tensionLabel}</div>
-      <div class="dock-ctx-current-obs">OBS ${obs}</div>
-    </div>
-  ` + _dockContextActions([
+  container.innerHTML =
+    _dockCurrentBuildCardHtml({
+      sectionLabel: 'Optimizing from',
+      headline,
+      frameLine: frameMeta,
+      stringsLine: stringName,
+      tensionShort,
+      obsNum: obs,
+    }) + _dockContextActions([
     { label: '\u2192 Back to overview', onclick: "switchMode('overview')" },
     { label: '\u2192 Tune this build', onclick: "switchMode('tune')" },
     { label: '\u2192 Compare top results', onclick: "switchMode('compare')" }

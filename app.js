@@ -363,6 +363,38 @@ function renderDockContextPanel() {
 
 // --- Mode Panel Implementations ---
 
+function _dockEscHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function _dockCurrentBuildCardHtmlLegacy(opts) {
+  var obsChip = (opts.obsNum === '\u2014' || opts.obsNum === '—') ? '\u2014' : opts.obsNum;
+  var frameRow = opts.frameLine.trim() === ''
+    ? ''
+    : '<div class="dock-ctx-meta-row"><dt>Frame</dt><dd>' + _dockEscHtml(opts.frameLine) + '</dd></div>';
+  return (
+    '<div class="dock-ctx-current-card">' +
+      '<div class="dock-ctx-current-top">' +
+        '<span class="dock-ctx-label dock-ctx-label--card">' + opts.sectionLabel + '</span>' +
+        '<div class="dock-ctx-obs-block">' +
+          '<span class="dock-ctx-obs-cap">OBS</span>' +
+          '<span class="dock-ctx-obs-pill">' + _dockEscHtml(obsChip) + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<p class="dock-ctx-current-headline">' + _dockEscHtml(opts.headline) + '</p>' +
+      '<dl class="dock-ctx-meta-grid">' +
+        frameRow +
+        '<div class="dock-ctx-meta-row"><dt>Strings</dt><dd>' + _dockEscHtml(opts.stringsLine) + '</dd></div>' +
+        '<div class="dock-ctx-meta-row"><dt>Tension</dt><dd class="dock-ctx-meta-mono">' + _dockEscHtml(opts.tensionShort) + '</dd></div>' +
+      '</dl>' +
+    '</div>'
+  );
+}
+
 function _renderDockPanelBible(container) {
   // Return editor controls home first
   _dockReturnEditorHome();
@@ -382,7 +414,7 @@ function _renderDockPanelBible(container) {
   } else {
     // Has loadout — show current build summary + action links
     const racquet = RACQUETS.find(r => r.id === al.frameId);
-    const frameName = racquet ? racquet.name.replace(/\\s+\\d+g$/, '') : '—';
+    const frameName = racquet ? racquet.name.replace(/\s+\d+g$/, '') : '—';
     const obsValue = _numericObs(al.obs);
     const obs = obsValue > 0 ? obsValue.toFixed(1) : '—';
 
@@ -396,14 +428,19 @@ function _renderDockPanelBible(container) {
       stringName = str ? str.name : '—';
     }
 
-    container.innerHTML = `
-      <div class="dock-ctx-current">
-        <div class="dock-ctx-label">Current build</div>
-        <div class="dock-ctx-current-name">${al.name || frameName}</div>
-        <div class="dock-ctx-current-detail">${stringName} · M${al.mainsTension}/X${al.crossesTension}</div>
-        <div class="dock-ctx-current-obs">OBS ${obs}</div>
-      </div>
-    ` + _dockContextActions([
+    var named = (al.name && al.name.trim()) ? al.name.trim() : '';
+    var headline = named || frameName;
+    var frameMeta = (named && named !== frameName) ? frameName : '';
+    var tensionShort = 'M' + al.mainsTension + ' / X' + al.crossesTension;
+
+    container.innerHTML = _dockCurrentBuildCardHtmlLegacy({
+      sectionLabel: 'Current build',
+      headline: headline,
+      frameLine: frameMeta,
+      stringsLine: stringName,
+      tensionShort: tensionShort,
+      obsNum: obs,
+    }) + _dockContextActions([
       { label: '→ View build overview', onclick: "switchMode('overview')" },
       { label: '→ Tune this build', onclick: "switchMode('tune')" },
       { label: '→ Compare with others', onclick: "switchMode('compare')" },
@@ -533,7 +570,7 @@ function _renderDockPanelCompare(container) {
     comparisonSlots.forEach((slot, i) => {
       const color = SLOT_COLORS[i];
       const racquet = RACQUETS.find(r => r.id === slot.racquetId);
-      const frameName = racquet ? racquet.name.replace(/\\s+\\d+g$/, '') : 'Not set';
+      const frameName = racquet ? racquet.name.replace(/\s+\d+g$/, '') : 'Not set';
 
       let stringName = '—';
       if (slot.isHybrid) {
@@ -680,16 +717,20 @@ function _renderDockPanelOptimize(container) {
     stringName = str ? str.name : '—';
   }
 
-  const tensionLabel = `M${al.mainsTension} / X${al.crossesTension}`;
+  const tensionShort = `M${al.mainsTension} / X${al.crossesTension}`;
+  const frameLine = racquet ? racquet.name.replace(/\s+\d+g$/, '') : '—';
+  const named = (al.name && al.name.trim()) ? al.name.trim() : '';
+  const headline = named || frameLine;
+  const frameMeta = (named && named !== frameLine) ? frameLine : '';
 
-  container.innerHTML = `
-    <div class="dock-ctx-current">
-      <div class="dock-ctx-label">Optimizing from</div>
-      <div class="dock-ctx-current-name">${racquet ? racquet.name.replace(/\\s+\\d+g$/, '') : '—'}</div>
-      <div class="dock-ctx-current-detail">${stringName} · ${tensionLabel}</div>
-      <div class="dock-ctx-current-obs">OBS ${obs}</div>
-    </div>
-  ` + _dockContextActions([
+  container.innerHTML = _dockCurrentBuildCardHtmlLegacy({
+    sectionLabel: 'Optimizing from',
+    headline: headline,
+    frameLine: frameMeta,
+    stringsLine: stringName,
+    tensionShort: tensionShort,
+    obsNum: obs,
+  }) + _dockContextActions([
     { label: '→ Back to overview', onclick: "switchMode('overview')" },
     { label: '→ Tune this build', onclick: "switchMode('tune')" },
     { label: '→ Compare top results', onclick: "switchMode('compare')" }
@@ -2248,8 +2289,9 @@ function handleResponsiveHeader() {
     } else {
       // Desktop: move switcher back into workspace-region .header-actions
       const actions = workspaceRegion.querySelector('.header-actions');
-      if (actions && !actions.contains(switcher)) {
-        actions.insertBefore(switcher, actions.querySelector('#btn-theme'));
+      const trail = actions && actions.querySelector('.header-actions-trail');
+      if (actions && trail && !actions.contains(switcher)) {
+        actions.insertBefore(switcher, trail);
       }
     }
   }
