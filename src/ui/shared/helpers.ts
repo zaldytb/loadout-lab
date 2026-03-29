@@ -343,33 +343,38 @@ export function getSetupFromEditorDOM(
 export function setHybridMode(
   isHybrid: boolean,
   options?: {
+    fullBtnSelector?: string;
     hybridBtnSelector?: string;
     fullbedPanelSelector?: string;
     hybridPanelSelector?: string;
     onToggle?: (isHybrid: boolean) => void;
   }
 ): void {
+  const fullBtn = $(options?.fullBtnSelector || '#btn-full');
   const hybridBtn = $(options?.hybridBtnSelector || '#btn-hybrid');
-  const fullbedPanel = $(options?.fullbedPanelSelector || '#fullbed-panel');
-  const hybridPanel = $(options?.hybridPanelSelector || '#hybrid-panel');
+  const fullbedPanel = $(options?.fullbedPanelSelector || '#full-bed-config');
+  const hybridPanel = $(options?.hybridPanelSelector || '#hybrid-config');
+
+  if (fullBtn) {
+    fullBtn.classList.toggle('active', !isHybrid);
+    fullBtn.classList.toggle('bg-dc-platinum', !isHybrid);
+    fullBtn.classList.toggle('text-dc-void', !isHybrid);
+    fullBtn.classList.toggle('bg-transparent', isHybrid);
+    fullBtn.classList.toggle('text-dc-storm', isHybrid);
+    fullBtn.classList.toggle('hover:text-dc-platinum', isHybrid);
+  }
 
   if (hybridBtn) {
-    if (isHybrid) {
-      hybridBtn.classList.add('active');
-    } else {
-      hybridBtn.classList.remove('active');
-    }
+    hybridBtn.classList.toggle('active', isHybrid);
+    hybridBtn.classList.toggle('bg-dc-platinum', isHybrid);
+    hybridBtn.classList.toggle('text-dc-void', isHybrid);
+    hybridBtn.classList.toggle('bg-transparent', !isHybrid);
+    hybridBtn.classList.toggle('text-dc-storm', !isHybrid);
+    hybridBtn.classList.toggle('hover:text-dc-platinum', !isHybrid);
   }
 
-  if (fullbedPanel && hybridPanel) {
-    if (isHybrid) {
-      fullbedPanel.classList.add('hidden');
-      hybridPanel.classList.remove('hidden');
-    } else {
-      fullbedPanel.classList.remove('hidden');
-      hybridPanel.classList.add('hidden');
-    }
-  }
+  if (fullbedPanel) fullbedPanel.classList.toggle('hidden', isHybrid);
+  if (hybridPanel) hybridPanel.classList.toggle('hidden', !isHybrid);
 
   if (options?.onToggle) {
     options.onToggle(isHybrid);

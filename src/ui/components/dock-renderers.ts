@@ -13,6 +13,8 @@ import {
 } from '../../state/app-state.js';
 import { _dockGuidance, _dockIcons, _dockContextActions, _dockReturnEditorHome, _dockClearNonEditor, _dockRelocateEditorToContext } from './dock-panel.js';
 import { _prevObsValues, animateOBS } from './obs-animation.js';
+import { populateGaugeDropdown, setHybridMode, showFrameSpecs } from '../shared/helpers.js';
+import { ssInstances } from './searchable-select.js';
 
 type DockComparisonSlot = {
   racquetId: string;
@@ -92,6 +94,53 @@ function getSlotColors(): DockSlotColor[] {
 
 function getDockEditorContext() {
   return getAppDockEditorContext();
+}
+
+export function hydrateDock(loadout: Loadout | null): void {
+  if (!loadout) return;
+
+  const racquet = (RACQUETS.find((frame) => frame.id === loadout.frameId) as unknown as import('../../engine/types.js').Racquet | undefined) || null;
+  if (!racquet) return;
+
+  ssInstances['select-racquet']?.setValue(loadout.frameId);
+  showFrameSpecs(racquet);
+
+  if (loadout.isHybrid) {
+    setHybridMode(true);
+    ssInstances['select-string-mains']?.setValue(loadout.mainsId || '');
+    ssInstances['select-string-crosses']?.setValue(loadout.crossesId || '');
+
+    const mainsGauge = document.getElementById('gauge-select-mains') as HTMLSelectElement | null;
+    const crossesGauge = document.getElementById('gauge-select-crosses') as HTMLSelectElement | null;
+    if (mainsGauge && loadout.mainsId) {
+      populateGaugeDropdown(mainsGauge, loadout.mainsId);
+      if (loadout.mainsGauge) mainsGauge.value = String(loadout.mainsGauge);
+    }
+    if (crossesGauge && loadout.crossesId) {
+      populateGaugeDropdown(crossesGauge, loadout.crossesId);
+      if (loadout.crossesGauge) crossesGauge.value = String(loadout.crossesGauge);
+    }
+
+    const mainsTension = document.getElementById('input-tension-mains') as HTMLInputElement | null;
+    const crossesTension = document.getElementById('input-tension-crosses') as HTMLInputElement | null;
+    if (mainsTension) mainsTension.value = String(loadout.mainsTension);
+    if (crossesTension) crossesTension.value = String(loadout.crossesTension);
+    return;
+  }
+
+  setHybridMode(false);
+  ssInstances['select-string-full']?.setValue(loadout.stringId || '');
+
+  const fullGauge = document.getElementById('gauge-select-full') as HTMLSelectElement | null;
+  if (fullGauge && loadout.stringId) {
+    populateGaugeDropdown(fullGauge, loadout.stringId);
+    if (loadout.gauge) fullGauge.value = String(loadout.gauge);
+  }
+
+  const fullMainsTension = document.getElementById('input-tension-full-mains') as HTMLInputElement | null;
+  const fullCrossesTension = document.getElementById('input-tension-full-crosses') as HTMLInputElement | null;
+  if (fullMainsTension) fullMainsTension.value = String(loadout.mainsTension);
+  if (fullCrossesTension) fullCrossesTension.value = String(loadout.crossesTension);
 }
 
 /**

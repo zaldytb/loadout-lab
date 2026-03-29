@@ -90,7 +90,7 @@ loadout-lab/
 |  |  |  |- strings.ts
 |  |  |  |- find-my-build.ts
 |  |  |  |- my-loadouts.ts
-|  |  |  `- leaderboard.js
+|  |  |  `- leaderboard.ts
 |  |  `- shared/
 |  |- data/
 |  `- utils/
@@ -134,10 +134,12 @@ What is already extracted:
 - Compare runtime ownership
 - Tune runtime ownership
 
-What still remains in the monolith:
-- duplicated legacy renderers and wrappers in `app.js`
-- Tune recommendation content still sourced from `app.js`
-- `leaderboard.js` is still JavaScript
+What still remains in the monolith (`app.js`, now ~3,600 lines down from 12k+):
+- duplicated legacy renderers and wrappers that are largely isolated
+- compatibility shims for inline handlers and older flows
+- older loadout and shared runtime helpers
+
+(Note: All page runtimes, including leaderboard, are now TS-owned).
 
 See [ts-migration-plan.md](ts-migration-plan.md) for the current continuation plan.
 

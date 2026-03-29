@@ -43,11 +43,14 @@ TypeScript currently owns the live bridge entrypoints for:
 - optimize
 - compendium
 - strings
+- leaderboard
+- my-loadouts
+- find-my-build
 
-What still remains in `app.js`:
-- duplicated legacy implementations and wrappers
+What still remains in `app.js` (now ~3,600 lines down from 12k+):
+- duplicated legacy implementations and wrappers that are largely isolated
 - compatibility shims for inline handlers and older flows
-- Tune recommendation content and some other still-unmigrated helper surfaces
+- older loadout and shared runtime helpers
 
 Practical takeaway:
 - prefer the extracted TypeScript modules first
@@ -85,7 +88,7 @@ loadout-lab/
 |  |  |  |- strings.ts
 |  |  |  |- find-my-build.ts
 |  |  |  |- my-loadouts.ts
-|  |  |  `- leaderboard.js
+|  |  |  `- leaderboard.ts
 |  |  `- shared/
 |  |- data/
 |  `- utils/

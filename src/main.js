@@ -5,12 +5,10 @@
 import '../style.css';
 import './ui/pages/compare/compare.css';
 
-// Import all app functionality
-import * as App from '../app.js';
-
 // Import state store for window bridge
 import { getActiveLoadout, getSavedLoadouts, setActiveLoadout, setSavedLoadouts } from './state/store.js';
-import { createLoadout as _createLoadoutTS } from './state/loadout.js';
+import { createLoadout as _createLoadoutTS, saveLoadout as saveLoadoutState } from './state/loadout.js';
+import { getCurrentSetup, getSetupFromLoadout } from './state/setup-sync.js';
 
 // Import page modules
 import * as MyLoadouts from './ui/pages/my-loadouts.js';
@@ -18,6 +16,7 @@ import * as Overview from './ui/pages/overview.js';
 import * as Tune from './ui/pages/tune.js';
 import * as ComparePage from './ui/pages/compare/index.js';
 import * as Shell from './ui/pages/shell.js';
+import * as Theme from './ui/theme.js';
 
 // Import dock components
 import * as DockCollapse from './ui/components/dock-collapse.js';
@@ -64,23 +63,89 @@ function bindLazyFunction(windowKey, loader, exportKey = windowKey) {
   };
 }
 
+function runDigicraftBootSequence() {
+  const loader = document.getElementById('dc-boot-loader');
+  const batteryTrack = document.getElementById('dc-boot-battery');
+  const pctText = document.getElementById('dc-boot-pct');
+  const logsContainer = document.getElementById('dc-boot-logs');
+
+  if (!loader || !batteryTrack || !logsContainer) return;
+
+  batteryTrack.innerHTML = '';
+  logsContainer.innerHTML = '';
+
+  const totalSegments = 10;
+  const segments = [];
+  for (let i = 0; i < totalSegments; i += 1) {
+    const segment = document.createElement('div');
+    segment.className = 'flex-1 bg-black/10 dark:bg-white/5 transition-colors duration-75';
+    batteryTrack.appendChild(segment);
+    segments.push(segment);
+  }
+
+  const logs = [
+    '> Loading 16x19.core.js...',
+    '> Fetching global frame database...',
+    '> Booting String Modulator V2...',
+    '> Calibrating compare runtime...',
+  ];
+
+  let currentLog = 0;
+  let progress = 0;
+
+  const pushLog = () => {
+    if (currentLog >= logs.length) return;
+    const logLine = document.createElement('span');
+    logLine.className = 'text-dc-storm';
+    logLine.innerText = logs[currentLog];
+    logsContainer.appendChild(logLine);
+    currentLog += 1;
+  };
+
+  pushLog();
+
+  const bootInterval = window.setInterval(() => {
+    progress = Math.min(100, progress + 4);
+    if (pctText) pctText.innerText = `${progress}%`;
+
+    const filled = Math.round((progress / 100) * totalSegments);
+    segments.forEach((segment, index) => {
+      segment.className = index < filled
+        ? 'flex-1 bg-dc-accent transition-colors duration-75'
+        : 'flex-1 bg-black/10 dark:bg-white/5 transition-colors duration-75';
+    });
+
+    if (progress > 25 && currentLog === 1) pushLog();
+    if (progress > 50 && currentLog === 2) pushLog();
+    if (progress > 75 && currentLog === 3) pushLog();
+
+    if (progress === 100) {
+      window.clearInterval(bootInterval);
+      window.setTimeout(() => {
+        loader.classList.add('opacity-0');
+        window.setTimeout(() => loader.remove(), 700);
+      }, 400);
+    }
+  }, 80);
+}
+
 // Bridge: expose all exports to window for inline HTML handlers
 // This maintains backward compatibility with onclick="funcName()" patterns
-Object.entries(App).forEach(([key, val]) => {
-  if (typeof val === 'function' || typeof val === 'object') {
-    window[key] = val;
-  }
-});
-
-// Bridge: expose state store functions to window
 window.getActiveLoadout = getActiveLoadout;
 window.getSavedLoadouts = getSavedLoadouts;
 window.setActiveLoadout = setActiveLoadout;
 window.setSavedLoadouts = setSavedLoadouts;
+window.saveLoadout = saveLoadoutState;
+window.getCurrentSetup = getCurrentSetup;
+window.getSetupFromLoadout = getSetupFromLoadout;
 
 // Bridge: expose shell functions to window
 window.activateLoadout = Shell.activateLoadout;
 window.saveActiveLoadout = Shell.saveActiveLoadout;
+window.shareActiveLoadout = Shell.shareActiveLoadout;
+window.exportLoadouts = Shell.exportLoadouts;
+window.importLoadouts = Shell.importLoadouts;
+window.switchToLoadout = Shell.switchToLoadout;
 window.resetActiveLoadout = Shell.resetActiveLoadout;
 window.commitEditorToLoadout = Shell.commitEditorToLoadout;
 window.addLoadoutToCompare = Shell.addLoadoutToCompare;
@@ -94,6 +159,10 @@ window.cancelCompareSlotEditing = Shell.cancelCompareSlotEditing;
 window.addActiveLoadoutToCompare = Shell.addActiveLoadoutToCompare;
 window.init = Shell.init;
 window.createLoadout = _createLoadoutTS;
+window._initLandingSearch = Shell._initLandingSearch;
+window._handleSharedBuildURL = Shell._handleSharedBuildURL;
+window.handleResponsiveHeader = Theme.handleResponsiveHeader;
+window.toggleTheme = Theme.toggleAppTheme;
 
 // Bridge: expose My Loadouts functions to window
 window.renderMyLoadouts = MyLoadouts.renderMyLoadouts;
@@ -316,6 +385,7 @@ window._dockClearNonEditor = DockPanel._dockClearNonEditor;
 // Bridge: expose dock renderer functions to window
 window.renderDockPanel = DockRenderers.renderDockPanel;
 window.renderDockState = DockRenderers.renderDockState;
+window.hydrateDock = DockRenderers.hydrateDock;
 window.renderMobileLoadoutPills = DockRenderers.renderMobileLoadoutPills;
 window.renderDockContextPanel = DockRenderers.renderDockContextPanel;
 window._dockCompareEdit = DockRenderers._dockCompareEdit;
@@ -370,6 +440,7 @@ window.extractPresetData = SharedPresets.extractPresetData;
 window.loadPresetIntoComparisonSlot = SharedPresets.loadPresetIntoComparisonSlot;
 window.loadPresetsFromStorage = SharedPresets.loadPresetsFromStorage;
 window.savePresetsToStorage = SharedPresets.savePresetsToStorage;
+window.renderComparisonPresets = SharedPresets.renderComparisonPresets;
 window.PresetManager = SharedPresets.PresetManager;
 
 // Bridge: expose shared helper functions to window
@@ -384,9 +455,7 @@ window.populateRacquetDropdown = SharedHelpers.populateRacquetDropdown;
 window.populateStringDropdown = SharedHelpers.populateStringDropdown;
 window.populateGaugeDropdown = SharedHelpers.populateGaugeDropdown;
 window.getSetupFromEditorDOM = SharedHelpers.getSetupFromEditorDOM;
-// NOTE: setHybridMode is defined in app.js with different selector defaults
-// Don't bridge SharedHelpers.setHybridMode to avoid breaking the editor toggle
-// window.setHybridMode = SharedHelpers.setHybridMode;
+window.setHybridMode = SharedHelpers.setHybridMode;
 window.scrollToElement = SharedHelpers.scrollToElement;
 window.debounce = SharedHelpers.debounce;
 window.throttle = SharedHelpers.throttle;
@@ -428,7 +497,7 @@ window._lbv2State = window._lbv2State || { initialized: false };
 
 // Debug: confirm bridge worked (only in development)
 if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-  console.log('[Main] App exports bridged:', Object.keys(App).filter(k => typeof App[k] === 'function').length, 'functions');
+  console.log('[Main] Explicit window bridge ready');
 }
 
 // Initialize the app immediately (module scripts run after DOMContentLoaded)
@@ -438,16 +507,17 @@ try {
     // DOM not ready yet, wait for event
     document.addEventListener('DOMContentLoaded', () => {
       // DOM ready, init app
-      App.init();
-      App.handleResponsiveHeader();
-      App._initDockCollapse();
+      runDigicraftBootSequence();
+      Shell.init();
+      Theme.handleResponsiveHeader();
+      DockCollapse._initDockCollapse();
     });
   } else {
     // DOM already loaded, init immediately
-    // DOM already loaded, init immediately
-    App.init();
-    App.handleResponsiveHeader();
-    App._initDockCollapse();
+    runDigicraftBootSequence();
+    Shell.init();
+    Theme.handleResponsiveHeader();
+    DockCollapse._initDockCollapse();
   }
   
   // Also run the dock scroll shadow and backdrop handlers from app.js
@@ -463,7 +533,7 @@ try {
     dockBackdrop.addEventListener('click', function() {
       const d = document.getElementById('build-dock');
       if (d && d.classList.contains('dock-expanded')) {
-        App.toggleMobileDock();
+        MobileDock.toggleMobileDock();
       }
     });
   }

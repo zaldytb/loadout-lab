@@ -6,7 +6,7 @@ import {
   buildTensionContext,
 } from '../../engine/index.js';
 import type { Loadout, Racquet, StringData, StringConfig } from '../../engine/types.js';
-import { loadSavedLoadouts } from '../../state/loadout.js';
+import { createLoadout as createStateLoadout, loadSavedLoadouts, saveLoadout as stateSaveLoadout, saveLoadout, switchToLoadout as getSwitchedLoadout } from '../../state/loadout.js';
 import { getCurrentSetup, getSetupFromLoadout } from '../../state/setup-sync.js';
 import { getActiveLoadout, getSavedLoadouts, setActiveLoadout, setSavedLoadouts } from '../../state/store.js';
 import {
@@ -23,22 +23,16 @@ import * as Tune from './tune.js';
 import * as ComparePage from './compare/index.js';
 import { SLOT_COLORS } from './compare/types.js';
 import {
-  _handleSharedBuildURL,
-  _initLandingSearch,
-  _syncLegacyModeState,
-  hydrateDock,
   populateGaugeDropdown,
   populateRacquetDropdown,
   populateStringDropdown,
-  renderComparisonPresets,
-  renderDockPanel,
   setHybridMode,
-  showFrameSpecs,
-  toggleTheme,
-  saveLoadout as appSaveLoadout,
-} from '../../../app.js';
-import { renderDockContextPanel } from '../components/dock-renderers.js';
+} from '../shared/helpers.js';
+import { renderDockContextPanel, renderDockPanel, hydrateDock } from '../components/dock-renderers.js';
+import { renderComparisonPresets } from '../shared/presets.js';
 import { ssInstances } from '../components/searchable-select.js';
+import { showShareToast, copyToClipboard, exportLoadoutsToFile, importLoadoutsFromJSON, parseSharedBuildFromURL, generateShareURL } from '../../utils/share.js';
+import { toggleAppTheme } from '../theme.js';
 
 type CompareSlot = {
   id: number;
@@ -92,6 +86,18 @@ async function ensureOptimizeModule() {
 
 async function ensureCompendiumModule() {
   return import('./compendium.js');
+}
+
+export function _syncLegacyModeState(mode: string): void {
+  const win = window as Window & {
+    currentMode?: string;
+    isTuneMode?: boolean;
+    isComparisonMode?: boolean;
+  };
+
+  win.currentMode = mode;
+  win.isTuneMode = mode === 'tune';
+  win.isComparisonMode = mode === 'compare';
 }
 
 function getCompareSlots(): CompareSlot[] {
@@ -374,11 +380,63 @@ export function activateLoadout(loadout: Loadout | null): void {
   if (racquet && optFrameValue) optFrameValue.value = racquet.id;
 }
 
+export function switchToLoadout(loadoutId: string): void {
+  const loadout = getSwitchedLoadout(loadoutId);
+  if (!loadout) return;
+  activateLoadout(loadout);
+}
+
 export function saveActiveLoadout(): void {
   const active = getActiveLoadout();
   if (!active) return;
   active._dirty = false;
-  appSaveLoadout(active);
+  stateSaveLoadout(active);
+  renderDockPanel();
+}
+
+export function shareActiveLoadout(): void {
+  const activeLoadout = getActiveLoadout();
+  if (!activeLoadout) return;
+
+  void copyToClipboard(generateShareURL(activeLoadout)).then((copied) => {
+    showShareToast(copied ? 'Link copied to clipboard!' : 'Could not copy link');
+  });
+}
+
+export function exportLoadouts(): void {
+  exportLoadoutsToFile(getSavedLoadouts(), showShareToast);
+}
+
+export function importLoadouts(event: Event): void {
+  const input = event.target as HTMLInputElement | null;
+  const file = input?.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (loadEvent) => {
+    const jsonText = loadEvent.target?.result;
+    if (typeof jsonText !== 'string') {
+      showShareToast('Error reading file');
+      return;
+    }
+
+    try {
+      const imported = importLoadoutsFromJSON(jsonText, {
+        createLoadout: createStateLoadout,
+        saveLoadout,
+        savedLoadouts: getSavedLoadouts(),
+        renderDockPanel,
+        showToast: showShareToast,
+      });
+      showShareToast(`${imported} loadout${imported !== 1 ? 's' : ''} imported!`);
+      renderDockPanel();
+    } catch (_error) {
+      showShareToast('Error reading file');
+    }
+  };
+  reader.readAsText(file);
+
+  if (input) input.value = '';
 }
 
 export function resetActiveLoadout(): void {
@@ -859,19 +917,167 @@ export function _handleHybridToggle(toHybrid: boolean): void {
 
   if (toHybrid && currentStringId) {
     ssInstances['select-string-mains']?.setValue(currentStringId);
-    populateGaugeDropdown(document.getElementById('gauge-select-mains'), currentStringId);
+    const mainsGaugeSelect = document.getElementById('gauge-select-mains') as HTMLSelectElement | null;
+    if (mainsGaugeSelect) populateGaugeDropdown(mainsGaugeSelect, currentStringId);
     const fullGauge = document.getElementById('gauge-select-full') as HTMLSelectElement | null;
     const mainsGauge = document.getElementById('gauge-select-mains') as HTMLSelectElement | null;
     if (fullGauge?.value && mainsGauge) mainsGauge.value = fullGauge.value;
   } else if (!toHybrid && currentStringId) {
     ssInstances['select-string-full']?.setValue(currentStringId);
-    populateGaugeDropdown(document.getElementById('gauge-select-full'), currentStringId);
+    const fullGaugeSelect = document.getElementById('gauge-select-full') as HTMLSelectElement | null;
+    if (fullGaugeSelect) populateGaugeDropdown(fullGaugeSelect, currentStringId);
     const mainsGauge = document.getElementById('gauge-select-mains') as HTMLSelectElement | null;
     const fullGauge = document.getElementById('gauge-select-full') as HTMLSelectElement | null;
     if (mainsGauge?.value && fullGauge) fullGauge.value = mainsGauge.value;
   }
 
   _onEditorChange();
+}
+
+function selectLandingFrame(racquetId: string): void {
+  void ensureCompendiumModule().then((Compendium) => {
+    if (!_compendiumInitialized) {
+      Compendium.initCompendium();
+      _compendiumInitialized = true;
+    }
+
+    Compendium._compSelectFrame(racquetId);
+    switchMode('compendium');
+
+    window.setTimeout(() => {
+      const item = document.querySelector(`#comp-frame-list > button[data-id="${racquetId}"]`);
+      if (item instanceof HTMLElement) {
+        item.scrollIntoView({ block: 'center' });
+      }
+    }, 100);
+  });
+
+  const searchEl = document.getElementById('landing-search') as HTMLInputElement | null;
+  const dropdown = document.getElementById('landing-search-dropdown');
+  if (searchEl) searchEl.value = '';
+  dropdown?.classList.add('hidden');
+}
+
+export function _initLandingSearch(): void {
+  const searchEl = document.getElementById('landing-search') as HTMLInputElement | null;
+  const dropdownEl = document.getElementById('landing-search-dropdown');
+  if (!searchEl || !dropdownEl || searchEl.dataset.initialized === 'true') return;
+
+  searchEl.dataset.initialized = 'true';
+  let selectedIndex = -1;
+
+  const renderResults = (query: string): void => {
+    if (!query.trim()) {
+      dropdownEl.classList.add('hidden');
+      selectedIndex = -1;
+      return;
+    }
+
+    const matches = RACQUETS.filter((racquet) => {
+      const q = query.toLowerCase();
+      return (
+        racquet.name.toLowerCase().includes(q) ||
+        racquet.id.toLowerCase().includes(q) ||
+        String((racquet as unknown as Racquet & { identity?: string }).identity || '').toLowerCase().includes(q)
+      );
+    }).slice(0, 10);
+
+    if (matches.length === 0) {
+      dropdownEl.innerHTML = '<div class="landing-dd-empty">No frames found</div>';
+      dropdownEl.classList.remove('hidden');
+      selectedIndex = -1;
+      return;
+    }
+
+    selectedIndex = -1;
+    dropdownEl.innerHTML = matches
+      .map(
+        (racquet, index) => `
+          <div class="landing-dd-item" data-id="${racquet.id}" data-idx="${index}">
+            <span class="landing-dd-name">${racquet.name}</span>
+            <span class="landing-dd-meta">${racquet.year} · ${(racquet as unknown as Racquet & { identity?: string }).identity || ''}</span>
+          </div>
+        `
+      )
+      .join('');
+    dropdownEl.classList.remove('hidden');
+
+    dropdownEl.querySelectorAll<HTMLElement>('.landing-dd-item').forEach((item) => {
+      item.addEventListener('mousedown', (mouseEvent) => {
+        mouseEvent.preventDefault();
+        const itemId = item.dataset.id;
+        if (itemId) selectLandingFrame(itemId);
+      });
+    });
+  };
+
+  const highlightItem = (index: number): void => {
+    const items = Array.from(dropdownEl.querySelectorAll<HTMLElement>('.landing-dd-item'));
+    items.forEach((item, itemIndex) => {
+      item.classList.toggle('landing-dd-active', itemIndex === index);
+    });
+    items[index]?.scrollIntoView({ block: 'nearest' });
+  };
+
+  searchEl.addEventListener('input', () => renderResults(searchEl.value));
+  searchEl.addEventListener('focus', () => {
+    if (searchEl.value.length > 0) renderResults(searchEl.value);
+  });
+  searchEl.addEventListener('blur', () => {
+    window.setTimeout(() => dropdownEl.classList.add('hidden'), 150);
+  });
+  searchEl.addEventListener('keydown', (keyboardEvent) => {
+    const items = Array.from(dropdownEl.querySelectorAll<HTMLElement>('.landing-dd-item'));
+    if (keyboardEvent.key === 'ArrowDown') {
+      keyboardEvent.preventDefault();
+      selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+      highlightItem(selectedIndex);
+      return;
+    }
+    if (keyboardEvent.key === 'ArrowUp') {
+      keyboardEvent.preventDefault();
+      selectedIndex = Math.max(selectedIndex - 1, 0);
+      highlightItem(selectedIndex);
+      return;
+    }
+    if (keyboardEvent.key === 'Enter') {
+      keyboardEvent.preventDefault();
+      const target = items[selectedIndex] || items[0];
+      const itemId = target?.dataset.id;
+      if (itemId) selectLandingFrame(itemId);
+      return;
+    }
+    if (keyboardEvent.key === 'Escape') {
+      dropdownEl.classList.add('hidden');
+      searchEl.blur();
+    }
+  });
+}
+
+export function _handleSharedBuildURL(): boolean {
+  const decoded = parseSharedBuildFromURL();
+  if (!decoded?.frameId) return false;
+
+  const loadout = createStateLoadout(
+    decoded.frameId,
+    decoded.isHybrid ? decoded.mainsId : decoded.stringId,
+    decoded.mainsTension,
+    {
+      source: 'shared',
+      isHybrid: decoded.isHybrid,
+      mainsId: decoded.mainsId,
+      crossesId: decoded.crossesId,
+      crossesTension: decoded.crossesTension,
+    }
+  );
+
+  if (!loadout) return false;
+
+  activateLoadout(loadout);
+  stateSaveLoadout(loadout);
+  window.history.replaceState({}, '', `${window.location.origin}${window.location.pathname}`);
+  showShareToast('Shared build loaded!');
+  return true;
 }
 
 export function init(): void {
@@ -921,7 +1127,7 @@ export function init(): void {
     // Keep Tune on a single runtime-owned slider handler to avoid split-state updates.
     tuneSlider.oninput = onTuneSliderInputCompat;
   }
-  $('#btn-theme')?.addEventListener('click', toggleTheme);
+  $('#btn-theme')?.addEventListener('click', toggleAppTheme);
 
   document.getElementById('mode-tune')?.classList.add('hidden');
   document.getElementById('mode-compare')?.classList.add('hidden');

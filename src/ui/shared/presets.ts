@@ -3,6 +3,12 @@
 
 import { RACQUETS, STRINGS } from '../../data/loader.js';
 import type { Racquet, StringConfig, StringData } from '../../engine/types.js';
+import type { Loadout } from '../../engine/types.js';
+import { getActiveLoadout, getSavedLoadouts } from '../../state/store.js';
+import { getCurrentSetup } from '../../state/setup-sync.js';
+import { getComparisonSlots } from '../../state/app-state.js';
+import { predictSetup, computeCompositeScore, buildTensionContext } from '../../engine/index.js';
+import { createLoadout } from '../../state/loadout.js';
 
 // Type assertion helper for data.js imports
 type RacquetData = Racquet & Record<string, unknown>;
@@ -334,4 +340,187 @@ export class PresetManager {
   private notify(): void {
     this.listeners.forEach((listener) => listener([...this.presets]));
   }
+}
+
+type ComparisonSuggestion = {
+  label: string;
+  obs: number;
+  frameId: string;
+  stringId: string | null;
+  tension: number;
+  source: 'saved' | 'suggested';
+  isHybrid: boolean;
+  mainsId: string | null;
+  crossesId: string | null;
+  crossesTension: number;
+  loadout: Loadout | null;
+};
+
+function getComparisonSlotKeys(): Set<string> {
+  const win = window as Window & {
+    compareGetState?: () => { slots?: Array<{ loadout?: Loadout | null }> };
+  };
+  const compareState = win.compareGetState?.();
+  if (compareState?.slots?.length) {
+    return new Set(
+      compareState.slots
+        .filter((slot) => !!slot.loadout)
+        .map((slot) => {
+          const loadout = slot.loadout as Loadout;
+          const stringKey = loadout.isHybrid
+            ? `${loadout.mainsId || ''}/${loadout.crossesId || ''}`
+            : loadout.stringId || '';
+          return `${loadout.frameId}|${stringKey}|${loadout.mainsTension}|${loadout.crossesTension}`;
+        })
+    );
+  }
+
+  return new Set(
+    getComparisonSlots<{
+      racquetId: string;
+      stringId?: string;
+      mainsId?: string;
+      crossesId?: string;
+      mainsTension: number;
+      crossesTension: number;
+      isHybrid?: boolean;
+    }>()
+      .filter((slot) => !!slot?.racquetId)
+      .map((slot) => {
+        const stringKey = slot.isHybrid
+          ? `${slot.mainsId || ''}/${slot.crossesId || ''}`
+          : slot.stringId || '';
+        return `${slot.racquetId}|${stringKey}|${slot.mainsTension}|${slot.crossesTension}`;
+      })
+  );
+}
+
+function buildSuggestionKey(suggestion: ComparisonSuggestion): string {
+  const stringKey = suggestion.isHybrid
+    ? `${suggestion.mainsId || ''}/${suggestion.crossesId || ''}`
+    : suggestion.stringId || '';
+  return `${suggestion.frameId}|${stringKey}|${suggestion.tension}|${suggestion.crossesTension}`;
+}
+
+function buildQuickSuggestions(): ComparisonSuggestion[] {
+  const suggestions: ComparisonSuggestion[] = [];
+  const slotKeys = getComparisonSlotKeys();
+  const savedLoadouts = getSavedLoadouts();
+
+  savedLoadouts.forEach((loadout) => {
+    const suggestion: ComparisonSuggestion = {
+      label: loadout.name.length > 28 ? `${loadout.name.substring(0, 28)}...` : loadout.name,
+      obs: loadout.obs || 0,
+      frameId: loadout.frameId,
+      stringId: loadout.stringId || null,
+      tension: loadout.mainsTension,
+      source: 'saved',
+      isHybrid: !!loadout.isHybrid,
+      mainsId: loadout.mainsId || null,
+      crossesId: loadout.crossesId || null,
+      crossesTension: loadout.crossesTension,
+      loadout: { ...loadout },
+    };
+
+    if (!slotKeys.has(buildSuggestionKey(suggestion))) {
+      suggestions.push(suggestion);
+    }
+  });
+
+  const activeLoadout = getActiveLoadout();
+  const setup = getCurrentSetup();
+  if (!activeLoadout || !setup) return suggestions;
+
+  const midTension = Math.round((setup.racquet.tensionRange[0] + setup.racquet.tensionRange[1]) / 2);
+  const seen = new Set(suggestions.map((suggestion) => `${suggestion.frameId}|${suggestion.stringId || suggestion.mainsId || ''}|${suggestion.crossesId || ''}`));
+
+  STRINGS.slice(0, 30).forEach((string) => {
+    if (activeLoadout.stringId === string.id) return;
+
+    const stringConfig = {
+      isHybrid: false as const,
+      string: string as unknown as StringData,
+      mainsTension: midTension,
+      crossesTension: midTension,
+    };
+    const stats = predictSetup(setup.racquet, stringConfig);
+    const score = computeCompositeScore(stats, buildTensionContext(stringConfig, setup.racquet));
+
+    const loadout = createLoadout(setup.racquet.id, string.id, midTension, { source: 'suggested' });
+    const suggestion: ComparisonSuggestion = {
+      label: `${string.name} on ${setup.racquet.name}`,
+      obs: +score.toFixed(1),
+      frameId: setup.racquet.id,
+      stringId: string.id,
+      tension: midTension,
+      source: 'suggested',
+      isHybrid: false,
+      mainsId: null,
+      crossesId: null,
+      crossesTension: midTension,
+      loadout,
+    };
+
+    const seenKey = `${suggestion.frameId}|${suggestion.stringId || ''}|`;
+    if (!slotKeys.has(buildSuggestionKey(suggestion)) && !seen.has(seenKey)) {
+      seen.add(seenKey);
+      suggestions.push(suggestion);
+    }
+  });
+
+  suggestions.sort((a, b) => b.obs - a.obs);
+  return suggestions;
+}
+
+function addSuggestionToCompare(suggestion: ComparisonSuggestion): void {
+  const loadout = suggestion.loadout;
+  if (!loadout) return;
+
+  const win = window as Window & {
+    compareAddLoadoutToPreferredSlot?: (loadout: Loadout) => unknown;
+    compareAddLoadoutToNextAvailableSlot?: (loadout: Loadout) => unknown;
+    addLoadoutToCompare?: (loadoutId: string) => void;
+    switchMode?: (mode: string) => void;
+  };
+
+  if (typeof win.compareAddLoadoutToPreferredSlot === 'function') {
+    win.compareAddLoadoutToPreferredSlot({ ...loadout });
+  } else if (typeof win.compareAddLoadoutToNextAvailableSlot === 'function') {
+    win.compareAddLoadoutToNextAvailableSlot({ ...loadout });
+  } else if (suggestion.source === 'saved' && loadout.id && typeof win.addLoadoutToCompare === 'function') {
+    win.addLoadoutToCompare(loadout.id);
+  }
+
+  win.switchMode?.('compare');
+}
+
+export function renderComparisonPresets(): void {
+  const container = document.getElementById('comparison-presets');
+  if (!container) return;
+
+  const suggestions = buildQuickSuggestions();
+  if (suggestions.length === 0) {
+    container.innerHTML = '<span class="comp-presets-empty">Save loadouts from Racket Bible to quick-add here</span>';
+    return;
+  }
+
+  container.innerHTML = suggestions
+    .slice(0, 5)
+    .map(
+      (suggestion, index) => `
+        <button class="comp-preset-btn" data-suggestion-index="${index}" title="${suggestion.label} · OBS ${suggestion.obs || '—'}">
+          <span class="comp-preset-name">${suggestion.label}</span>
+        </button>
+      `
+    )
+    .join('');
+
+  container.querySelectorAll<HTMLButtonElement>('.comp-preset-btn').forEach((button) => {
+    button.addEventListener('click', () => {
+      const index = Number(button.dataset.suggestionIndex);
+      const suggestion = suggestions[index];
+      if (!suggestion) return;
+      addSuggestionToCompare(suggestion);
+    });
+  });
 }

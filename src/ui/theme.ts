@@ -1,6 +1,12 @@
 // src/ui/theme.ts
 // Theme toggle and dark mode management
 
+import { predictSetup } from '../engine/index.js';
+import { getCurrentSetup } from '../state/setup-sync.js';
+import { getCurrentMode, getSlotColors, setSlotColors } from '../state/app-state.js';
+import { sweepChart, renderSweepChart } from './pages/tune.js';
+import { updateComparisonRadar, renderComparisonSlots } from './pages/compare/index.js';
+
 type Theme = 'dark' | 'light';
 
 interface ThemeCallbacks {
@@ -47,6 +53,64 @@ export function toggleTheme(callbacks: ThemeCallbacks = {}, state: ThemeState = 
   if (state.currentMode === 'tune' && state.hasSweepChart && callbacks.refreshSweepChart) {
     callbacks.refreshSweepChart();
   }
+}
+
+export function toggleAppTheme(): void {
+  toggleTheme(
+    {
+      refreshSlotColors: () => {
+        const nextColors = [...getSlotColors<unknown[]>()];
+        setSlotColors(nextColors);
+        (window as Window & { SLOT_COLORS?: unknown[] }).SLOT_COLORS = nextColors;
+      },
+      refreshRadarChart: () => {
+        const setup = getCurrentSetup();
+        if (!setup) return;
+        const stats = predictSetup(setup.racquet, setup.stringConfig);
+        (window as Window & { renderRadarChart?: (stats: ReturnType<typeof predictSetup>) => void }).renderRadarChart?.(stats);
+      },
+      refreshComparison: () => {
+        updateComparisonRadar();
+        renderComparisonSlots();
+      },
+      refreshSweepChart: () => {
+        const setup = getCurrentSetup();
+        if (!setup || !sweepChart) return;
+        sweepChart.destroy();
+        renderSweepChart(setup);
+      },
+    },
+    {
+      currentMode: getCurrentMode(),
+      hasSweepChart: !!sweepChart,
+    }
+  );
+}
+
+export function handleResponsiveHeader(): void {
+  const switcher = document.getElementById('mode-switcher');
+  const dockRegion = document.querySelector('.header-dock-region');
+  const workspaceRegion = document.querySelector('.header-workspace-region');
+  if (!switcher || !dockRegion || !workspaceRegion) return;
+
+  const mediaQuery = window.matchMedia('(max-width: 1024px)');
+  const onBreakpoint = (event: MediaQueryList | MediaQueryListEvent): void => {
+    if (event.matches) {
+      if (!dockRegion.contains(switcher)) {
+        dockRegion.appendChild(switcher);
+      }
+      return;
+    }
+
+    const actions = workspaceRegion.querySelector('.header-actions');
+    const trail = actions?.querySelector('.header-actions-trail');
+    if (actions && trail && !actions.contains(switcher)) {
+      actions.insertBefore(switcher, trail);
+    }
+  };
+
+  mediaQuery.addEventListener('change', onBreakpoint);
+  onBreakpoint(mediaQuery);
 }
 
 /**
