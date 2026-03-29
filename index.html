@@ -358,9 +358,12 @@
 
     <!-- Mobile action bar: OUTSIDE dock so it's always visible -->
     <div class="dock-mobile-bar" id="dock-mobile-bar" onclick="toggleMobileDock()">
-      <div class="dock-mob-summary" id="dock-mob-summary">
-        <span class="dock-mob-obs" id="dock-mob-obs"></span>
-        <span class="dock-mob-label" id="dock-mob-label">No active loadout</span>
+      <div class="dock-mob-lead">
+        <span class="dock-mob-kicker">Builder</span>
+        <div class="dock-mob-summary" id="dock-mob-summary">
+          <span class="dock-mob-obs" id="dock-mob-obs"></span>
+          <span class="dock-mob-label" id="dock-mob-label">No active loadout</span>
+        </div>
       </div>
       <svg class="dock-mob-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4 6 8 10 12 6"/></svg>
       <button class="dock-mob-theme" id="dock-mob-theme" onclick="event.stopPropagation(); toggleTheme();" title="Toggle theme">

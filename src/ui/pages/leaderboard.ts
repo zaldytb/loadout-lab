@@ -145,7 +145,7 @@ function _buildShellHTML(): string {
   const statPills = LB_STATS.map(s => {
     const active = s.key === _lbv2State.statKey;
     return `<button
-      class="lb2-stat-pill flex items-center gap-2 px-4 py-2.5 border font-mono text-[10px] font-bold uppercase tracking-[0.12em] transition-all duration-150 cursor-pointer whitespace-nowrap ${
+      class="lb2-stat-pill flex shrink-0 items-center gap-1.5 md:gap-2 px-2.5 py-1.5 md:px-4 md:py-2.5 border font-mono text-[9px] md:text-[10px] font-bold uppercase tracking-[0.12em] transition-all duration-150 cursor-pointer whitespace-nowrap ${
         active
           ? 'border-dc-accent text-dc-accent bg-dc-accent/5'
           : 'border-dc-storm/40 text-dc-storm hover:border-dc-storm hover:text-dc-platinum'
@@ -184,7 +184,7 @@ function _buildShellHTML(): string {
   ].map(({ v, l, sub }) => {
     const active = v === _lbv2State.viewMode;
     return `<button
-      class="flex flex-col items-start px-4 py-2 border-b-2 font-mono transition-all duration-150 cursor-pointer ${
+      class="flex shrink-0 flex-row md:flex-col items-center md:items-start gap-1.5 md:gap-0 px-3 py-1.5 md:px-4 md:py-2 border-b-2 font-mono transition-all duration-150 cursor-pointer ${
         active
           ? 'border-dc-accent text-dc-accent'
           : 'border-transparent text-dc-storm hover:text-dc-platinum hover:border-dc-storm/40'
@@ -193,7 +193,7 @@ function _buildShellHTML(): string {
       onclick="_lbv2SetView('${v}')"
     >
       <span class="text-[10px] font-bold uppercase tracking-[0.12em]">${l}</span>
-      <span class="text-[8px] tracking-[0.08em] opacity-60">${sub}</span>
+      <span class="hidden md:inline text-[8px] tracking-[0.08em] opacity-60">${sub}</span>
     </button>`;
   }).join('');
 
@@ -210,7 +210,7 @@ function _buildShellHTML(): string {
   const sel = (id: string, val: string, opts: Array<{v: string; l: string}>, placeholder: string): string =>
     `<select
       id="${id}"
-      class="bg-transparent border border-dc-storm/40 text-dc-storm font-mono text-[9px] px-2 py-1.5 cursor-pointer hover:border-dc-storm focus:border-dc-accent focus:text-dc-platinum transition-colors outline-none"
+      class="lbv2-filter-select bg-transparent border border-dc-storm/40 text-dc-storm font-mono text-[9px] px-2 py-1.5 cursor-pointer hover:border-dc-storm focus:border-dc-accent focus:text-dc-platinum transition-colors outline-none shrink-0"
       onchange="_lbv2SetFrameFilter('${id.replace('lb2-ff-','')}')"
     >
       <option value="">${placeholder}</option>
@@ -218,7 +218,9 @@ function _buildShellHTML(): string {
     </select>`;
 
   const frameFilterRow = `
-    <div class="flex items-center gap-2 flex-wrap ${showFrameFilters ? '' : 'hidden'}" id="lb2-frame-filters-row">
+    <div class="${showFrameFilters ? '' : 'hidden'}" id="lb2-frame-filters-row">
+      <div class="lbv2-filter-scroll -mx-3 px-3 md:mx-0 md:px-0">
+        <div class="flex items-center gap-2 flex-nowrap md:flex-wrap min-w-min pb-0.5">
       <span class="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-dc-storm shrink-0">Filter</span>
       ${sel('lb2-ff-brand', ff.brand, brands.map(b => ({ v: b, l: b })), 'All brands')}
       ${sel('lb2-ff-pattern', ff.pattern, [
@@ -256,9 +258,11 @@ function _buildShellHTML(): string {
       ], 'All years')}
       ${Object.values(ff).some(v => v !== '') ? `
         <button
-          class="font-mono text-[9px] font-bold uppercase tracking-[0.1em] px-2.5 py-1.5 border border-dc-storm/30 text-dc-storm/60 hover:border-dc-red hover:text-dc-red transition-colors"
+          class="font-mono text-[9px] font-bold uppercase tracking-[0.1em] px-2.5 py-1.5 border border-dc-storm/30 text-dc-storm/60 hover:border-dc-red hover:text-dc-red transition-colors shrink-0"
           onclick="_lbv2ClearFrameFilters()"
         >Clear</button>` : ''}
+        </div>
+      </div>
     </div>`;
 
   // String filters — only shown on strings tab
@@ -270,7 +274,7 @@ function _buildShellHTML(): string {
   const ssel = (id: string, val: string, opts: Array<{v: string; l: string}>, placeholder: string): string =>
     `<select
       id="${id}"
-      class="bg-transparent border border-dc-storm/40 text-dc-storm font-mono text-[9px] px-2 py-1.5 cursor-pointer hover:border-dc-storm focus:border-dc-accent focus:text-dc-platinum transition-colors outline-none"
+      class="lbv2-filter-select bg-transparent border border-dc-storm/40 text-dc-storm font-mono text-[9px] px-2 py-1.5 cursor-pointer hover:border-dc-storm focus:border-dc-accent focus:text-dc-platinum transition-colors outline-none shrink-0"
       onchange="_lbv2SetStringFilter('${id.replace('lb2-sf-','')}')"
     >
       <option value="">${placeholder}</option>
@@ -278,7 +282,9 @@ function _buildShellHTML(): string {
     </select>`;
 
   const stringFilterRow = `
-    <div class="flex items-center gap-2 flex-wrap ${showStringFilters ? '' : 'hidden'}" id="lb2-string-filters-row">
+    <div class="${showStringFilters ? '' : 'hidden'}" id="lb2-string-filters-row">
+      <div class="lbv2-filter-scroll -mx-3 px-3 md:mx-0 md:px-0">
+        <div class="flex items-center gap-2 flex-nowrap md:flex-wrap min-w-min pb-0.5">
       <span class="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-dc-storm shrink-0">Filter</span>
       ${ssel('lb2-sf-brand', sf.brand, stringBrands.map(b => ({ v: b, l: b })), 'All brands')}
       ${ssel('lb2-sf-material', sf.material, [
@@ -308,37 +314,42 @@ function _buildShellHTML(): string {
       ], 'All stiffness')}
       ${Object.values(sf).some(v => v !== '') ? `
         <button
-          class="font-mono text-[9px] font-bold uppercase tracking-[0.1em] px-2.5 py-1.5 border border-dc-storm/30 text-dc-storm/60 hover:border-dc-red hover:text-dc-red transition-colors"
+          class="font-mono text-[9px] font-bold uppercase tracking-[0.1em] px-2.5 py-1.5 border border-dc-storm/30 text-dc-storm/60 hover:border-dc-red hover:text-dc-red transition-colors shrink-0"
           onclick="_lbv2ClearStringFilters()"
         >Clear</button>` : ''}
+        </div>
+      </div>
     </div>`;
 
   return `
     <div class="flex flex-col min-h-full">
 
       <!-- View mode tabs -->
-      <div class="flex border-b border-dc-storm/20 px-5 pt-3">
+      <div class="lbv2-view-tabs border-b border-dc-storm/20 px-3 pt-2 md:px-5 md:pt-3 overflow-x-auto">
+        <div class="flex min-w-min">
         ${viewTabs}
+        </div>
       </div>
 
       <!-- Sticky controls -->
-      <div class="sticky top-0 z-10 bg-dc-void-deep border-b border-dc-storm/20 px-5 py-4 flex flex-col gap-3">
+      <div class="sticky top-0 z-10 bg-dc-void-deep border-b border-dc-storm/20 px-3 py-2 md:px-5 md:py-4 flex flex-col gap-2 md:gap-3">
 
-        <!-- Primary question -->
-        <div class="flex items-baseline gap-3">
+        <!-- Primary question: horizontal scroll on narrow screens -->
+        <div class="flex flex-col gap-1.5 md:flex-row md:items-baseline md:gap-3">
           <span class="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-dc-storm shrink-0">Show me</span>
-          <div class="flex gap-2 flex-wrap" id="lb2-stat-pills">
+          <div class="lbv2-stat-scroll -mx-3 px-3 md:mx-0 md:px-0">
+            <div class="flex gap-2 flex-nowrap" id="lb2-stat-pills">
             ${statPills}
+            </div>
           </div>
         </div>
 
         <!-- Secondary filter (builds tab only) -->
-        <div class="flex items-center gap-3 ${showTypeFilter ? '' : 'hidden'}" id="lb2-type-filter-row">
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 ${showTypeFilter ? '' : 'hidden'}" id="lb2-type-filter-row">
           <span class="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-dc-storm shrink-0">Setup type</span>
-          <div class="flex gap-1.5">
+          <div class="flex gap-1.5 flex-wrap">
             ${typePills}
           </div>
-          <span class="font-mono text-[9px] text-dc-storm/50 ml-auto" id="lb2-count"></span>
         </div>
 
         <!-- Frame filters (frames tab only) -->
@@ -347,8 +358,8 @@ function _buildShellHTML(): string {
         <!-- String filters (strings tab only) -->
         ${stringFilterRow}
 
-        <div class="flex justify-end ${!showTypeFilter ? '' : 'hidden'}" id="lb2-count-row">
-          <span class="font-mono text-[9px] text-dc-storm/50" id="lb2-count"></span>
+        <div class="flex justify-end pt-0.5 border-t border-dc-storm/10 md:border-0 md:pt-0">
+          <span class="font-mono text-[9px] text-dc-storm/50 tabular-nums" id="lb2-count"></span>
         </div>
 
       </div>
@@ -374,7 +385,6 @@ function _syncLbv2Shell(): void {
 
   const showTypeFilter = _lbv2State.viewMode === 'builds';
   panel.querySelector('#lb2-type-filter-row')?.classList.toggle('hidden', !showTypeFilter);
-  panel.querySelector('#lb2-count-row')?.classList.toggle('hidden', showTypeFilter);
   panel.querySelector('#lb2-frame-filters-row')?.classList.toggle('hidden', _lbv2State.viewMode !== 'frames');
   panel.querySelector('#lb2-string-filters-row')?.classList.toggle('hidden', _lbv2State.viewMode !== 'strings');
 
