@@ -3,7 +3,7 @@
 
 import { getActiveLoadout } from './store.js';
 import type { Loadout, Racquet, StringData, StringConfig } from '../engine/types.js';
-import { RACQUETS, STRINGS } from '../data/loader.js';
+import { getRacquetById, getStringById } from '../data/loader.js';
 import { applyGaugeModifier } from '../engine/string-profile.js';
 
 interface SetupResult {
@@ -25,6 +25,25 @@ interface StringCompendiumSync {
   crossesGauge?: string | null;
 }
 
+let _cachedSetupKey: string | null = null;
+let _cachedSetupResult: SetupResult | null = null;
+
+function getLoadoutSetupKey(loadout: Loadout): string {
+  return [
+    loadout.id,
+    loadout.frameId,
+    loadout.stringId || '',
+    loadout.isHybrid ? 'hybrid' : 'full',
+    loadout.mainsId || '',
+    loadout.crossesId || '',
+    loadout.mainsTension,
+    loadout.crossesTension,
+    loadout.gauge || '',
+    loadout.mainsGauge || '',
+    loadout.crossesGauge || '',
+  ].join('|');
+}
+
 /**
  * Get current setup — reads from activeLoadout when available,
  * falls back to DOM editor for creation form / no-loadout state.
@@ -43,28 +62,39 @@ export function getCurrentSetup(): SetupResult | null {
  */
 export function getSetupFromLoadout(loadout: Loadout | null): SetupResult | null {
   if (!loadout) return null;
-  const racquet = RACQUETS.find(r => r.id === loadout.frameId) as Racquet | undefined;
+  const setupKey = getLoadoutSetupKey(loadout);
+  if (_cachedSetupKey === setupKey && _cachedSetupResult) {
+    return _cachedSetupResult;
+  }
+
+  const racquet = getRacquetById(loadout.frameId) as Racquet | undefined;
   if (!racquet) return null;
 
   let string: StringData | undefined;
   let mains: StringData | undefined;
   let crosses: StringData | undefined;
   if (loadout.isHybrid) {
-    mains = STRINGS.find(s => s.id === loadout.mainsId) as StringData | undefined;
-    crosses = STRINGS.find(s => s.id === loadout.crossesId) as StringData | undefined;
+    mains = getStringById(loadout.mainsId) as StringData | undefined;
+    crosses = getStringById(loadout.crossesId) as StringData | undefined;
     if (loadout.mainsGauge && mains) mains = applyGaugeModifier(mains, parseFloat(loadout.mainsGauge));
     if (loadout.crossesGauge && crosses) crosses = applyGaugeModifier(crosses, parseFloat(loadout.crossesGauge));
   } else {
-    string = STRINGS.find(s => s.id === loadout.stringId) as StringData | undefined;
+    string = getStringById(loadout.stringId) as StringData | undefined;
     if (loadout.gauge && string) string = applyGaugeModifier(string, parseFloat(loadout.gauge));
   }
+
+  if (loadout.isHybrid && (!mains || !crosses)) return null;
+  if (!loadout.isHybrid && !string) return null;
 
   // Non-null assertions safe: verified above
   const stringConfig = loadout.isHybrid
     ? { isHybrid: true as const, mains: mains!, crosses: crosses!, mainsTension: loadout.mainsTension, crossesTension: loadout.crossesTension }
     : { isHybrid: false as const, string: string!, mainsTension: loadout.mainsTension, crossesTension: loadout.crossesTension };
 
-  return { racquet, stringConfig, loadout };
+  const result = { racquet, stringConfig, loadout };
+  _cachedSetupKey = setupKey;
+  _cachedSetupResult = result;
+  return result;
 }
 
 /**

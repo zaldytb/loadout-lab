@@ -85,6 +85,7 @@ let _initCalled = false;
 let _optimizeInitialized = false;
 let _compendiumInitialized = false;
 let _compareEditorDirty = false;
+let _pendingActiveRefreshFrame: number | null = null;
 
 function getCompareSlots(): CompareSlot[] {
   return getComparisonSlots<CompareSlot>();
@@ -786,11 +787,21 @@ export function _onEditorChange(): void {
   if (getDockEditorContext().kind === 'compare-slot') {
     _compareEditorDirty = true;
     updateDockEditorActionState();
-  } else if (getActiveLoadout()) {
-    commitEditorToLoadout();
-  } else {
-    Overview.renderDashboard();
+    return;
   }
+
+  if (_pendingActiveRefreshFrame != null) {
+    cancelAnimationFrame(_pendingActiveRefreshFrame);
+  }
+
+  _pendingActiveRefreshFrame = requestAnimationFrame(() => {
+    _pendingActiveRefreshFrame = null;
+    if (getActiveLoadout()) {
+      commitEditorToLoadout();
+    } else {
+      Overview.renderDashboard();
+    }
+  });
 }
 
 export function startCompareSlotEditing(slotId: string): void {

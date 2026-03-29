@@ -39,6 +39,7 @@ interface WindowExt extends Window {
 // Module-level state
 export let sweepChart: Chart | null = null;
 let _tuneRefreshing = false;
+let _pendingTuneRenderFrame: number | null = null;
 
 export const tuneState = {
   baselineTension: 55,
@@ -74,9 +75,27 @@ type RecommendedCandidate = ReturnType<typeof generateRecommendedBuilds>['all'][
 // Chart.js type
 type Chart = {
   destroy: () => void;
+  data?: { labels?: number[]; datasets?: Array<Record<string, unknown>> };
+  options?: Record<string, unknown>;
+  update?: (mode?: string) => void;
 };
 
 declare const Chart: new (ctx: CanvasRenderingContext2D, config: Record<string, unknown>) => Chart;
+
+function _applyTuneInteractionFrame(): void {
+  _pendingTuneRenderFrame = null;
+  _recomputeExploredState();
+  renderDeltaVsBaseline();
+  renderBestValueMove();
+
+  const setup = getCurrentSetup();
+  if (setup) {
+    renderOverallBuildScore(setup, false);
+    renderSweepChart(setup);
+  }
+
+  _updateTuneApplyButton();
+}
 
 /**
  * Toggle tune mode (legacy compat)
@@ -874,27 +893,33 @@ export function renderSweepChart(setup: { racquet: Racquet }): void {
     }
   };
 
-  if (sweepChart) {
-    sweepChart.destroy();
+  const nextData = { labels: tensions, datasets };
+  const nextOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { position: 'top', align: 'end', labels: { color: legendColor, usePointStyle: true, boxWidth: 8, font: { size: 10, family: "'JetBrains Mono', monospace" } } },
+      tooltip: { backgroundColor: isDark ? 'rgba(20,20,20,0.95)' : 'rgba(255,255,255,0.95)', titleColor: isDark ? '#fff' : '#1a1a1a', bodyColor: isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)', borderWidth: 1, padding: 10, displayColors: true, callbacks: { label: (item: { dataset: { label: string }; raw: number }) => `  ${item.dataset.label}: ${item.raw}` } }
+    },
+    scales: {
+      x: { title: { display: true, text: 'Tension (lbs)', font: { family: "'Inter', sans-serif", size: 11, weight: '500' }, color: tickColor }, grid: { color: gridColor, lineWidth: 0.5 }, ticks: { font: { family: "'JetBrains Mono', monospace", size: 10 }, color: tickColor, stepSize: 2 } },
+      y: { min: 0, max: 100, title: { display: true, text: 'Rating', font: { family: "'Inter', sans-serif", size: 11, weight: '500' }, color: tickColor }, grid: { color: gridColor, lineWidth: 0.5 }, ticks: { font: { family: "'JetBrains Mono', monospace", size: 10 }, color: tickColor, stepSize: 25 } }
+    },
+    animation: { duration: 400, easing: 'easeOutQuart' }
+  };
+
+  if (sweepChart?.data && sweepChart.update) {
+    sweepChart.data = nextData;
+    sweepChart.options = nextOptions;
+    sweepChart.update('none');
+    return;
   }
 
   sweepChart = new Chart(ctx, {
     type: 'line',
-    data: { labels: tensions, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { position: 'top', align: 'end', labels: { color: legendColor, usePointStyle: true, boxWidth: 8, font: { size: 10, family: "'JetBrains Mono', monospace" } } },
-        tooltip: { backgroundColor: isDark ? 'rgba(20,20,20,0.95)' : 'rgba(255,255,255,0.95)', titleColor: isDark ? '#fff' : '#1a1a1a', bodyColor: isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)', borderWidth: 1, padding: 10, displayColors: true, callbacks: { label: (item: { dataset: { label: string }; raw: number }) => `  ${item.dataset.label}: ${item.raw}` } }
-      },
-      scales: {
-        x: { title: { display: true, text: 'Tension (lbs)', font: { family: "'Inter', sans-serif", size: 11, weight: '500' }, color: tickColor }, grid: { color: gridColor, lineWidth: 0.5 }, ticks: { font: { family: "'JetBrains Mono', monospace", size: 10 }, color: tickColor, stepSize: 2 } },
-        y: { min: 0, max: 100, title: { display: true, text: 'Rating', font: { family: "'Inter', sans-serif", size: 11, weight: '500' }, color: tickColor }, grid: { color: gridColor, lineWidth: 0.5 }, ticks: { font: { family: "'JetBrains Mono', monospace", size: 10 }, color: tickColor, stepSize: 25 } }
-      },
-      animation: { duration: 400, easing: 'easeOutQuart' }
-    },
+    data: nextData,
+    options: nextOptions,
     plugins: [baselinePlugin]
   });
 }
@@ -1025,17 +1050,10 @@ export function onTuneSliderInput(e: Event): void {
     valueEl.classList.add('slider-value-pulse');
   }
 
-  _recomputeExploredState();
-  renderDeltaVsBaseline();
-  renderBestValueMove();
-
-  const setup = getCurrentSetup();
-  if (setup) {
-    renderOverallBuildScore(setup, false);
-    renderSweepChart(setup);
+  if (_pendingTuneRenderFrame != null) {
+    cancelAnimationFrame(_pendingTuneRenderFrame);
   }
-
-  _updateTuneApplyButton();
+  _pendingTuneRenderFrame = requestAnimationFrame(_applyTuneInteractionFrame);
 }
 
 /**
