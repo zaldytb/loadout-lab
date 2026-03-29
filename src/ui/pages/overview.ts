@@ -19,6 +19,7 @@ import type { StringData, Racquet, SetupAttributes, StringConfig as EngineString
 import { getActiveLoadout } from '../../state/store.js';
 import { _prevObsValues, animateOBS } from '../components/obs-animation.js';
 import { renderMobileLoadoutPills } from '../components/dock-renderers.js';
+import { getScoredSetup, measurePerformance } from '../../utils/performance.js';
 
 // Globals from app.js
 declare const currentRadarChart: Chart | null;
@@ -56,13 +57,14 @@ export function renderDashboard(): void {
   dashboardContent?.classList.remove('hidden');
 
   const { racquet, stringConfig } = setup;
-  const stats = predictSetup(racquet, stringConfig);
-  const identity = generateIdentity(stats, racquet, stringConfig);
+  const scored = measurePerformance('overview dashboard render', () => getScoredSetup(setup));
+  const stats = scored.stats;
+  const identity = scored.identity;
   const fitProfile = generateFitProfile(stats, racquet, stringConfig);
   const warnings = generateWarnings(racquet, stringConfig, stats);
 
   // Hero Band
-  renderOverviewHero(racquet, stringConfig, stats, identity);
+  renderOverviewHero(racquet, stringConfig, stats, identity, scored.obs);
 
   // Stats
   renderStatBars(stats);
@@ -91,13 +93,15 @@ export function renderOverviewHero(
   racquet: Racquet,
   stringConfig: StringConfig,
   stats: SetupAttributes,
-  identity: { archetype: string; description: string }
+  identity: { archetype: string; description: string },
+  precomputedObs?: number
 ): void {
   const el = document.getElementById('overview-hero');
   if (!el) return;
 
-  const tensionCtx = buildTensionContext(stringConfig, racquet);
-  const score = computeCompositeScore(stats, tensionCtx);
+  const score = typeof precomputedObs === 'number'
+    ? precomputedObs
+    : computeCompositeScore(stats, buildTensionContext(stringConfig, racquet));
   const tier = getObsTier(score);
 
   // String name for meta line
@@ -264,66 +268,56 @@ export function renderStatBars(stats: SetupAttributes): void {
   const container = document.getElementById('stat-bars');
   if (!container) return;
 
-  container.innerHTML = '';
-
   const keyToLabel: Record<string, string> = {};
   STAT_KEYS.forEach((k, i) => keyToLabel[k] = STAT_LABELS[i]);
+  const hasStructure = container.querySelectorAll('.stat-group').length === STAT_GROUPS.length;
+  if (!hasStructure) {
+    container.innerHTML = '';
+    STAT_GROUPS.forEach(group => {
+      const groupDiv = document.createElement('div');
+      groupDiv.className = 'stat-group';
+      groupDiv.innerHTML = '<div class="stat-group-label">' + group.label + '</div>';
 
-  let barIdx = 0;
-  STAT_GROUPS.forEach(group => {
-    const groupDiv = document.createElement('div');
-    groupDiv.className = 'stat-group';
-    groupDiv.innerHTML = '<div class="stat-group-label">' + group.label + '</div>';
-
-    group.keys.forEach(key => {
-      const value = stats[key as keyof SetupAttributes] as number;
-      const isHigh = value > 70;
-      const segments = 20;
-      const filledSegments = Math.round((value / 100) * segments);
-
-      let segmentsHtml = '';
-      for (let i = 0; i < segments; i++) {
-        let segClass = 'empty';
-        if (i < filledSegments) {
-          segClass = isHigh ? 'high' : 'filled';
-        }
-        segmentsHtml += `<div class="stat-bar-segment ${segClass}" data-seg="${i}"></div>`;
-      }
-
-      const row = document.createElement('div');
-      row.className = 'stat-row';
-      row.innerHTML = `
-        <div class="stat-row-header">
-          <span class="stat-label">${keyToLabel[key]}</span>
-          <span class="stat-value">${value}</span>
-        </div>
-        <div class="stat-bar-track" data-value="${value}">
-          ${segmentsHtml}
-        </div>
-      `;
-      groupDiv.appendChild(row);
-      barIdx++;
-    });
-
-    container.appendChild(groupDiv);
-  });
-
-  // Animate segments
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      container.querySelectorAll('.stat-bar-track').forEach((track, idx) => {
-        const value = parseFloat((track as HTMLElement).dataset.value || '0');
-        const segments = track.querySelectorAll('.stat-bar-segment');
-        const filledCount = Math.round((value / 100) * segments.length);
-
-        segments.forEach((seg, i) => {
-          setTimeout(() => {
-            if (i < filledCount) {
-              seg.classList.add('active');
-            }
-          }, idx * 40 + i * 15);
-        });
+      group.keys.forEach(key => {
+        const row = document.createElement('div');
+        row.className = 'stat-row';
+        row.dataset.statKey = key;
+        row.innerHTML = `
+          <div class="stat-row-header">
+            <span class="stat-label">${keyToLabel[key]}</span>
+            <span class="stat-value">0</span>
+          </div>
+          <div class="stat-bar-track" data-value="0">
+            ${Array.from({ length: 20 }, (_, index) => `<div class="stat-bar-segment empty" data-seg="${index}"></div>`).join('')}
+          </div>
+        `;
+        groupDiv.appendChild(row);
       });
+
+      container.appendChild(groupDiv);
+    });
+  }
+
+  container.querySelectorAll<HTMLElement>('.stat-row').forEach((row) => {
+    const key = row.dataset.statKey || '';
+    const value = stats[key as keyof SetupAttributes] as number;
+    const isHigh = value > 70;
+    const track = row.querySelector('.stat-bar-track') as HTMLElement | null;
+    const valueEl = row.querySelector('.stat-value');
+    if (valueEl) valueEl.textContent = String(value);
+    if (!track) return;
+
+    track.dataset.value = String(value);
+    const segments = Array.from(track.querySelectorAll<HTMLElement>('.stat-bar-segment'));
+    const filledCount = Math.round((value / 100) * segments.length);
+
+    segments.forEach((seg, segIdx) => {
+      seg.classList.remove('filled', 'high', 'empty', 'active');
+      if (segIdx < filledCount) {
+        seg.classList.add(isHigh ? 'high' : 'filled', 'active');
+      } else {
+        seg.classList.add('empty');
+      }
     });
   });
 

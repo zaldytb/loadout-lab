@@ -4,6 +4,14 @@
 import { RACQUETS, STRINGS } from '../../data/loader.js';
 import { predictSetup, buildTensionContext, computeCompositeScore, getObsScoreColor } from '../../engine/index.js';
 import type { Racquet, StringData, SetupAttributes, StringConfig } from '../../engine/types.js';
+import {
+  STRING_BRANDS,
+  STRING_MATERIALS,
+  getCachedValue,
+  getScoredSetup,
+  measurePerformance,
+  scheduleRender,
+} from '../../utils/performance.js';
 
 // Window extensions for external dependencies
 interface WindowExt extends Window {
@@ -20,6 +28,8 @@ interface WindowExt extends Window {
 // Module-level state
 let _optimizeInitialized = false;
 let _optExcludedStringIds = new Set<string>();
+let _optAllowedMaterials = new Set<string>();
+let _optAllowedBrands = new Set<string>();
 let _optLastCandidates: Array<{
   type: 'full' | 'hybrid';
   label: string;
@@ -34,6 +44,7 @@ let _optLastCandidates: Array<{
   racquet: Racquet;
 }> | null = null;
 let _optLastCurrentOBS = 0;
+let _optRunToken = 0;
 
 /**
  * Initialize the optimizer page
@@ -72,7 +83,8 @@ export function initOptimize(): void {
   );
 
   // Material filter
-  const materials = [...new Set(STRINGS.map(s => s.material))].sort();
+  const materials = STRING_MATERIALS;
+  _optAllowedMaterials = new Set(materials);
   const matContainer = document.getElementById('opt-material-checks');
   if (matContainer) {
     materials.forEach(mat => {
@@ -83,6 +95,8 @@ export function initOptimize(): void {
         if ((e.target as HTMLElement).tagName !== 'INPUT') return;
         const input = item.querySelector('input');
         item.classList.toggle('active', input?.checked ?? false);
+        if (input?.checked) _optAllowedMaterials.add(mat);
+        else _optAllowedMaterials.delete(mat);
         _updateOptMSLabel('opt-material-checks', 'opt-material-ms-label', 'material', materials.length);
       });
       matContainer.appendChild(item);
@@ -91,7 +105,8 @@ export function initOptimize(): void {
   }
 
   // Brand filter
-  const brands = [...new Set(STRINGS.map(s => s.name.split(' ')[0]))].sort();
+  const brands = STRING_BRANDS;
+  _optAllowedBrands = new Set(brands);
   const brandContainer = document.getElementById('opt-brand-checks');
   if (brandContainer) {
     brands.forEach(brand => {
@@ -102,6 +117,8 @@ export function initOptimize(): void {
         if ((e.target as HTMLElement).tagName !== 'INPUT') return;
         const input = item.querySelector('input');
         item.classList.toggle('active', input?.checked ?? false);
+        if (input?.checked) _optAllowedBrands.add(brand);
+        else _optAllowedBrands.delete(brand);
         _updateOptMSLabel('opt-brand-checks', 'opt-brand-ms-label', 'brand', brands.length);
       });
       brandContainer.appendChild(item);
@@ -308,6 +325,7 @@ export function _renderExcludeTags(): void {
 export function runOptimizer(): void {
   const resultsEl = document.getElementById('opt-results');
   const countEl = document.getElementById('opt-results-count');
+  const runToken = ++_optRunToken;
 
   _optClearTensionFilter();
 
@@ -315,25 +333,17 @@ export function runOptimizer(): void {
     resultsEl.innerHTML = '<div class="opt-loading">Computing builds…</div>';
   }
 
-  requestAnimationFrame(() => {
-    setTimeout(() => { _runOptimizerCore(resultsEl, countEl); }, 16);
+  scheduleRender('optimizer:run', () => {
+    void _runOptimizerCore(resultsEl, countEl, runToken);
   });
 }
 
 /**
  * Core optimizer logic
  */
-function _runOptimizerCore(resultsEl: HTMLElement | null, countEl: HTMLElement | null): void {
+async function _runOptimizerCore(resultsEl: HTMLElement | null, countEl: HTMLElement | null, runToken: number): Promise<void> {
   const frameSelVal = (document.getElementById('opt-frame-value') as HTMLInputElement | null)?.value || '';
   const setupType = (document.querySelector('.opt-toggle.active') as HTMLElement | null)?.dataset.value || 'both';
-
-  const allowedMaterials = new Set(
-    Array.from(document.querySelectorAll('#opt-material-checks input:checked')).map(cb => (cb as HTMLInputElement).value)
-  );
-
-  const allowedBrands = new Set(
-    Array.from(document.querySelectorAll('#opt-brand-checks input:checked')).map(cb => (cb as HTMLInputElement).value)
-  );
 
   const lockSide = (document.getElementById('opt-lock-side') as HTMLSelectElement | null)?.value || 'none';
   const lockStringId = (document.getElementById('opt-lock-string-value') as HTMLInputElement | null)?.value || '';
@@ -341,12 +351,19 @@ function _runOptimizerCore(resultsEl: HTMLElement | null, countEl: HTMLElement |
 
   function isStringAllowed(s: StringData): boolean {
     if (_optExcludedStringIds.has(s.id)) return false;
-    if (!allowedMaterials.has(s.material)) return false;
-    if (!allowedBrands.has(s.name.split(' ')[0])) return false;
+    if (!_optAllowedMaterials.has(s.material)) return false;
+    if (!_optAllowedBrands.has(s.name.split(' ')[0])) return false;
     return true;
   }
 
-  const filteredStrings = STRINGS.filter(isStringAllowed);
+  const filterSignature = [
+    [..._optAllowedMaterials].sort().join(','),
+    [..._optAllowedBrands].sort().join(','),
+    [..._optExcludedStringIds].sort().join(','),
+  ].join('|');
+  const filteredStrings = getCachedValue(`opt:filtered:${filterSignature}`, () =>
+    STRINGS.filter(isStringAllowed)
+  );
   const sortBy = (document.getElementById('opt-sort') as HTMLSelectElement | null)?.value || 'obs';
   const tensionMin = parseInt((document.getElementById('opt-tension-min') as HTMLInputElement | null)?.value || '40') || 40;
   const tensionMax = parseInt((document.getElementById('opt-tension-max') as HTMLInputElement | null)?.value || '65') || 65;
@@ -387,11 +404,9 @@ function _runOptimizerCore(resultsEl: HTMLElement | null, countEl: HTMLElement |
   let currentStats: SetupAttributes | null = null;
   const currentSetup = win.getCurrentSetup?.();
   if (currentSetup) {
-    currentStats = predictSetup(currentSetup.racquet, currentSetup.stringConfig);
-    if (currentStats) {
-      const tCtx = buildTensionContext(currentSetup.stringConfig, currentSetup.racquet);
-      currentOBS = computeCompositeScore(currentStats, tCtx);
-    }
+    const scored = getScoredSetup(currentSetup);
+    currentStats = scored.stats;
+    currentOBS = scored.obs;
   }
 
   const midTension = Math.round((racquet.tensionRange[0] + racquet.tensionRange[1]) / 2);
@@ -402,10 +417,10 @@ function _runOptimizerCore(resultsEl: HTMLElement | null, countEl: HTMLElement |
     let bestScore = -1, bestTension = midTension, bestStats: SetupAttributes | null = null;
     for (let t = sweepMin; t <= sweepMax; t += 1) {
       const cfg = { ...buildConfig, mainsTension: t, crossesTension: t - (buildConfig.isHybrid ? 2 : 0) };
-      const stats = predictSetup(racquet, cfg as StringConfig);
+      const scored = getScoredSetup({ racquet, stringConfig: cfg as StringConfig });
+      const stats = scored.stats;
       if (!stats) continue;
-      const tCtx = buildTensionContext(cfg as StringConfig, racquet);
-      const score = computeCompositeScore(stats, tCtx);
+      const score = scored.obs;
       if (score > bestScore) {
         bestScore = score;
         bestTension = t;
@@ -415,14 +430,24 @@ function _runOptimizerCore(resultsEl: HTMLElement | null, countEl: HTMLElement |
     return { score: bestScore, tension: bestTension, stats: bestStats };
   }
 
-  let candidates: typeof _optLastCandidates = [];
+  const candidates: NonNullable<typeof _optLastCandidates> = [];
+  const fullResults = new Map<string, ReturnType<typeof findOptimalTension>>();
+
+  async function yieldBack(counter: number): Promise<boolean> {
+    if (runToken !== _optRunToken) return true;
+    if (counter % 24 !== 0) return false;
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    return runToken !== _optRunToken;
+  }
 
   // Full bed candidates
   if (setupType === 'full' || setupType === 'both') {
-    filteredStrings.forEach(s => {
+    for (let index = 0; index < filteredStrings.length; index += 1) {
+      const s = filteredStrings[index];
       const result = findOptimalTension({ isHybrid: false, string: s });
+      fullResults.set(s.id, result);
       if (result.stats) {
-        candidates!.push({
+        candidates.push({
           type: 'full',
           label: s.name,
           gauge: (s.gauge || '').replace(/\s*\(.*\)/, ''),
@@ -434,7 +459,8 @@ function _runOptimizerCore(resultsEl: HTMLElement | null, countEl: HTMLElement |
           racquet
         });
       }
-    });
+      if (await yieldBack(index + 1)) return;
+    }
   }
 
   // Hybrid candidates
@@ -450,7 +476,8 @@ function _runOptimizerCore(resultsEl: HTMLElement | null, countEl: HTMLElement |
     } else {
       const tempFullForRanking: Array<{ stringId: string; score: number }> = [];
       filteredStrings.forEach(s => {
-        const result = findOptimalTension({ isHybrid: false, string: s });
+        const result = fullResults.get(s.id) || findOptimalTension({ isHybrid: false, string: s });
+        fullResults.set(s.id, result);
         if (result.stats) tempFullForRanking.push({ stringId: s.id, score: result.score });
       });
       tempFullForRanking.sort((a, b) => b.score - a.score);
@@ -469,12 +496,13 @@ function _runOptimizerCore(resultsEl: HTMLElement | null, countEl: HTMLElement |
       });
     }
 
-    hybridMainsPool.forEach(mains => {
-      hybridCrossesPool.forEach(cross => {
-        if (cross.id === mains.id) return;
+    let hybridCounter = 0;
+    for (const mains of hybridMainsPool) {
+      for (const cross of hybridCrossesPool) {
+        if (cross.id === mains.id) continue;
         const result = findOptimalTension({ isHybrid: true, mains, crosses: cross });
         if (result.stats && result.score > 0) {
-          candidates!.push({
+          candidates.push({
             type: 'hybrid',
             label: `${mains.name} / ${cross.name}`,
             gauge: ((mains.gauge || '').replace(/\s*\(.*\)/, '') + '/' + (cross.gauge || '').replace(/\s*\(.*\)/, '')),
@@ -487,12 +515,14 @@ function _runOptimizerCore(resultsEl: HTMLElement | null, countEl: HTMLElement |
             racquet
           });
         }
-      });
-    });
+        hybridCounter += 1;
+        if (await yieldBack(hybridCounter)) return;
+      }
+    }
   }
 
   // Filter by stat minimums
-  candidates = candidates.filter(c => {
+  let filteredCandidates = candidates.filter(c => {
     return c.stats.spin >= mins.spin &&
            c.stats.control >= mins.control &&
            c.stats.power >= mins.power &&
@@ -506,7 +536,7 @@ function _runOptimizerCore(resultsEl: HTMLElement | null, countEl: HTMLElement |
 
   // Upgrade mode filtering
   if (upgradeMode && currentStats) {
-    candidates = candidates.filter(c => {
+    filteredCandidates = filteredCandidates.filter(c => {
       if (c.score < currentOBS + upgradeOBS) return false;
       if (currentStats.control - c.stats.control > upgradeCtlLoss) return false;
       if (currentStats.durability - c.stats.durability > upgradeDurLoss) return false;
@@ -515,18 +545,20 @@ function _runOptimizerCore(resultsEl: HTMLElement | null, countEl: HTMLElement |
   }
 
   // Sort
-  candidates.sort((a, b) => {
+  const finalizedCandidates = measurePerformance('optimizer candidate generation', () => filteredCandidates.sort((a, b) => {
     if (sortBy === 'obs') return b.score - a.score;
     return ((b.stats as unknown as Record<string, number>)[sortBy] || 0) - ((a.stats as unknown as Record<string, number>)[sortBy] || 0);
-  });
+  }));
 
-  _optLastCandidates = candidates;
+  if (runToken !== _optRunToken) return;
+
+  _optLastCandidates = finalizedCandidates;
   _optLastCurrentOBS = currentOBS;
 
   if (countEl) {
-    countEl.textContent = `${candidates.length} result${candidates.length !== 1 ? 's' : ''}`;
+    countEl.textContent = `${finalizedCandidates.length} result${finalizedCandidates.length !== 1 ? 's' : ''}`;
   }
-  renderOptimizerResults(candidates, sortBy, currentOBS);
+  renderOptimizerResults(finalizedCandidates, sortBy, currentOBS);
 }
 
 /**

@@ -24,6 +24,7 @@ import { renderSlotCard } from './components/SlotCard.js';
 import { renderRadarChart, updateRadarChart } from './components/RadarChart.js';
 import { renderDiffBattery } from './components/DiffBattery.js';
 import { renderSlotEditor, getEditorFormData, mountSlotEditor } from './components/SlotEditor.js';
+import { getCachedValue, measurePerformance } from '../../../utils/performance.js';
 
 // Container IDs
 const CONTAINER_SLOTS = 'compare-slots-container';
@@ -38,6 +39,9 @@ let _showAllStats = false;
 let _editorUnmount: (() => void) | null = null;
 const compareRacquets = RACQUETS as unknown as Racquet[];
 const compareStrings = STRINGS as unknown as StringData[];
+let _lastSlotsRenderKey = '';
+let _lastRadarRenderKey = '';
+let _lastDiffRenderKey = '';
 
 type CompareLoadout = Loadout & {
   sourceLoadoutId?: string | null;
@@ -96,6 +100,18 @@ function render(): void {
   renderDiff();
 }
 
+function getStructuralSlotsKey(): string {
+  return _currentState.slots
+    .map((slot) => `${slot.id}:${slot.loadout?.id || 'empty'}`)
+    .join('|') + `|editing:${_currentState.editingSlotId || 'none'}`;
+}
+
+function getConfiguredSlotsKey(): string {
+  return getConfiguredSlots()
+    .map((slot) => `${slot.id}:${slot.loadout?.id || 'empty'}:${slot.loadout?.obs || 0}`)
+    .join('|');
+}
+
 /**
  * Render the slot cards
  */
@@ -104,6 +120,9 @@ function renderSlots(): void {
   if (!container) return;
   
   const slots = _currentState.slots;
+  const nextKey = getStructuralSlotsKey();
+  if (_lastSlotsRenderKey === nextKey) return;
+  _lastSlotsRenderKey = nextKey;
   
   container.innerHTML = `
     <div class="compare-slots-grid">
@@ -133,6 +152,7 @@ function renderRadar(): void {
   if (!container) return;
   
   const configured = getConfiguredSlots();
+  const radarKey = getConfiguredSlotsKey();
   
   if (configured.length === 0) {
     container.innerHTML = `
@@ -146,6 +166,7 @@ function renderRadar(): void {
         </div>
       </div>
     `;
+    _lastRadarRenderKey = '';
     return;
   }
   
@@ -158,7 +179,10 @@ function renderRadar(): void {
     `;
   }
   
-  renderRadarChart('compare-radar-chart', { slots: configured });
+  if (_lastRadarRenderKey !== radarKey) {
+    measurePerformance('compare radar update', () => renderRadarChart('compare-radar-chart', { slots: configured }));
+    _lastRadarRenderKey = radarKey;
+  }
 }
 
 export function updateComparisonRadar(): void {
@@ -173,17 +197,22 @@ function renderDiff(): void {
   if (!container) return;
   
   const configured = getConfiguredSlots();
+  const diffKey = `${getConfiguredSlotsKey()}|showAll:${_showAllStats}`;
   
   if (configured.length < 2) {
     container.innerHTML = '';
+    _lastDiffRenderKey = '';
     return;
   }
   
-  container.innerHTML = renderDiffBattery({
+  if (_lastDiffRenderKey === diffKey) return;
+
+  container.innerHTML = measurePerformance('compare diff update', () => renderDiffBattery({
     slots: configured,
     maxRows: 6,
     showAll: _showAllStats
-  });
+  }));
+  _lastDiffRenderKey = diffKey;
 }
 
 export function renderComparisonDeltas(): void {
@@ -244,17 +273,22 @@ export function showQuickAddPrompt(): void {
   const stringSelect = document.getElementById('compare-qa-string') as HTMLSelectElement | null;
   if (!frameSelect || !stringSelect) return;
 
-  compareRacquets.forEach((racquet) => {
+  const options = getCachedValue('compare:quick-add-options', () => ({
+    racquets: compareRacquets.map((racquet) => ({ id: racquet.id, name: racquet.name })),
+    strings: compareStrings.map((string) => ({ id: string.id, label: `${string.name} (${string.gauge})` })),
+  }));
+
+  options.racquets.forEach((racquet) => {
     const option = document.createElement('option');
     option.value = racquet.id;
     option.textContent = racquet.name;
     frameSelect.appendChild(option);
   });
 
-  compareStrings.forEach((string) => {
+  options.strings.forEach((string) => {
     const option = document.createElement('option');
     option.value = string.id;
-    option.textContent = `${string.name} (${string.gauge})`;
+    option.textContent = string.label;
     stringSelect.appendChild(option);
   });
 }

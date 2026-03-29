@@ -23,6 +23,13 @@ import { createLoadout } from '../../state/loadout.js';
 import { activateLoadout, switchMode } from '../pages/shell.js';
 import { initCompendium, _compSelectFrame, _compSwitchTab } from '../pages/compendium.js';
 import { _stringSelectString } from '../pages/strings.js';
+import {
+  RACQUET_BRANDS,
+  STRING_BRANDS,
+  getCachedValue,
+  measurePerformance,
+  scheduleRender,
+} from '../../utils/performance.js';
 
 import type {
   Racquet,
@@ -94,6 +101,8 @@ let _lbv2State: Lbv2State = {
   loading:     false,
   initialized: false,
 };
+let _lbv2ShellMounted = false;
+let _lbv2RunToken = 0;
 
 // ── Stat options shown to the user ───────────────────────────────────────────
 
@@ -122,7 +131,11 @@ function initLeaderboard(): void {
   _lbv2State.initialized = true;
   const panel = document.getElementById('comp-tab-leaderboard');
   if (!panel) return;
-  panel.innerHTML = _buildShellHTML();
+  if (!_lbv2ShellMounted) {
+    panel.innerHTML = _buildShellHTML();
+    _lbv2ShellMounted = true;
+  }
+  _syncLbv2Shell();
   _runLbv2();
 }
 
@@ -158,6 +171,7 @@ function _buildShellHTML(): string {
           ? 'border-dc-accent text-dc-accent bg-dc-accent/5'
           : 'border-dc-storm/40 text-dc-storm hover:border-dc-storm hover:text-dc-platinum'
       }"
+      data-type-filter="${v}"
       onclick="_lbv2SetFilter('${v}')"
     >${l}</button>`;
   }).join('');
@@ -175,6 +189,7 @@ function _buildShellHTML(): string {
           ? 'border-dc-accent text-dc-accent'
           : 'border-transparent text-dc-storm hover:text-dc-platinum hover:border-dc-storm/40'
       }"
+      data-view-mode="${v}"
       onclick="_lbv2SetView('${v}')"
     >
       <span class="text-[10px] font-bold uppercase tracking-[0.12em]">${l}</span>
@@ -190,9 +205,7 @@ function _buildShellHTML(): string {
   const ff = _lbv2State.frameFilters;
 
   // Derive brand list dynamically from RACQUETS
-  const brands: string[] = typeof RACQUETS !== 'undefined'
-    ? [...new Set((RACQUETS as unknown as Racquet[]).map((r: Racquet) => r.name.split(' ')[0]))].sort()
-    : ['Babolat','Head','Wilson','Yonex','Tecnifibre','Dunlop','Prince','Volkl','Diadem','Solinco','ProKennex'];
+  const brands: string[] = RACQUET_BRANDS;
 
   const sel = (id: string, val: string, opts: Array<{v: string; l: string}>, placeholder: string): string =>
     `<select
@@ -204,8 +217,8 @@ function _buildShellHTML(): string {
       ${opts.map(o => `<option value="${o.v}" ${val === o.v ? 'selected' : ''}>${o.l}</option>`).join('')}
     </select>`;
 
-  const frameFilterRow = showFrameFilters ? `
-    <div class="flex items-center gap-2 flex-wrap">
+  const frameFilterRow = `
+    <div class="flex items-center gap-2 flex-wrap ${showFrameFilters ? '' : 'hidden'}" id="lb2-frame-filters-row">
       <span class="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-dc-storm shrink-0">Filter</span>
       ${sel('lb2-ff-brand', ff.brand, brands.map(b => ({ v: b, l: b })), 'All brands')}
       ${sel('lb2-ff-pattern', ff.pattern, [
@@ -246,15 +259,13 @@ function _buildShellHTML(): string {
           class="font-mono text-[9px] font-bold uppercase tracking-[0.1em] px-2.5 py-1.5 border border-dc-storm/30 text-dc-storm/60 hover:border-dc-red hover:text-dc-red transition-colors"
           onclick="_lbv2ClearFrameFilters()"
         >Clear</button>` : ''}
-    </div>` : '';
+    </div>`;
 
   // String filters — only shown on strings tab
   const showStringFilters = _lbv2State.viewMode === 'strings';
   const sf = _lbv2State.stringFilters;
 
-  const stringBrands: string[] = typeof STRINGS !== 'undefined'
-    ? [...new Set(STRINGS.map((s: StringData) => s.name.split(' ')[0]))].sort()
-    : ['Babolat','Solinco','Luxilon','Head','Tecnifibre','Wilson','Yonex','Volkl','Dunlop','Toroline','Grapplesnake','ReString','Diadem'];
+  const stringBrands: string[] = STRING_BRANDS;
 
   const ssel = (id: string, val: string, opts: Array<{v: string; l: string}>, placeholder: string): string =>
     `<select
@@ -266,8 +277,8 @@ function _buildShellHTML(): string {
       ${opts.map(o => `<option value="${o.v}" ${val === o.v ? 'selected' : ''}>${o.l}</option>`).join('')}
     </select>`;
 
-  const stringFilterRow = showStringFilters ? `
-    <div class="flex items-center gap-2 flex-wrap">
+  const stringFilterRow = `
+    <div class="flex items-center gap-2 flex-wrap ${showStringFilters ? '' : 'hidden'}" id="lb2-string-filters-row">
       <span class="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-dc-storm shrink-0">Filter</span>
       ${ssel('lb2-sf-brand', sf.brand, stringBrands.map(b => ({ v: b, l: b })), 'All brands')}
       ${ssel('lb2-sf-material', sf.material, [
@@ -300,7 +311,7 @@ function _buildShellHTML(): string {
           class="font-mono text-[9px] font-bold uppercase tracking-[0.1em] px-2.5 py-1.5 border border-dc-storm/30 text-dc-storm/60 hover:border-dc-red hover:text-dc-red transition-colors"
           onclick="_lbv2ClearStringFilters()"
         >Clear</button>` : ''}
-    </div>` : '';
+    </div>`;
 
   return `
     <div class="flex flex-col min-h-full">
@@ -322,14 +333,13 @@ function _buildShellHTML(): string {
         </div>
 
         <!-- Secondary filter (builds tab only) -->
-        ${showTypeFilter ? `
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 ${showTypeFilter ? '' : 'hidden'}" id="lb2-type-filter-row">
           <span class="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-dc-storm shrink-0">Setup type</span>
           <div class="flex gap-1.5">
             ${typePills}
           </div>
           <span class="font-mono text-[9px] text-dc-storm/50 ml-auto" id="lb2-count"></span>
-        </div>` : ''}
+        </div>
 
         <!-- Frame filters (frames tab only) -->
         ${frameFilterRow}
@@ -337,10 +347,9 @@ function _buildShellHTML(): string {
         <!-- String filters (strings tab only) -->
         ${stringFilterRow}
 
-        ${!showTypeFilter ? `
-        <div class="flex justify-end">
+        <div class="flex justify-end ${!showTypeFilter ? '' : 'hidden'}" id="lb2-count-row">
           <span class="font-mono text-[9px] text-dc-storm/50" id="lb2-count"></span>
-        </div>` : ''}
+        </div>
 
       </div>
 
@@ -354,6 +363,61 @@ function _buildShellHTML(): string {
 
     </div>
   `;
+}
+
+function _syncLbv2Shell(): void {
+  const panel = document.getElementById('comp-tab-leaderboard');
+  if (!panel) return;
+  if (!panel.querySelector('#lb2-results')) {
+    panel.innerHTML = _buildShellHTML();
+  }
+
+  const showTypeFilter = _lbv2State.viewMode === 'builds';
+  panel.querySelector('#lb2-type-filter-row')?.classList.toggle('hidden', !showTypeFilter);
+  panel.querySelector('#lb2-count-row')?.classList.toggle('hidden', showTypeFilter);
+  panel.querySelector('#lb2-frame-filters-row')?.classList.toggle('hidden', _lbv2State.viewMode !== 'frames');
+  panel.querySelector('#lb2-string-filters-row')?.classList.toggle('hidden', _lbv2State.viewMode !== 'strings');
+
+  panel.querySelectorAll<HTMLElement>('[data-type-filter]').forEach((button) => {
+    const isActive = button.dataset.typeFilter === _lbv2State.filterType;
+    button.classList.toggle('border-dc-accent', isActive);
+    button.classList.toggle('text-dc-accent', isActive);
+    button.classList.toggle('bg-dc-accent/5', isActive);
+    button.classList.toggle('border-dc-storm/40', !isActive);
+    button.classList.toggle('text-dc-storm', !isActive);
+  });
+
+  panel.querySelectorAll<HTMLElement>('[data-view-mode]').forEach((button) => {
+    const isActive = button.dataset.viewMode === _lbv2State.viewMode;
+    button.classList.toggle('border-dc-accent', isActive);
+    button.classList.toggle('text-dc-accent', isActive);
+    button.classList.toggle('border-transparent', !isActive);
+    button.classList.toggle('text-dc-storm', !isActive);
+  });
+
+  const ffBrand = panel.querySelector('#lb2-ff-brand') as HTMLSelectElement | null;
+  const ffPattern = panel.querySelector('#lb2-ff-pattern') as HTMLSelectElement | null;
+  const ffHeadSize = panel.querySelector('#lb2-ff-headSize') as HTMLSelectElement | null;
+  const ffWeight = panel.querySelector('#lb2-ff-weight') as HTMLSelectElement | null;
+  const ffStiffness = panel.querySelector('#lb2-ff-stiffness') as HTMLSelectElement | null;
+  const ffYear = panel.querySelector('#lb2-ff-year') as HTMLSelectElement | null;
+  const sfBrand = panel.querySelector('#lb2-sf-brand') as HTMLSelectElement | null;
+  const sfMaterial = panel.querySelector('#lb2-sf-material') as HTMLSelectElement | null;
+  const sfShape = panel.querySelector('#lb2-sf-shape') as HTMLSelectElement | null;
+  const sfGauge = panel.querySelector('#lb2-sf-gauge') as HTMLSelectElement | null;
+  const sfStiffness = panel.querySelector('#lb2-sf-stiffness') as HTMLSelectElement | null;
+
+  if (ffBrand) ffBrand.value = _lbv2State.frameFilters.brand;
+  if (ffPattern) ffPattern.value = _lbv2State.frameFilters.pattern;
+  if (ffHeadSize) ffHeadSize.value = _lbv2State.frameFilters.headSize;
+  if (ffWeight) ffWeight.value = _lbv2State.frameFilters.weight;
+  if (ffStiffness) ffStiffness.value = _lbv2State.frameFilters.stiffness;
+  if (ffYear) ffYear.value = _lbv2State.frameFilters.year;
+  if (sfBrand) sfBrand.value = _lbv2State.stringFilters.brand;
+  if (sfMaterial) sfMaterial.value = _lbv2State.stringFilters.material;
+  if (sfShape) sfShape.value = _lbv2State.stringFilters.shape;
+  if (sfGauge) sfGauge.value = _lbv2State.stringFilters.gauge;
+  if (sfStiffness) sfStiffness.value = _lbv2State.stringFilters.stiffness;
 }
 
 // ── State setters ─────────────────────────────────────────────────────────────
@@ -376,6 +440,7 @@ function _lbv2SetStat(key: string): void {
     }
   });
 
+  _syncLbv2Shell();
   _runLbv2();
 }
 
@@ -384,8 +449,7 @@ function _lbv2SetFilter(filterType: 'both' | 'full' | 'hybrid'): void {
   _lbv2State.filterType = filterType;
   _lbv2State.results = null;
   // Re-render shell to update type pills, then run
-  const panel = document.getElementById('comp-tab-leaderboard');
-  if (panel) panel.innerHTML = _buildShellHTML();
+  _syncLbv2Shell();
   _runLbv2();
 }
 
@@ -394,8 +458,7 @@ function _lbv2SetView(viewMode: 'builds' | 'frames' | 'strings'): void {
   _lbv2State.viewMode = viewMode;
   _lbv2State.results = null;
   // Re-render shell (type filter visibility changes), then run
-  const panel = document.getElementById('comp-tab-leaderboard');
-  if (panel) panel.innerHTML = _buildShellHTML();
+  _syncLbv2Shell();
   _runLbv2();
 }
 
@@ -405,16 +468,14 @@ function _lbv2SetFrameFilter(key: string): void {
   ((_lbv2State.frameFilters as Record<string, string>)[key]) = (el as HTMLSelectElement).value;
   _lbv2State.results = null;
   // Re-render shell to update Clear button visibility, then run
-  const panel = document.getElementById('comp-tab-leaderboard');
-  if (panel) panel.innerHTML = _buildShellHTML();
+  _syncLbv2Shell();
   _runLbv2();
 }
 
 function _lbv2ClearFrameFilters(): void {
   _lbv2State.frameFilters = { brand: '', pattern: '', headSize: '', weight: '', stiffness: '', year: '' };
   _lbv2State.results = null;
-  const panel = document.getElementById('comp-tab-leaderboard');
-  if (panel) panel.innerHTML = _buildShellHTML();
+  _syncLbv2Shell();
   _runLbv2();
 }
 
@@ -423,16 +484,14 @@ function _lbv2SetStringFilter(key: string): void {
   if (!el) return;
   ((_lbv2State.stringFilters as Record<string, string>)[key]) = (el as HTMLSelectElement).value;
   _lbv2State.results = null;
-  const panel = document.getElementById('comp-tab-leaderboard');
-  if (panel) panel.innerHTML = _buildShellHTML();
+  _syncLbv2Shell();
   _runLbv2();
 }
 
 function _lbv2ClearStringFilters(): void {
   _lbv2State.stringFilters = { brand: '', material: '', shape: '', gauge: '', stiffness: '' };
   _lbv2State.results = null;
-  const panel = document.getElementById('comp-tab-leaderboard');
-  if (panel) panel.innerHTML = _buildShellHTML();
+  _syncLbv2Shell();
   _runLbv2();
 }
 
@@ -441,6 +500,7 @@ function _lbv2ClearStringFilters(): void {
 function _runLbv2(): void {
   const resultsEl = document.getElementById('lb2-results');
   if (!resultsEl) return;
+  const runToken = ++_lbv2RunToken;
 
   const statMeta = LB_STATS.find(s => s.key === _lbv2State.statKey);
   resultsEl.innerHTML = `
@@ -451,15 +511,16 @@ function _runLbv2(): void {
       </span>
     </div>`;
 
-  requestAnimationFrame(() => setTimeout(() => {
+  scheduleRender('leaderboard:run', () => setTimeout(() => {
+    if (runToken !== _lbv2RunToken) return;
     try {
       let results: unknown[];
       if (_lbv2State.viewMode === 'frames') {
-        results = _computeLbv2Frames();
+        results = measurePerformance('leaderboard ranking generation', () => _computeLbv2Frames());
       } else if (_lbv2State.viewMode === 'strings') {
-        results = _computeLbv2Strings();
+        results = measurePerformance('leaderboard ranking generation', () => _computeLbv2Strings());
       } else {
-        results = _computeLbv2Results();
+        results = measurePerformance('leaderboard ranking generation', () => _computeLbv2Results());
       }
       _lbv2State.results = results;
 
@@ -540,6 +601,7 @@ interface StringResult {
 function _computeLbv2Results(): BuildResult[] {
   const statKey    = _lbv2State.statKey;
   const filterType = _lbv2State.filterType;
+  return getCachedValue(`lb:builds:${statKey}:${filterType}`, () => {
   const candidates: BuildResult[] = [];
 
   // Helper: find optimal tension for a config and return its stat value
@@ -668,6 +730,7 @@ function _computeLbv2Results(): BuildResult[] {
   }
 
   return deduped;
+  });
 }
 
 // ── Results renderer (pure Tailwind) ─────────────────────────────────────────
@@ -827,6 +890,7 @@ function _renderLbv2Results(results: BuildResult[]): void {
 function _computeLbv2Frames(): FrameResult[] {
   const statKey = _lbv2State.statKey;
   const ff      = _lbv2State.frameFilters;
+  return getCachedValue(`lb:frames:${statKey}:${Object.values(ff).join('|')}`, () => {
 
   // Apply filters
   const filtered = (RACQUETS as unknown as Racquet[]).filter(function(r: Racquet) {
@@ -882,6 +946,7 @@ function _computeLbv2Frames(): FrameResult[] {
   .filter(function(e: FrameResult) { return e.rankVal != null; })
   .sort(function(a: FrameResult, b: FrameResult) { return b.rankVal - a.rankVal; })
   .slice(0, 60);
+  });
 }
 
 function _renderLbv2Frames(results: FrameResult[]): void {
@@ -980,6 +1045,7 @@ function _renderLbv2Frames(results: FrameResult[]): void {
 function _computeLbv2Strings(): StringResult[] {
   const statKey = _lbv2State.statKey;
   const sf      = _lbv2State.stringFilters;
+  return getCachedValue(`lb:strings:${statKey}:${Object.values(sf).join('|')}`, () => {
 
   // Apply filters
   const filtered = (STRINGS as StringData[]).filter(function(s: StringData) {
@@ -1028,6 +1094,7 @@ function _computeLbv2Strings(): StringResult[] {
   .filter(function(e: StringResult) { return e.rankVal != null && e.rankVal > 0; })
   .sort(function(a: StringResult, b: StringResult) { return b.rankVal - a.rankVal; })
   .slice(0, 60);
+  });
 }
 
 function _renderLbv2Strings(results: StringResult[]): void {
