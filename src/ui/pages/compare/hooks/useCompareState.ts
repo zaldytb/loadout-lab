@@ -10,6 +10,8 @@ import {
   getComparisonSlots as getAppComparisonSlots,
   setComparisonSlots as setAppComparisonSlots,
 } from '../../../../state/app-state.js';
+import { normalizeCompareSlots } from '../../../../runtime/contracts.js';
+import { reportRuntimeIssue } from '../../../../runtime/diagnostics.js';
 
 // Private state
 let _state: CompareState = {
@@ -59,7 +61,7 @@ function hydrateFromAppState(): void {
 
   _state = {
     ..._state,
-    slots: nextSlots,
+    slots: normalizeCompareSlots(nextSlots),
   };
 }
 
@@ -67,12 +69,25 @@ function hydrateFromAppState(): void {
 const _subscribers: Set<(state: CompareState) => void> = new Set();
 
 function notify(): void {
+  const normalizedSlots = normalizeCompareSlots(_state.slots);
+  const hadInvalidSlots = normalizedSlots.some((slot, index) =>
+    slot.loadout !== _state.slots[index]?.loadout || slot.stats !== _state.slots[index]?.stats
+  );
+  if (hadInvalidSlots) {
+    reportRuntimeIssue(
+      'COMPARE_SLOT_INVARIANT',
+      'Compare slot had a loadout without stats and was reset.',
+      { details: normalizedSlots },
+    );
+    _state = { ..._state, slots: normalizedSlots };
+  }
   syncLegacyMirror();
   _subscribers.forEach(fn => fn(_state));
 }
 
 export function getState(): CompareState {
   hydrateFromAppState();
+  _state = { ..._state, slots: normalizeCompareSlots(_state.slots) };
   return { ..._state, slots: [..._state.slots] };
 }
 

@@ -8,6 +8,7 @@
     "typecheck": "tsc --noEmit",
     "build": "vite build",
     "preview": "vite preview",
+    "test:runtime": "tsx tests/runtime-hardening.test.ts",
     "extract": "tsx pipeline/scripts/extract.ts",
     "validate": "tsx pipeline/scripts/validate.ts",
     "export": "tsx pipeline/scripts/export-to-app.ts",

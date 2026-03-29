@@ -5,6 +5,7 @@ import { getActiveLoadout } from './store.js';
 import type { Loadout, Racquet, StringData, StringConfig } from '../engine/types.js';
 import { getRacquetById, getStringById } from '../data/loader.js';
 import { applyGaugeModifier } from '../engine/string-profile.js';
+import { reportRuntimeIssue } from '../runtime/diagnostics.js';
 
 interface SetupResult {
   racquet: Racquet;
@@ -52,7 +53,13 @@ function getLoadoutSetupKey(loadout: Loadout): string {
 export function getCurrentSetup(): SetupResult | null {
   const activeLoadout = getActiveLoadout();
   if (activeLoadout) {
-    return getSetupFromLoadout(activeLoadout);
+    const setup = getSetupFromLoadout(activeLoadout);
+    if (!setup) {
+      reportRuntimeIssue('ACTIVE_SETUP_INVALID', 'Active loadout could not be resolved into a complete setup.', {
+        details: activeLoadout,
+      });
+    }
+    return setup;
   }
   return null; // Would need DOM access for _getSetupFromEditorDOM
 }

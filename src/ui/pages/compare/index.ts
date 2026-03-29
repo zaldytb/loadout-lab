@@ -25,6 +25,7 @@ import { renderRadarChart, updateRadarChart } from './components/RadarChart.js';
 import { renderDiffBattery } from './components/DiffBattery.js';
 import { renderSlotEditor, getEditorFormData, mountSlotEditor } from './components/SlotEditor.js';
 import { getCachedValue, measurePerformance } from '../../../utils/performance.js';
+import { syncViews } from '../../../runtime/coordinator.js';
 
 // Container IDs
 const CONTAINER_SLOTS = 'compare-slots-container';
@@ -42,6 +43,7 @@ const compareStrings = STRINGS as unknown as StringData[];
 let _lastSlotsRenderKey = '';
 let _lastRadarRenderKey = '';
 let _lastDiffRenderKey = '';
+let _compareBridgeInstalled = false;
 
 type CompareLoadout = Loadout & {
   sourceLoadoutId?: string | null;
@@ -80,15 +82,7 @@ export function cleanupComparePage(): void {
  */
 function handleStateChange(state: typeof _currentState): void {
   _currentState = state;
-  const dockEditorContext = getDockEditorContext();
-  if (dockEditorContext.kind === 'compare-slot') {
-    const editedSlot = state.slots.find((slot) => slot.id === dockEditorContext.slotId);
-    if (!editedSlot || editedSlot.loadout === null) {
-      setDockEditorContext({ kind: 'compare-overview' });
-    }
-  }
-  render();
-  (window as any).renderDockContextPanel?.();
+  syncViews('compare-state-change', { compareState: true });
 }
 
 /**
@@ -769,6 +763,7 @@ export function editorLoadFromSaved(loadoutId: string): void {
  * Setup window handlers for inline onclick events
  */
 function setupWindowHandlers(): void {
+  if (_compareBridgeInstalled) return;
   const win = window as any;
   
   // Slot actions
@@ -789,6 +784,11 @@ function setupWindowHandlers(): void {
   
   // Diff actions
   win.compareToggleShowAll = toggleShowAll;
+  _compareBridgeInstalled = true;
+}
+
+export function hasCompareBridgeInstalled(): boolean {
+  return _compareBridgeInstalled;
 }
 
 // Export public API

@@ -8,11 +8,12 @@ import {
 import type { Loadout, Racquet, StringData, StringConfig } from '../../engine/types.js';
 import { createLoadout as createStateLoadout, loadSavedLoadouts, saveLoadout as stateSaveLoadout, saveLoadout, removeLoadout as stateRemoveLoadout, switchToLoadout as getSwitchedLoadout } from '../../state/loadout.js';
 import { getCurrentSetup, getSetupFromLoadout } from '../../state/setup-sync.js';
-import { getActiveLoadout, getSavedLoadouts, setActiveLoadout, setSavedLoadouts } from '../../state/store.js';
+import { getActiveLoadout, getSavedLoadouts, setActiveLoadout, setSavedLoadouts, subscribe as subscribeStore } from '../../state/store.js';
 import {
   getComparisonSlots,
   getCurrentMode,
   getDockEditorContext,
+  hasWindowAppStateBridgeInstalled,
   installWindowAppStateBridge,
   setDockEditorContext,
   setCurrentMode,
@@ -35,6 +36,9 @@ import { ssInstances } from '../components/searchable-select.js';
 import { showShareToast, copyToClipboard, exportLoadoutsToFile, importLoadoutsFromJSON, parseSharedBuildFromURL, generateShareURL } from '../../utils/share.js';
 import { toggleAppTheme } from '../theme.js';
 import { getScoredSetup } from '../../utils/performance.js';
+import { syncViews } from '../../runtime/coordinator.js';
+import { validateRuntimeContracts } from '../../runtime/contracts.js';
+import { reportRuntimeIssue } from '../../runtime/diagnostics.js';
 
 type CompareSlot = {
   id: number;
@@ -81,6 +85,7 @@ let _optimizeInitialized = false;
 let _compendiumInitialized = false;
 let _compareEditorDirty = false;
 let _pendingActiveRefreshFrame: number | null = null;
+let _storeSubscriptionsInstalled = false;
 
 async function ensureOptimizeModule() {
   return import('./optimize.js');
@@ -116,6 +121,12 @@ function renderCompareSurfaces(): void {
   } catch (_err) {
     // Preserve legacy tolerance for partial compare state.
   }
+}
+
+function syncRuntimeViews(reason: string, changed: Parameters<typeof syncViews>[1]): void {
+  updateDockEditorTitle();
+  updateDockEditorActionState();
+  syncViews(reason, changed);
 }
 
 function initTuneModeCompat(setup: { racquet: Racquet; stringConfig: StringConfig }): void {
@@ -349,29 +360,18 @@ export function activateLoadout(loadout: Loadout | null): void {
     saveActiveLoadout();
   }
 
-  setActiveLoadout(loadout);
   setDockEditorContext(getCurrentMode() === 'compare' ? { kind: 'compare-overview' } : { kind: 'active' });
   _compareEditorDirty = false;
   updateDockEditorTitle();
   updateDockEditorActionState();
+  setActiveLoadout(loadout);
 
   try {
     _store?.setItem('tll-active-loadout-id', loadout.id);
-  } catch (_err) {
-    // Ignore storage failures.
-  }
-
-  hydrateDock(loadout);
-  renderDockPanel();
-
-  const currentMode = getCurrentMode();
-  if (currentMode === 'overview') {
-    Overview.renderDashboard();
-  } else if (currentMode === 'tune') {
-    const setup = getCurrentSetup();
-    if (setup) {
-      initTuneModeCompat(setup);
-    }
+  } catch (error) {
+    reportRuntimeIssue('ACTIVE_LOADOUT_STORAGE', 'Failed to persist active loadout id.', {
+      details: error,
+    });
   }
 
   const optFrameSearch = document.getElementById('opt-frame-search') as HTMLInputElement | null;
@@ -379,6 +379,8 @@ export function activateLoadout(loadout: Loadout | null): void {
   const racquet = RACQUETS.find((frame) => frame.id === loadout.frameId) as Racquet | undefined;
   if (racquet && optFrameSearch) optFrameSearch.value = racquet.name;
   if (racquet && optFrameValue) optFrameValue.value = racquet.id;
+
+  syncRuntimeViews('activate-loadout', { dockEditorContext: true });
 }
 
 export function switchToLoadout(loadoutId: string): void {
@@ -392,7 +394,6 @@ export function saveActiveLoadout(): void {
   if (!active) return;
   active._dirty = false;
   stateSaveLoadout(active);
-  renderDockPanel();
 }
 
 export function shareActiveLoadout(): void {
@@ -445,7 +446,6 @@ export function importLoadouts(event: Event): void {
         showToast: showShareToast,
       });
       showShareToast(`${imported} loadout${imported !== 1 ? 's' : ''} imported!`);
-      renderDockPanel();
     } catch (_error) {
       showShareToast('Error reading file');
     }
@@ -457,15 +457,14 @@ export function importLoadouts(event: Event): void {
 
 export function removeLoadout(loadoutId: string): void {
   stateRemoveLoadout(loadoutId);
-  renderDockPanel();
 }
 
 export function resetActiveLoadout(): void {
-  setActiveLoadout(null);
   setDockEditorContext(getCurrentMode() === 'compare' ? { kind: 'compare-overview' } : { kind: 'active' });
   _compareEditorDirty = false;
   updateDockEditorTitle();
   updateDockEditorActionState();
+  setActiveLoadout(null);
 
   (Tune.tuneState as any).baseline = null;
   (Tune.tuneState as any).explored = null;
@@ -497,10 +496,7 @@ export function resetActiveLoadout(): void {
 
   const specs = document.getElementById('frame-specs');
   if (specs) specs.classList.add('hidden');
-
-  renderDockPanel();
-  if (getCurrentMode() === 'overview') Overview.renderDashboard();
-  if (getCurrentMode() === 'tune') refreshTuneIfActiveCompat();
+  syncRuntimeViews('reset-active-loadout', { dockEditorContext: true });
 }
 
 export function commitEditorToLoadout(): void {
@@ -576,11 +572,9 @@ export function commitEditorToLoadout(): void {
     }
   }
 
-  renderDockPanel();
   updateDockEditorActionState();
-  if (context.kind === 'active') {
-    Overview.renderDashboard();
-    refreshTuneIfActiveCompat();
+  if (context.kind !== 'active') {
+    syncRuntimeViews('commit-editor-compare-slot', { compareState: true });
   }
 }
 
@@ -598,9 +592,7 @@ export function cancelCompareSlotEditing(): void {
   _compareEditorDirty = false;
   primeDockEditor(loadout);
   setDockEditorContext({ kind: 'compare-overview' });
-  updateDockEditorTitle();
-  updateDockEditorActionState();
-  renderDockContextPanel();
+  syncRuntimeViews('cancel-compare-slot-edit', { dockEditorContext: true });
 }
 
 export function addLoadoutToCompare(loadoutId: string): void {
@@ -618,8 +610,6 @@ export function addLoadoutToCompare(loadoutId: string): void {
       win.compareSetSlotLoadout(targetSlotId, { ...loadout }, stats);
       setDockEditorContext({ kind: 'compare-overview' });
       _compareEditorDirty = false;
-      updateDockEditorTitle();
-      updateDockEditorActionState();
     }
   } else {
     const slots = getCompareSlots();
@@ -631,8 +621,7 @@ export function addLoadoutToCompare(loadoutId: string): void {
   }
 
   if (getCurrentMode() === 'compare') {
-    renderCompareSurfaces();
-    renderDockContextPanel();
+    syncRuntimeViews('add-loadout-to-compare', { compareState: true, dockEditorContext: true });
   } else {
     switchMode('compare');
   }
@@ -655,11 +644,9 @@ export function addActiveLoadoutToCompare(): void {
   win.compareSetSlotLoadout(targetSlotId, { ...activeLoadout }, stats);
   setDockEditorContext({ kind: 'compare-overview' });
   _compareEditorDirty = false;
-  updateDockEditorTitle();
-  updateDockEditorActionState();
 
   if (getCurrentMode() === 'compare') {
-    renderDockContextPanel();
+    syncRuntimeViews('add-active-loadout-to-compare', { compareState: true, dockEditorContext: true });
   }
 }
 
@@ -722,12 +709,7 @@ export function switchMode(mode: string): void {
     }
   });
 
-  if (mode === 'overview') {
-    Overview.renderDashboard();
-  } else if (mode === 'tune') {
-    const setup = getCurrentSetup();
-    if (setup) initTuneModeCompat(setup);
-  } else if (mode === 'compare') {
+  if (mode === 'compare') {
     // Initialize new TypeScript compare page
     const win = window as any;
     if (win.initComparePage) {
@@ -783,8 +765,7 @@ export function switchMode(mode: string): void {
       }
     });
   }
-
-  renderDockContextPanel();
+  syncRuntimeViews('switch-mode', { mode: true, dockEditorContext: true });
 }
 
 export function openTuneForSlot(slotIndex: number): void {
@@ -901,7 +882,7 @@ export function startCompareSlotEditing(slotId: string): void {
   const compareSlot = getCompareStateSlot(String(slotId));
   const loadout = (compareSlot?.loadout as Loadout | null) || getActiveLoadout() || null;
   primeDockEditor(loadout);
-  renderDockContextPanel();
+  syncRuntimeViews('start-compare-slot-edit', { dockEditorContext: true });
 }
 
 export function _handleHybridToggle(toHybrid: boolean): void {
@@ -1107,6 +1088,32 @@ export function init(): void {
   installWindowAppStateBridge();
   setSlotColors(SLOT_COLORS);
   _syncLegacyModeState(getCurrentMode());
+  validateRuntimeContracts({
+    requiredDomIds: [
+      'build-dock',
+      'builder-panel',
+      'dock-context-panel',
+      'dock-my-loadouts',
+      'mode-overview',
+      'mode-tune',
+      'mode-compare',
+      'workspace',
+    ],
+    requiredWindowBindings: [
+      'activateLoadout',
+      'switchMode',
+      'renderDockPanel',
+      'renderDashboard',
+      'compareGetState',
+    ],
+    throwInDev: true,
+  });
+
+  if (!hasWindowAppStateBridgeInstalled()) {
+    reportRuntimeIssue('APP_STATE_BRIDGE', 'App-state bridge was not installed before init.', {
+      throwInDev: true,
+    });
+  }
 
   const selectRacquet = $('#select-racquet');
   const selectStringFull = $('#select-string-full');
@@ -1190,23 +1197,31 @@ export function init(): void {
       if (saved) {
         const active = { ...saved, _dirty: false };
         setActiveLoadout(active);
-        hydrateDock(active);
       }
     }
-  } catch (_err) {
-    // Ignore storage failures.
+  } catch (error) {
+    reportRuntimeIssue('LOAD_ACTIVE_FROM_STORAGE', 'Failed to restore active loadout from storage.', {
+      details: error,
+    });
+  }
+
+  if (!_storeSubscriptionsInstalled) {
+    subscribeStore('activeLoadout', () => {
+      syncRuntimeViews('store-active-loadout', { activeLoadout: true });
+    });
+    subscribeStore('savedLoadouts', () => {
+      syncRuntimeViews('store-saved-loadouts', { savedLoadouts: true });
+    });
+    _storeSubscriptionsInstalled = true;
   }
 
   const hadSharedBuild = _handleSharedBuildURL();
-  Overview.renderDashboard();
 
   if (hadSharedBuild) {
     switchMode('overview');
+  } else {
+    syncRuntimeViews('shell-init', { activeLoadout: true, savedLoadouts: true, mode: true, dockEditorContext: true });
   }
-
-  renderDockPanel();
-  updateDockEditorTitle();
-  updateDockEditorActionState();
   _initLandingSearch();
 
   document.querySelectorAll('.mobile-tab-btn').forEach((button) => {

@@ -21,6 +21,7 @@ let _comparisonRadarChart: unknown = null;
 let _currentRadarChart: unknown = null;
 let _slotColors: unknown[] = [];
 let _dockEditorContext: DockEditorContext = { kind: 'active' };
+let _windowAppStateBridgeInstalled = false;
 
 export function getCurrentMode(): AppMode {
   return _currentMode;
@@ -72,6 +73,7 @@ export function setDockEditorContext(context: DockEditorContext): void {
 
 export function installWindowAppStateBridge(): void {
   if (typeof window === 'undefined') return;
+  if (_windowAppStateBridgeInstalled) return;
 
   const bridgeDefs: Array<[string, () => unknown, (value: unknown) => void]> = [
     ['currentMode', () => _currentMode, (value) => { _currentMode = value as AppMode; }],
@@ -100,4 +102,10 @@ export function installWindowAppStateBridge(): void {
       configurable: true
     });
   });
+
+  _windowAppStateBridgeInstalled = true;
+}
+
+export function hasWindowAppStateBridgeInstalled(): boolean {
+  return _windowAppStateBridgeInstalled;
 }
