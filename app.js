@@ -2486,7 +2486,11 @@ function _toggleCompareCardEditor(index) {
 function _compareInitEditorSS(card, index, slot) {}
 
 function openCompareEditor(idx) { _toggleCompareCardEditor(idx); }
-function closeCompareEditors() {}
+function closeCompareEditors() {
+  if (typeof window.closeCompareEditors === 'function' && window.closeCompareEditors !== closeCompareEditors) {
+    return window.closeCompareEditors();
+  }
+}
 
 function generateCompareVerdict(slotA, slotB) {
   return null;
@@ -8508,58 +8512,12 @@ function _showCompareQuickAddPrompt() {
   if (typeof window._showCompareQuickAddPrompt === 'function' && window._showCompareQuickAddPrompt !== _showCompareQuickAddPrompt) {
     return window._showCompareQuickAddPrompt();
   }
-  var promptEl = document.getElementById('compare-qa-prompt');
-  if (!promptEl) {
-    promptEl = document.createElement('div');
-    promptEl.id = 'compare-qa-prompt';
-    promptEl.className = 'compare-qa-prompt';
-    var slotsEl = document.getElementById('comparison-slots');
-    if (slotsEl && slotsEl.parentElement) {
-      slotsEl.parentElement.insertBefore(promptEl, slotsEl.nextSibling);
-    }
-  }
-
-  promptEl.innerHTML =
-    '<div class="compare-qa-inner">' +
-      '<p class="compare-qa-title">Add a second setup to compare</p>' +
-      '<p class="compare-qa-sub">Pick a frame and string, or save more loadouts from Racket Bible</p>' +
-      '<div class="compare-qa-fields">' +
-        '<select class="dock-qa-select" id="compare-qa-frame"><option value="">Choose frame...</option></select>' +
-        '<select class="dock-qa-select" id="compare-qa-string"><option value="">Choose string...</option></select>' +
-        '<input type="number" class="dock-qa-input" id="compare-qa-tension" value="53" min="30" max="70" style="width:70px">' +
-        '<button class="dock-qa-btn dock-qa-btn-primary" onclick="_compareQuickAdd()" style="flex:none;padding:7px 16px">Add to Compare</button>' +
-      '</div>' +
-    '</div>';
-
-  var frameSelect = document.getElementById('compare-qa-frame');
-  var stringSelect = document.getElementById('compare-qa-string');
-  RACQUETS.forEach(function(r) {
-    var opt = document.createElement('option');
-    opt.value = r.id;
-    opt.textContent = r.name;
-    frameSelect.appendChild(opt);
-  });
-  STRINGS.forEach(function(s) {
-    var opt = document.createElement('option');
-    opt.value = s.id;
-    opt.textContent = s.name + ' (' + s.gauge + ')';
-    stringSelect.appendChild(opt);
-  });
 }
 
 function _compareQuickAdd() {
   if (typeof window._compareQuickAdd === 'function' && window._compareQuickAdd !== _compareQuickAdd) {
     return window._compareQuickAdd();
   }
-  var frameId = document.getElementById('compare-qa-frame').value;
-  var stringId = document.getElementById('compare-qa-string').value;
-  var tension = parseInt(document.getElementById('compare-qa-tension').value) || 53;
-  if (!frameId || !stringId) return;
-
-  _compActionCompare(frameId, stringId, tension);
-
-  const prompt = document.getElementById('compare-qa-prompt');
-  if (prompt) prompt.remove();
 }
 
 function _init16x19Favicon() {

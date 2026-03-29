@@ -179,6 +179,7 @@ window._compareQuickAdd = ComparePage.quickAddFromPrompt;
 window._compareLoadFromSaved = ComparePage.compareLoadFromSaved;
 window._refreshCompareSlot = ComparePage.refreshCompareSlot;
 window.compareEditorCancel = ComparePage.cancelEditor;
+window.closeCompareEditors = ComparePage.cancelEditor;
 window.compareEditorSave = ComparePage.saveEditor;
 window.compareEditorSetHybrid = ComparePage.setEditorHybrid;
 window.compareEditorUpdateTension = ComparePage.updateEditorTension;
