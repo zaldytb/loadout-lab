@@ -323,6 +323,13 @@ export function createSearchableSelect(
     });
   }
 
+  function flushPendingRender(): void {
+    if (pendingRenderFrame == null) return;
+    cancelAnimationFrame(pendingRenderFrame);
+    pendingRenderFrame = null;
+    renderOptions(lastFilter);
+  }
+
   function selectOption(val: string): void {
     selectedValue = val;
     updateTrigger();
@@ -392,6 +399,9 @@ export function createSearchableSelect(
 
   // Event: keyboard
   searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter') {
+      flushPendingRender();
+    }
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       if (flatOptions.length === 0) return;

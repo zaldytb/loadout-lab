@@ -306,6 +306,7 @@ declare global {
     populateRacquetDropdown?: BridgeFn;
     populateStringDropdown?: BridgeFn;
     populateGaugeDropdown?: BridgeFn;
+    _initQaSearchable?: BridgeFn;
     getSetupFromEditorDOM?: BridgeFn;
     setHybridMode?: BridgeFn;
     scrollToElement?: BridgeFn;

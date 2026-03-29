@@ -26,6 +26,7 @@ import {
   populateGaugeDropdown,
   populateRacquetDropdown,
   populateStringDropdown,
+  showFrameSpecs,
   setHybridMode,
 } from '../shared/helpers.js';
 import { renderDockContextPanel, renderDockPanel, hydrateDock } from '../components/dock-renderers.js';
@@ -1111,15 +1112,40 @@ export function init(): void {
   const selectStringFull = $('#select-string-full');
   const selectStringMains = $('#select-string-mains');
   const selectStringCrosses = $('#select-string-crosses');
-  if (selectRacquet) populateRacquetDropdown(selectRacquet);
-  if (selectStringFull) populateStringDropdown(selectStringFull);
-  if (selectStringMains) populateStringDropdown(selectStringMains);
-  if (selectStringCrosses) populateStringDropdown(selectStringCrosses);
+  if (selectRacquet) {
+    populateRacquetDropdown(selectRacquet, {
+      onRacquetChange: (racquet) => {
+        showFrameSpecs(racquet);
+        _onEditorChange();
+      },
+    });
+  }
+  if (selectStringFull) {
+    populateStringDropdown(selectStringFull, {
+      gaugeTargetId: 'gauge-select-full',
+      onChange: () => _onEditorChange(),
+    });
+  }
+  if (selectStringMains) {
+    populateStringDropdown(selectStringMains, {
+      gaugeTargetId: 'gauge-select-mains',
+      onChange: () => _onEditorChange(),
+    });
+  }
+  if (selectStringCrosses) {
+    populateStringDropdown(selectStringCrosses, {
+      gaugeTargetId: 'gauge-select-crosses',
+      onChange: () => _onEditorChange(),
+    });
+  }
 
   $('#input-tension-full-mains')?.addEventListener('input', _onEditorChange);
   $('#input-tension-full-crosses')?.addEventListener('input', _onEditorChange);
   $('#input-tension-mains')?.addEventListener('input', _onEditorChange);
   $('#input-tension-crosses')?.addEventListener('input', _onEditorChange);
+  $('#gauge-select-full')?.addEventListener('change', _onEditorChange);
+  $('#gauge-select-mains')?.addEventListener('change', _onEditorChange);
+  $('#gauge-select-crosses')?.addEventListener('change', _onEditorChange);
 
   $('#btn-full')?.addEventListener('click', () => _handleHybridToggle(false));
   $('#btn-hybrid')?.addEventListener('click', () => _handleHybridToggle(true));

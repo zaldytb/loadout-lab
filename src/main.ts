@@ -25,6 +25,7 @@ import * as ObsAnimation from './ui/components/obs-animation.js';
 import * as DockPanel from './ui/components/dock-panel.js';
 import * as DockRenderers from './ui/components/dock-renderers.js';
 import * as DockCreate from './ui/components/dock-create.js';
+import * as SearchableSelect from './ui/components/searchable-select.js';
 
 // Import shared utilities
 import * as SharedRenderers from './ui/shared/renderers.js';
@@ -478,6 +479,7 @@ window.getFrameSpecs = SharedHelpers.getFrameSpecs;
 window.populateRacquetDropdown = SharedHelpers.populateRacquetDropdown;
 window.populateStringDropdown = SharedHelpers.populateStringDropdown;
 window.populateGaugeDropdown = SharedHelpers.populateGaugeDropdown;
+window._initQaSearchable = SearchableSelect._initQaSearchable;
 window.getSetupFromEditorDOM = SharedHelpers.getSetupFromEditorDOM;
 window.setHybridMode = SharedHelpers.setHybridMode;
 window.scrollToElement = SharedHelpers.scrollToElement;

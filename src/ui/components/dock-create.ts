@@ -237,6 +237,7 @@ export function _cfActivate(): void {
   _cfCreatingNew = false;
   const win = window as WindowExt;
   win.activateLoadout?.(lo);
+  renderDockCreateSection();
 
   if (isFirstLoadout) {
     win.saveLoadout?.(lo);
@@ -258,7 +259,9 @@ export function _cfSave(): void {
   _cfClearFieldErrors();
 
   _cfCreatingNew = false;
-  (window as WindowExt).saveLoadout?.(lo);
+  const win = window as WindowExt;
+  win.saveLoadout?.(lo);
+  renderDockCreateSection();
 }
 
 /**
